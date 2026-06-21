@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
-from .models import JobPostings, Departments
+from .models import JobPostings, Departments, Users
 
 # ==============================================================================
 # Django Views for CRUD Operations
@@ -22,22 +22,120 @@ def dashboard_index(request):
     Purpose: Renders the primary dashboard HTML page.
     Relevance:
       - This is the initial entry point when the user visits the home page.
-      - We query the database to get all Job Postings and all Departments.
+      - We query the database to get all Job Postings, Departments, and Users.
       - The lists are passed into the HTML template context so they can be 
         rendered server-side on initial load.
     """
-    # Fetch all job postings from the database
-    # (Notice: select_related fetches the related Department data in a single query
-    # to avoid the N+1 database query performance issue)
+    # Fetch all jobs, departments, and users from the database
     jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
     departments = Departments.objects.all().order_by('department_name')
+    users = Users.objects.all().order_by('-user_id')
     
     context = {
         'jobs': jobs,
-        'departments': departments
+        'departments': departments,
+        'users': users
     }
     return render(request, 'recruitmentapp/dashboard.html', context)
 
+
+# ==============================================================================
+# USERS CRUD API ENDPOINTS
+# ==============================================================================
+
+def api_user_list(request):
+    """
+    Purpose: Returns all Users as JSON (excluding passwords for security).
+    Relevance: Used by JavaScript to dynamically reload the list of users in the table.
+    """
+    users = Users.objects.all().order_by('-user_id')
+    data = []
+    for u in users:
+        data.append({
+            'user_id': u.user_id,
+            'full_name': u.full_name,
+            'email': u.email,
+            'user_type': u.user_type
+        })
+    return JsonResponse({'status': 'success', 'users': data})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_user_create(request):
+    """
+    Purpose: Creates a new User in the database via AJAX POST.
+    Relevance:
+      - Checks for unique email addresses.
+      - Automatically calculates the next User ID.
+      - Saves credentials directly to the Users table.
+    """
+    try:
+        data = json.loads(request.body)
+        
+        full_name = data.get('full_name')
+        email = data.get('email')
+        password = data.get('password')
+        user_type = data.get('user_type')
+        
+        # 1. Validation
+        if not full_name or not email or not password or not user_type:
+            return JsonResponse({'status': 'error', 'message': 'All fields are required.'}, status=400)
+            
+        # 2. Email uniqueness check
+        if Users.objects.filter(email=email).exists():
+            return JsonResponse({'status': 'error', 'message': 'A user with this email already exists.'}, status=400)
+            
+        # 3. Determine next ID
+        max_id = Users.objects.all().order_by('-user_id').first()
+        next_id = (max_id.user_id + 1) if max_id else 1
+        
+        # 4. Save User
+        user = Users.objects.create(
+            user_id=next_id,
+            full_name=full_name,
+            email=email,
+            password=password,
+            user_type=user_type
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'User created successfully!',
+            'user': {
+                'user_id': user.user_id,
+                'full_name': user.full_name
+            }
+        }, status=201)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def api_user_delete(request, user_id):
+    """
+    Purpose: Deletes a specific User from the database.
+    Relevance: Receives DELETE request and deletes record by ID.
+    """
+    try:
+        try:
+            user = Users.objects.get(pk=user_id)
+        except Users.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found.'}, status=404)
+            
+        user.delete()
+        return JsonResponse({'status': 'success', 'message': f'User {user_id} deleted successfully.'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ==============================================================================
+# JOB POSTINGS CRUD API ENDPOINTS
+# ==============================================================================
 
 def api_job_list(request):
     """
@@ -65,11 +163,6 @@ def api_job_list(request):
 def api_job_create(request):
     """
     Purpose: Creates a new Job Posting in the database from an AJAX request.
-    Relevance:
-      - The javascript app will send a POST request with JSON payload.
-      - We parse the data, validate required fields, query the related Department,
-        and save the record to the SQL Server database.
-      - Returns JSON success/error message.
     """
     try:
         data = json.loads(request.body)
@@ -90,8 +183,7 @@ def api_job_create(request):
         except Departments.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Invalid Department ID.'}, status=400)
             
-        # 3. Determine next Job ID (needed since database table may not have auto-increment enabled)
-        # We query the highest current ID and add 1.
+        # 3. Determine next Job ID
         max_id = JobPostings.objects.all().order_by('-job_id').first()
         next_id = (max_id.job_id + 1) if max_id else 1
         
@@ -125,19 +217,16 @@ def api_job_create(request):
 def api_job_delete(request, job_id):
     """
     Purpose: Deletes a specific Job Posting from the database.
-    Relevance:
-      - The javascript app sends a DELETE request to `/api/jobs/delete/<job_id>/`.
-      - We query the object and delete it.
-      - Returns success response to the client.
     """
     try:
         try:
             job = JobPostings.objects.get(pk=job_id)
         except JobPostings.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Job posting not found.'}, status=44)
+            return JsonResponse({'status': 'error', 'message': 'Job posting not found.'}, status=404)
             
         job.delete()
         return JsonResponse({'status': 'success', 'message': f'Job {job_id} deleted successfully.'})
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
