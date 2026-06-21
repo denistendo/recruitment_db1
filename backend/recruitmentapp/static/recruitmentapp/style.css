@@ -1,0 +1,7 @@
+/* CSS Stylesheet for Recruitment Dashboard */
+/* We will define HSL variables, grid layout, animations, and typography here */
+body {
+    background-color: #121212;
+    color: #ffffff;
+    font-family: sans-serif;
+}
