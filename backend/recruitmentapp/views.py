@@ -37,10 +37,7 @@ def dashboard_index(request):
 # ==============================================================================
 
 def api_user_list(request):
-    """
-    Purpose: Returns all Users as JSON (excluding passwords for security).
-    Relevance: Used by JavaScript to dynamically reload the list of users in the table.
-    """
+
     users = Users.objects.all().order_by('-user_id')
     data = []
     for u in users:
@@ -56,13 +53,6 @@ def api_user_list(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_user_create(request):
-    """
-    Purpose: Creates a new User in the database via AJAX POST.
-    Relevance:
-      - Checks for unique email addresses.
-      - Automatically calculates the next User ID.
-      - Saves credentials directly to the Users table.
-    """
     try:
         data = json.loads(request.body)
         
@@ -110,10 +100,7 @@ def api_user_create(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def api_user_delete(request, user_id):
-    """
-    Purpose: Deletes a specific User from the database.
-    Relevance: Receives DELETE request and deletes record by ID.
-    """
+
     try:
         try:
             user = Users.objects.get(pk=user_id)
@@ -131,12 +118,7 @@ def api_user_delete(request, user_id):
 # ==============================================================================
 
 def api_job_list(request):
-    """
-    Purpose: Returns all jobs as JSON.
-    Relevance:
-      - Used by JavaScript to dynamically reload the list of job postings after 
-        a creation or deletion without refreshing the entire page.
-    """
+
     jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
     data = []
     for job in jobs:
@@ -154,9 +136,7 @@ def api_job_list(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_job_create(request):
-    """
-    Purpose: Creates a new Job Posting in the database from an AJAX request.
-    """
+
     try:
         data = json.loads(request.body)
         
@@ -208,9 +188,7 @@ def api_job_create(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def api_job_delete(request, job_id):
-    """
-    Purpose: Deletes a specific Job Posting from the database.
-    """
+
     try:
         try:
             job = JobPostings.objects.get(pk=job_id)
