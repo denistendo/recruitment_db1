@@ -1,13 +1,242 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recruitment Database Dashboard</title>
-    <!-- We will link the stylesheet once the static route is configured -->
+    <title>Recruitment Administration Dashboard</title>
+    <!-- 
+      Purpose of Load Static:
+        `{% load static %}` allows Django to resolve correct paths for files in the static folders.
+        We link our custom vanilla CSS file below.
+    -->
+    <link rel="stylesheet" href="{% static 'recruitmentapp/style.css' %}">
+    
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Link the JavaScript file and defer it so it loads after the HTML is parsed -->
+    <script src="{% static 'recruitmentapp/app.js' %}" defer></script>
 </head>
 <body>
-    <h1>Recruitment Dashboard Skeleton</h1>
-    <p>This is the placeholder dashboard. HTML structure and content will be implemented next.</p>
+    <div class="app-container">
+        
+        <!-- ==========================================
+             1. SIDEBAR NAVIGATION
+             ========================================== -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>RecruitDB</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li class="menu-item active" id="nav-users" onclick="switchTab('users')">
+                        <span class="icon">👤</span> Users Management
+                    </li>
+                    <li class="menu-item" id="nav-jobs" onclick="switchTab('jobs')">
+                        <span class="icon">💼</span> Job Postings
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Status: Connected</p>
+                <small>SQL Server DB</small>
+            </div>
+        </aside>
+
+        <!-- ==========================================
+             2. MAIN CONTENT AREA
+             ========================================== -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-title">
+                    <h1 id="dashboard-title">Users Directory</h1>
+                    <p id="dashboard-subtitle">Manage company recruiters, managers, and candidate accounts.</p>
+                </div>
+            </header>
+
+            <!-- ==========================================
+                 TAB SECTION A: USERS DIRECTORY
+                 ========================================== -->
+            <section id="section-users" class="tab-section active">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" id="search-users" placeholder="Search users by name or email..." onkeyup="filterUsers()">
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('user-modal')">+ Create User</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Django Template Loop: Server-side rendering on initial load -->
+                            {% for u in users %}
+                            <tr id="user-row-{{ u.user_id }}">
+                                <td>{{ u.user_id }}</td>
+                                <td class="user-name-cell">{{ u.full_name }}</td>
+                                <td>{{ u.email }}</td>
+                                <td><span class="role-badge role-{{ u.user_type|lower }}">{{ u.user_type }}</span></td>
+                                <td style="text-align: center;">
+                                    <button class="btn btn-danger" onclick="deleteUser({{ u.user_id }})">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr id="users-empty-row">
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                    No user records found in the database.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 TAB SECTION B: JOB POSTINGS
+                 ========================================== -->
+            <section id="section-jobs" class="tab-section">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" id="search-jobs" placeholder="Search jobs by title or department..." onkeyup="filterJobs()">
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('job-modal')">+ Post New Job</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="jobs-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Job Title</th>
+                                <th>Department</th>
+                                <th>Posted Date</th>
+                                <th>Closing Date</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobs-table-body">
+                            <!-- Django Template Loop: Server-side rendering on initial load -->
+                            {% for job in jobs %}
+                            <tr id="job-row-{{ job.job_id }}">
+                                <td>{{ job.job_id }}</td>
+                                <td class="job-title-cell">{{ job.title }}</td>
+                                <td>{{ job.department.department_name|default:"N/A" }}</td>
+                                <td>{{ job.posted_date|default:"-" }}</td>
+                                <td>{{ job.closing_date|default:"-" }}</td>
+                                <td style="text-align: center;">
+                                    <button class="btn btn-danger" onclick="deleteJob({{ job.job_id }})">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr id="jobs-empty-row">
+                                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                    No job postings found in the database.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ==========================================
+         3. FORM MODAL DIALOGS (Hidden by default)
+         ========================================== -->
+
+    <!-- CREATE USER MODAL -->
+    <div class="modal-overlay" id="user-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Create New User Profile</h3>
+                <button class="modal-close" onclick="closeModal('user-modal')">&times;</button>
+            </div>
+            <form id="create-user-form" onsubmit="submitUserForm(event)">
+                <div class="form-group">
+                    <label for="user-fullname">Full Name</label>
+                    <input type="text" id="user-fullname" required placeholder="e.g. John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="user-email">Email Address</label>
+                    <input type="email" id="user-email" required placeholder="e.g. johndoe@company.com">
+                </div>
+                <div class="form-group">
+                    <label for="user-password">Password</label>
+                    <input type="password" id="user-password" required placeholder="Enter password (max 15 chars)">
+                </div>
+                <div class="form-group">
+                    <label for="user-type">User Role Type</label>
+                    <select id="user-type" required>
+                        <option value="Recruiter">Recruiter</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Applicant">Applicant</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('user-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE JOB POSTING MODAL -->
+    <div class="modal-overlay" id="job-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Post New Job Vacancy</h3>
+                <button class="modal-close" onclick="closeModal('job-modal')">&times;</button>
+            </div>
+            <form id="create-job-form" onsubmit="submitJobForm(event)">
+                <div class="form-group">
+                    <label for="job-title">Job Title</label>
+                    <input type="text" id="job-title" required placeholder="e.g. Senior Software Engineer">
+                </div>
+                <div class="form-group">
+                    <label for="job-description">Job Description</label>
+                    <textarea id="job-description" rows="3" placeholder="Brief summary of duties and requirements..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="job-department">Department</label>
+                    <select id="job-department" required>
+                        <option value="">-- Select Department --</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="job-posted-date">Date Posted</label>
+                        <input type="date" id="job-posted-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="job-closing-date">Closing Date</label>
+                        <input type="date" id="job-closing-date">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('job-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-success">Post Job</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast notification container for feedback alerts -->
+    <div id="toast-container" class="toast-container"></div>
 </body>
 </html>
