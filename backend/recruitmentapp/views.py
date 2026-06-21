@@ -18,14 +18,7 @@ from .models import JobPostings, Departments, Users
 
 
 def dashboard_index(request):
-    """
-    Purpose: Renders the primary dashboard HTML page.
-    Relevance:
-      - This is the initial entry point when the user visits the home page.
-      - We query the database to get all Job Postings, Departments, and Users.
-      - The lists are passed into the HTML template context so they can be 
-        rendered server-side on initial load.
-    """
+
     # Fetch all jobs, departments, and users from the database
     jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
     departments = Departments.objects.all().order_by('department_name')
