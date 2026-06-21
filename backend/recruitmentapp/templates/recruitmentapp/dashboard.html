@@ -65,7 +65,7 @@
                     <div class="search-box">
                         <input type="text" id="search-users" placeholder="Search users by name or email..." onkeyup="filterUsers()">
                     </div>
-                    <button class="btn btn-primary" onclick="openModal('user-modal')">+ Create User</button>
+                    <button class="btn btn-primary" onclick="openCreateUserModal()">+ Create User</button>
                 </div>
 
                 <div class="table-container">
@@ -88,7 +88,8 @@
                                 <td>{{ u.email }}</td>
                                 <td><span class="role-badge role-{{ u.user_type|lower }}">{{ u.user_type }}</span></td>
                                 <td style="text-align: center;">
-                                    <button class="btn btn-danger" onclick="deleteUser({{ u.user_id }})">Delete</button>
+                                    <button class="btn-edit" onclick="openEditUserModal({{ u.user_id }}, '{{ u.full_name|escapejs }}', '{{ u.email|escapejs }}', '{{ u.user_type|escapejs }}')">Edit</button>
+                                    <button class="btn-danger" onclick="deleteUser({{ u.user_id }})">Delete</button>
                                 </td>
                             </tr>
                             {% empty %}
@@ -111,7 +112,7 @@
                     <div class="search-box">
                         <input type="text" id="search-jobs" placeholder="Search jobs by title or department..." onkeyup="filterJobs()">
                     </div>
-                    <button class="btn btn-primary" onclick="openModal('job-modal')">+ Post New Job</button>
+                    <button class="btn btn-primary" onclick="openCreateJobModal()">+ Post New Job</button>
                 </div>
 
                 <div class="table-container">
@@ -136,7 +137,8 @@
                                 <td>{{ job.posted_date|default:"-" }}</td>
                                 <td>{{ job.closing_date|default:"-" }}</td>
                                 <td style="text-align: center;">
-                                    <button class="btn btn-danger" onclick="deleteJob({{ job.job_id }})">Delete</button>
+                                    <button class="btn-edit" onclick="openEditJobModal({{ job.job_id }}, '{{ job.title|escapejs }}', '{{ job.description|escapejs }}', '{{ job.department.department_id }}', '{{ job.posted_date|default:"" }}', '{{ job.closing_date|default:"" }}')">Edit</button>
+                                    <button class="btn-danger" onclick="deleteJob({{ job.job_id }})">Delete</button>
                                 </td>
                             </tr>
                             {% empty %}

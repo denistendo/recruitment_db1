@@ -118,7 +118,6 @@ def api_user_delete(request, user_id):
 # ==============================================================================
 
 def api_job_list(request):
-
     jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
     data = []
     for job in jobs:
@@ -127,6 +126,7 @@ def api_job_list(request):
             'title': job.title,
             'description': job.description,
             'department_name': job.department.department_name if job.department else 'N/A',
+            'department_id': job.department.department_id if job.department else None,
             'posted_date': str(job.posted_date) if job.posted_date else '',
             'closing_date': str(job.closing_date) if job.closing_date else ''
         })
@@ -201,3 +201,75 @@ def api_job_delete(request, job_id):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def api_user_update(request, user_id):
+    try:
+        try:
+            user = Users.objects.get(pk=user_id)
+        except Users.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found.'}, status=404)
+            
+        data = json.loads(request.body)
+        full_name = data.get('full_name')
+        email = data.get('email')
+        password = data.get('password')
+        user_type = data.get('user_type')
+        
+        if not full_name or not email or not user_type:
+            return JsonResponse({'status': 'error', 'message': 'Full Name, Email, and Role are required.'}, status=400)
+            
+        if Users.objects.filter(email=email).exclude(pk=user_id).exists():
+            return JsonResponse({'status': 'error', 'message': 'A user with this email already exists.'}, status=400)
+            
+        user.full_name = full_name
+        user.email = email
+        user.user_type = user_type
+        if password:
+            user.password = password
+            
+        user.save()
+        return JsonResponse({'status': 'success', 'message': 'User profile updated successfully!'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def api_job_update(request, job_id):
+    try:
+        try:
+            job = JobPostings.objects.get(pk=job_id)
+        except JobPostings.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Job posting not found.'}, status=404)
+            
+        data = json.loads(request.body)
+        title = data.get('title')
+        description = data.get('description')
+        department_id = data.get('department')
+        posted_date = data.get('posted_date')
+        closing_date = data.get('closing_date')
+        
+        if not title or not department_id:
+            return JsonResponse({'status': 'error', 'message': 'Title and Department are required.'}, status=400)
+            
+        try:
+            department = Departments.objects.get(pk=department_id)
+        except Departments.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Department ID.'}, status=400)
+            
+        job.title = title
+        job.description = description
+        job.department = department
+        job.posted_date = posted_date if posted_date else None
+        job.closing_date = closing_date if closing_date else None
+        job.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'Job posting updated successfully!'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

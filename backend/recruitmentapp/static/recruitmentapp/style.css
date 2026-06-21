@@ -261,6 +261,24 @@ body {
     border-color: var(--danger);
 }
 
+.btn-edit {
+    background-color: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #818cf8;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: var(--border-radius-sm);
+    margin-right: 0.5rem;
+}
+
+.btn-edit:hover {
+    background-color: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+
+
 /* ==========================================
      DATA TABLES
      ========================================== */
