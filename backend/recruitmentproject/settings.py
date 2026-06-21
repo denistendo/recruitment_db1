@@ -79,11 +79,15 @@ WSGI_APPLICATION = 'recruitmentproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'recruitment_db',
-        'USER': 'root',
+        'NAME': 'RecruitmentDB',
+        'USER': '',
         'PASSWORD': '',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '1433',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 18 for SQL Server',
+            'extra_params': 'Encrypt=yes;TrustServerCertificate=yes;',
+        },
     }
 }
 
