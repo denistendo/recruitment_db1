@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Users Management - RecruitDB{% endblock %}
+{% block page_header %}Users Management{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'users/users.css' %}">
@@ -11,33 +12,8 @@
 <script src="{% static 'users/users.js' %}" defer></script>
 {% endblock %}
 
-{% block page_title %}Users Directory{% endblock %}
-{% block page_subtitle %}Manage company recruiters, managers, and candidate accounts.{% endblock %}
-
-{% block page_files %}
-<li onclick="copyToClipboard('frontend/users/users.html', 'Template')" title="Click to copy relative path">
-    <span class="file-icon">📄</span>
-    <span class="file-name">users.html</span>
-</li>
-<li onclick="copyToClipboard('frontend/layout/base.html', 'Layout')" title="Click to copy relative path">
-    <span class="file-icon">📁</span>
-    <span class="file-name">base.html</span>
-</li>
-<li onclick="copyToClipboard('backend/recruitmentapp/views.py', 'View')" title="Click to copy relative path">
-    <span class="file-icon">🐍</span>
-    <span class="file-name">views.py</span>
-</li>
-<li onclick="copyToClipboard('frontend/users/users.css', 'Styles')" title="Click to copy relative path">
-    <span class="file-icon">🎨</span>
-    <span class="file-name">users.css</span>
-</li>
-<li onclick="copyToClipboard('frontend/users/users.js', 'Script')" title="Click to copy relative path">
-    <span class="file-icon">⚡</span>
-    <span class="file-name">users.js</span>
-</li>
-{% endblock %}
-
 {% block content %}
+<p class="text-muted mb-4">Manage company recruiters, managers, and candidate accounts.</p>
 <section id="section-users" class="tab-section active">
     <div class="action-bar">
         <div class="search-box">

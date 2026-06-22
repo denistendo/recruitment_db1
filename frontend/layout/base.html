@@ -4,74 +4,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Recruitment Administration Dashboard{% endblock %}</title>
+    <title>{% block title %}Recruitment Management System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'layout/base.css' %}">
     {% block extra_css %}{% endblock %}
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script src="{% static 'layout/base.js' %}" defer></script>
-    {% block extra_js %}{% endblock %}
 </head>
 <body>
-    <div class="app-container">
-        
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <h2>RecruitDB</h2>
+    {% block layout %}
+    <div class="d-flex" style="min-height: 100vh;">
+        {% block sidebar %}
+        <aside class="sidebar bg-dark text-white d-flex flex-column" style="width: 260px; flex-shrink: 0;">
+            <div class="p-3 border-bottom border-secondary">
+                <h4 class="mb-0">
+                    <i class="bi bi-people-fill me-2"></i>RecruitDB
+                </h4>
+                <small class="text-secondary">Recruitment System</small>
             </div>
-            <nav class="sidebar-menu">
-                <ul>
-                    <li>
-                        <a href="{% url 'recruitmentapp:users' %}" class="menu-item {% if active_tab == 'users' %}active{% endif %}" id="nav-users">
-                            <span class="icon">👤</span> Users Management
+
+            <nav class="p-3 flex-grow-1">
+                <ul class="nav flex-column">
+                    {% if session_user %}
+                    <li class="nav-item mb-1">
+                        <a href="{% if session_user.user_type == 'SystemAdministrator' %}{% url 'recruitmentapp:admin_dashboard' %}{% elif session_user.user_type == 'HumanResourceOfficer' %}{% url 'recruitmentapp:hr_dashboard' %}{% elif session_user.user_type == 'InterviewPanelMember' %}{% url 'recruitmentapp:panel_dashboard' %}{% elif session_user.user_type == 'JobApplicant' %}{% url 'recruitmentapp:applicant_dashboard' %}{% elif session_user.user_type == 'DepartmentManager' %}{% url 'recruitmentapp:department_dashboard' %}{% endif %}" class="nav-link text-white {% if active_tab == 'dashboard' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'recruitmentapp:jobs' %}" class="menu-item {% if active_tab == 'jobs' %}active{% endif %}" id="nav-jobs">
-                            <span class="icon">💼</span> Job Postings
+                    {% endif %}
+
+                    {% if session_user.user_type == 'SystemAdministrator' %}
+                    <li class="nav-item mb-1">
+                        <a href="{% url 'recruitmentapp:users' %}" class="nav-link text-white {% if active_tab == 'users' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-people me-2"></i>Users
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'recruitmentapp:applicants' %}" class="menu-item {% if active_tab == 'applicants' %}active{% endif %}" id="nav-applicants">
-                            <span class="icon">👥</span> Applicants
+                    {% endif %}
+
+                    {% if session_user.user_type == 'SystemAdministrator' or session_user.user_type == 'HumanResourceOfficer' %}
+                    <li class="nav-item mb-1">
+                        <a href="{% url 'recruitmentapp:jobs' %}" class="nav-link text-white {% if active_tab == 'jobs' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-briefcase me-2"></i>Job Postings
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'recruitmentapp:signup' %}" class="menu-item {% if active_tab == 'signup' %}active{% endif %}" id="nav-signup">
-                            <span class="icon">📝</span> Open Signup
+                    <li class="nav-item mb-1">
+                        <a href="{% url 'recruitmentapp:applications' %}" class="nav-link text-white {% if active_tab == 'applications' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-file-text me-2"></i>Applications
                         </a>
                     </li>
+                    <li class="nav-item mb-1">
+                        <a href="{% url 'recruitmentapp:applicants' %}" class="nav-link text-white {% if active_tab == 'applicants' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-person-badge me-2"></i>Applicants
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if session_user.user_type == 'JobApplicant' %}
+                    <li class="nav-item mb-1">
+                        <a href="{% url 'recruitmentapp:applications' %}" class="nav-link text-white {% if active_tab == 'applications' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-file-text me-2"></i>My Applications
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
             </nav>
-            <div class="sidebar-footer">
-                <div class="db-status">
-                    <p>Status: Connected</p>
-                    <small>SQL Server DB</small>
-                </div>
-                <div class="page-files-info">
-                    <h4>Page Source Files</h4>
-                    <ul>
-                        {% block page_files %}{% endblock %}
-                    </ul>
+
+            {% if session_user %}
+            <div class="p-3 border-top border-secondary">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-circle fs-4 me-2"></i>
+                    <div>
+                        <div class="small fw-bold">{{ session_user.full_name }}</div>
+                        <small class="text-secondary">{{ session_user.user_type }}</small>
+                    </div>
                 </div>
             </div>
+            {% endif %}
         </aside>
+        {% endblock %}
 
-        <main class="main-content">
-            <header class="main-header">
-                <div class="header-title">
-                    <h1 id="dashboard-title">{% block page_title %}{% endblock %}</h1>
-                    <p id="dashboard-subtitle">{% block page_subtitle %}{% endblock %}</p>
+        <div class="flex-grow-1 d-flex flex-column" style="min-width: 0;">
+            {% block topnav %}
+            <nav class="navbar navbar-expand navbar-light bg-white shadow-sm px-4 py-2">
+                <div class="d-flex align-items-center w-100">
+                    <h5 class="mb-0">{% block page_header %}Dashboard{% endblock %}</h5>
+                    <div class="ms-auto d-flex align-items-center gap-3">
+                        {% if session_user %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                            <i class="bi bi-shield-check me-1"></i>{{ session_user.user_type }}
+                        </span>
+                        <a href="{% url 'recruitmentapp:logout' %}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-box-arrow-right me-1"></i>Logout
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
-            </header>
+            </nav>
+            {% endblock %}
 
-            {% block content %}{% endblock %}
-        </main>
+            <main class="p-4 bg-light flex-grow-1">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
     </div>
+    {% endblock %}
 
-    <div id="toast-container" class="toast-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'layout/base.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

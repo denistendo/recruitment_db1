@@ -1,47 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="/static/authentication/signup.css">
-</head>
-<body>
-    <div class="signup-container">
-        <h2>Create Account</h2>
-{% if messages %}
-            <div class="messages">
-    {% for message in messages %}
-                <div class="message {{ message.tags }}">{{ message }}</div>
-    {% endfor %}
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - Recruitment System{% endblock %}
+
+{% block layout %}
+<div class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+    <div class="card shadow-lg" style="width: 480px; border: none; border-radius: 12px;">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <i class="bi bi-people-fill text-primary" style="font-size: 2.5rem;"></i>
+                <h3 class="mt-2 fw-bold">Create Account</h3>
+                <p class="text-muted">Join the Recruitment System</p>
             </div>
-{% endif %}
-        <form action="{% url 'recruitmentapp:signup' %}" method="POST">
-            {% csrf_token %}
-            <label for="full_name">Full Name:</label>
-            <input type="text" id="full_name" name="full_name" required>
 
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+            <form action="{% url 'recruitmentapp:signup' %}" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control form-control-lg" id="full_name" name="full_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control form-control-lg" id="email" name="email" required>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control form-control-lg" id="confirm_password" name="confirm_password" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="user_type" class="form-label">Role</label>
+                    <select class="form-select form-select-lg" id="user_type" name="user_type" required>
+                        <option value="">Select Role</option>
+                        <option value="HumanResourceOfficer">Human Resource Officer</option>
+                        <option value="InterviewPanelMember">Interview Panel Member</option>
+                        <option value="JobApplicant">Job Applicant</option>
+                        <option value="DepartmentManager">Department Manager</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">Create Account</button>
+            </form>
 
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
-
-            <label for="user_type">User Type:</label>
-            <select id="user_type" name="user_type" required>
-                <option value="">Select Role</option>
-                <option value="Admin">Admin</option>
-                <option value="Recruiter">Recruiter</option>
-                <option value="Interviewer">Interviewer</option>
-                <option value="Applicant">Applicant</option>
-            </select>
-
-            <button type="submit">Sign Up</button>
-        </form>
-        <p class="login-link">Already have an account? <a href="{% url 'recruitmentapp:signin' %}">signin</a></p>
+            <p class="text-center mt-4 mb-0">
+                Already have an account? <a href="{% url 'recruitmentapp:signin' %}">Sign in</a>
+            </p>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

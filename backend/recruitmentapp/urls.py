@@ -4,27 +4,36 @@ from . import views
 app_name = 'recruitmentapp'
 
 urlpatterns = [
-    path('', views.users_page, name='users'),
+    # Auth
     path('signup/', views.signup_view, name='signup'),
     path('signin/', views.signin_view, name='signin'),
+    path('logout/', views.logout_view, name='logout'),
+
+    # Dashboards
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('hr-dashboard/', views.hr_dashboard, name='hr_dashboard'),
+    path('panel-dashboard/', views.panel_dashboard, name='panel_dashboard'),
+    path('applicant-dashboard/', views.applicant_dashboard, name='applicant_dashboard'),
+    path('department-dashboard/', views.department_dashboard, name='department_dashboard'),
+
+    # Functional pages
+    path('users/', views.users_page, name='users'),
     path('jobs/', views.jobs_page, name='jobs'),
     path('applicants/', views.applicants_page, name='applicants'),
+    path('applications/', views.applications_page, name='applications'),
 
+    # API endpoints
+    path('api/signup/', views.api_signup, name='api_signup'),
     path('api/users/', views.api_user_list, name='api_user_list'),
     path('api/users/create/', views.api_user_create, name='api_user_create'),
     path('api/users/update/<int:user_id>/', views.api_user_update, name='api_user_update'),
     path('api/users/delete/<int:user_id>/', views.api_user_delete, name='api_user_delete'),
-
     path('api/jobs/', views.api_job_list, name='api_job_list'),
     path('api/jobs/create/', views.api_job_create, name='api_job_create'),
     path('api/jobs/update/<int:job_id>/', views.api_job_update, name='api_job_update'),
     path('api/jobs/delete/<int:job_id>/', views.api_job_delete, name='api_job_delete'),
-
     path('api/applicants/', views.api_applicant_list, name='api_applicant_list'),
     path('api/applicants/create/', views.api_applicant_create, name='api_applicant_create'),
     path('api/applicants/update/<int:applicant_id>/', views.api_applicant_update, name='api_applicant_update'),
     path('api/applicants/delete/<int:applicant_id>/', views.api_applicant_delete, name='api_applicant_delete'),
-
-    path('api/signup/', views.api_signup, name='api_signup'),
 ]
-

@@ -3,9 +3,48 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
+from functools import wraps
 import json
 from .models import JobPostings, Departments, Users, Applicants, Applications
 
+
+ROLE_DASHBOARD_MAP = {
+    'SystemAdministrator': 'recruitmentapp:admin_dashboard',
+    'HumanResourceOfficer': 'recruitmentapp:hr_dashboard',
+    'InterviewPanelMember': 'recruitmentapp:panel_dashboard',
+    'JobApplicant': 'recruitmentapp:applicant_dashboard',
+    'DepartmentManager': 'recruitmentapp:department_dashboard',
+}
+
+
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if 'user_id' not in request.session:
+            messages.error(request, 'Please log in to continue.')
+            return redirect('recruitmentapp:signin')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def role_required(allowed_roles):
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if 'user_id' not in request.session:
+                messages.error(request, 'Please log in to continue.')
+                return redirect('recruitmentapp:signin')
+            user_type = request.session.get('user_type')
+            if user_type not in allowed_roles:
+                messages.error(request, 'You do not have permission to access this page.')
+                dashboard_url = ROLE_DASHBOARD_MAP.get(user_type, 'recruitmentapp:signin')
+                return redirect(dashboard_url)
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+# ========== AUTHENTICATION VIEWS ==========
 
 def signup_view(request):
     if request.method == 'POST':
@@ -58,11 +97,137 @@ def signin_view(request):
             messages.error(request, 'Invalid credentials.')
             return render(request, 'authentication/signin.html')
 
-        messages.success(request, 'Welcome back!')
-        return redirect('recruitmentapp:users')
+        request.session['user_id'] = user.user_id
+        request.session['user_type'] = user.user_type
+        request.session.set_expiry(86400)
+
+        redirect_url = ROLE_DASHBOARD_MAP.get(user.user_type, 'recruitmentapp:users')
+        return redirect(redirect_url)
 
     return render(request, 'authentication/signin.html')
 
+
+def logout_view(request):
+    request.session.flush()
+    messages.success(request, 'You have been logged out.')
+    return redirect('recruitmentapp:signin')
+
+
+# ========== DASHBOARD VIEWS ==========
+
+@role_required(['SystemAdministrator'])
+def admin_dashboard(request):
+    context = {
+        'active_tab': 'dashboard',
+        'total_users': Users.objects.count(),
+        'total_jobs': JobPostings.objects.count(),
+        'total_applications': Applications.objects.count(),
+        'recent_users': Users.objects.all().order_by('-user_id')[:5],
+    }
+    return render(request, 'dashboards/admin_dashboard.html', context)
+
+
+@role_required(['HumanResourceOfficer'])
+def hr_dashboard(request):
+    context = {
+        'active_tab': 'dashboard',
+        'total_jobs': JobPostings.objects.count(),
+        'total_applications': Applications.objects.count(),
+        'recent_jobs': JobPostings.objects.select_related('department').all().order_by('-job_id')[:5],
+    }
+    return render(request, 'dashboards/hr_dashboard.html', context)
+
+
+@role_required(['InterviewPanelMember'])
+def panel_dashboard(request):
+    context = {
+        'active_tab': 'dashboard',
+    }
+    return render(request, 'dashboards/panel_dashboard.html', context)
+
+
+@role_required(['JobApplicant'])
+def applicant_dashboard(request):
+    user_id = request.session.get('user_id')
+    applicant = Applicants.objects.filter(user_id=user_id).first()
+    applications = []
+    if applicant:
+        applications = Applications.objects.filter(applicant=applicant).select_related('job').all()
+    context = {
+        'active_tab': 'dashboard',
+        'applicant': applicant,
+        'applications': applications,
+        'total_applications': len(applications),
+    }
+    return render(request, 'dashboards/applicant_dashboard.html', context)
+
+
+@role_required(['DepartmentManager'])
+def department_dashboard(request):
+    context = {
+        'active_tab': 'dashboard',
+    }
+    return render(request, 'dashboards/department_dashboard.html', context)
+
+
+# ========== FUNCTIONAL PAGES ==========
+
+@role_required(['SystemAdministrator'])
+def users_page(request):
+    users = Users.objects.all().order_by('user_id')
+    context = {
+        'users': users,
+        'active_tab': 'users',
+    }
+    return render(request, 'users/users.html', context)
+
+
+@role_required(['SystemAdministrator', 'HumanResourceOfficer'])
+def jobs_page(request):
+    jobs = JobPostings.objects.select_related('department').all().order_by('job_id')
+    departments = Departments.objects.all().order_by('department_name')
+    context = {
+        'jobs': jobs,
+        'departments': departments,
+        'active_tab': 'jobs',
+    }
+    return render(request, 'jobs/jobs.html', context)
+
+
+@role_required(['SystemAdministrator', 'HumanResourceOfficer'])
+def applicants_page(request):
+    applicants_list = Applicants.objects.select_related('user').all().order_by('applicant_id')
+    users = Users.objects.all().order_by('full_name')
+    context = {
+        'applicants': applicants_list,
+        'users': users,
+        'active_tab': 'applicants',
+    }
+    return render(request, 'applicants/applicants.html', context)
+
+
+@role_required(['SystemAdministrator', 'HumanResourceOfficer', 'JobApplicant'])
+def applications_page(request):
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if user_type == 'JobApplicant':
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if applicant:
+            applications_list = Applications.objects.filter(applicant=applicant).select_related('applicant__user', 'job').all()
+        else:
+            applications_list = []
+    else:
+        applications_list = Applications.objects.select_related('applicant__user', 'job').all().order_by('-application_id')
+
+    context = {
+        'applications': applications_list,
+        'active_tab': 'applications',
+    }
+    return render(request, 'applications/applications.html', context)
+
+
+# ========== API ENDPOINTS (unchanged) ==========
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -98,26 +263,6 @@ def api_signup(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
-def users_page(request):
-    users = Users.objects.all().order_by('user_id')
-    
-    context = {
-        'users': users
-    }
-    return render(request, 'users/users.html', context)
-
-
-def jobs_page(request):
-    jobs = JobPostings.objects.select_related('department').all().order_by('job_id')
-    departments = Departments.objects.all().order_by('department_name')
-    
-    context = {
-        'jobs': jobs,
-        'departments': departments
-    }
-    return render(request, 'jobs/jobs.html', context)
-
-
 def api_user_list(request):
     users = Users.objects.all().order_by('user_id')
     data = []
@@ -136,21 +281,20 @@ def api_user_list(request):
 def api_user_create(request):
     try:
         data = json.loads(request.body)
-        
         full_name = data.get('full_name')
         email = data.get('email')
         password = data.get('password')
         user_type = data.get('user_type')
-        
+
         if not full_name or not email or not password or not user_type:
             return JsonResponse({'status': 'error', 'message': 'All fields are required.'}, status=400)
-            
+
         if Users.objects.filter(email=email).exists():
             return JsonResponse({'status': 'error', 'message': 'A user with this email already exists.'}, status=400)
-            
+
         max_id = Users.objects.all().order_by('-user_id').first()
         next_id = (max_id.user_id + 1) if max_id else 1
-        
+
         user = Users.objects.create(
             user_id=next_id,
             full_name=full_name,
@@ -158,31 +302,17 @@ def api_user_create(request):
             password=password,
             user_type=user_type
         )
-        
+
         return JsonResponse({
             'status': 'success',
             'message': 'User created successfully!',
-            'user': {
-                'user_id': user.user_id,
-                'full_name': user.full_name
-            }
+            'user': {'user_id': user.user_id, 'full_name': user.full_name}
         }, status=201)
-        
+
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
-def applicants_page(request):
-    applicants = Applicants.objects.select_related('user').all().order_by('applicant_id')
-    users = Users.objects.all().order_by('full_name')
-
-    context = {
-        'applicants': applicants,
-        'users': users
-    }
-    return render(request, 'applicants/applicants.html', context)
 
 
 def api_applicant_list(request):
@@ -239,10 +369,7 @@ def api_applicant_create(request):
         return JsonResponse({
             'status': 'success',
             'message': 'Applicant profile created successfully!',
-            'applicant': {
-                'applicant_id': applicant.applicant_id,
-                'full_name': applicant.user.full_name if applicant.user else 'N/A'
-            }
+            'applicant': {'applicant_id': applicant.applicant_id, 'full_name': applicant.user.full_name if applicant.user else 'N/A'}
         }, status=201)
 
     except json.JSONDecodeError:
@@ -315,7 +442,7 @@ def api_user_delete(request, user_id):
             user = Users.objects.get(pk=user_id)
         except Users.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User not found.'}, status=404)
-            
+
         user.delete()
         return JsonResponse({'status': 'success', 'message': f'User {user_id} deleted successfully.'})
     except Exception as e:
@@ -343,24 +470,23 @@ def api_job_list(request):
 def api_job_create(request):
     try:
         data = json.loads(request.body)
-        
         title = data.get('title')
         description = data.get('description')
         department_id = data.get('department')
         posted_date = data.get('posted_date')
         closing_date = data.get('closing_date')
-        
+
         if not title or not department_id:
             return JsonResponse({'status': 'error', 'message': 'Title and Department are required fields.'}, status=400)
-        
+
         try:
             department = Departments.objects.get(pk=department_id)
         except Departments.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Invalid Department ID.'}, status=400)
-            
+
         max_id = JobPostings.objects.all().order_by('-job_id').first()
         next_id = (max_id.job_id + 1) if max_id else 1
-        
+
         job = JobPostings.objects.create(
             job_id=next_id,
             title=title,
@@ -369,16 +495,13 @@ def api_job_create(request):
             posted_date=posted_date if posted_date else None,
             closing_date=closing_date if closing_date else None
         )
-        
+
         return JsonResponse({
             'status': 'success',
             'message': 'Job posting created successfully!',
-            'job': {
-                'job_id': job.job_id,
-                'title': job.title
-            }
+            'job': {'job_id': job.job_id, 'title': job.title}
         }, status=201)
-        
+
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON data payload.'}, status=400)
     except Exception as e:
@@ -393,10 +516,9 @@ def api_job_delete(request, job_id):
             job = JobPostings.objects.get(pk=job_id)
         except JobPostings.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Job posting not found.'}, status=404)
-            
+
         job.delete()
         return JsonResponse({'status': 'success', 'message': f'Job {job_id} deleted successfully.'})
-        
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
@@ -409,25 +531,25 @@ def api_user_update(request, user_id):
             user = Users.objects.get(pk=user_id)
         except Users.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User not found.'}, status=404)
-            
+
         data = json.loads(request.body)
         full_name = data.get('full_name')
         email = data.get('email')
         password = data.get('password')
         user_type = data.get('user_type')
-        
+
         if not full_name or not email or not user_type:
             return JsonResponse({'status': 'error', 'message': 'Full Name, Email, and Role are required.'}, status=400)
-            
+
         if Users.objects.filter(email=email).exclude(pk=user_id).exists():
             return JsonResponse({'status': 'error', 'message': 'A user with this email already exists.'}, status=400)
-            
+
         user.full_name = full_name
         user.email = email
         user.user_type = user_type
         if password:
             user.password = password
-            
+
         user.save()
         return JsonResponse({'status': 'success', 'message': 'User profile updated successfully!'})
     except json.JSONDecodeError:
@@ -444,29 +566,29 @@ def api_job_update(request, job_id):
             job = JobPostings.objects.get(pk=job_id)
         except JobPostings.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Job posting not found.'}, status=404)
-            
+
         data = json.loads(request.body)
         title = data.get('title')
         description = data.get('description')
         department_id = data.get('department')
         posted_date = data.get('posted_date')
         closing_date = data.get('closing_date')
-        
+
         if not title or not department_id:
             return JsonResponse({'status': 'error', 'message': 'Title and Department are required.'}, status=400)
-            
+
         try:
             department = Departments.objects.get(pk=department_id)
         except Departments.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Invalid Department ID.'}, status=400)
-            
+
         job.title = title
         job.description = description
         job.department = department
         job.posted_date = posted_date if posted_date else None
         job.closing_date = closing_date if closing_date else None
         job.save()
-        
+
         return JsonResponse({'status': 'success', 'message': 'Job posting updated successfully!'})
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)

@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Job Vacancies - RecruitDB{% endblock %}
+{% block page_header %}Job Vacancies{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'jobs/jobs.css' %}">
@@ -11,33 +12,8 @@
 <script src="{% static 'jobs/jobs.js' %}" defer></script>
 {% endblock %}
 
-{% block page_title %}Job Vacancies{% endblock %}
-{% block page_subtitle %}Track and post active corporate job listings linked to departments.{% endblock %}
-
-{% block page_files %}
-<li onclick="copyToClipboard('frontend/jobs/jobs.html', 'Template')" title="Click to copy relative path">
-    <span class="file-icon">📄</span>
-    <span class="file-name">jobs.html</span>
-</li>
-<li onclick="copyToClipboard('frontend/layout/base.html', 'Layout')" title="Click to copy relative path">
-    <span class="file-icon">📁</span>
-    <span class="file-name">base.html</span>
-</li>
-<li onclick="copyToClipboard('backend/recruitmentapp/views.py', 'View')" title="Click to copy relative path">
-    <span class="file-icon">🐍</span>
-    <span class="file-name">views.py</span>
-</li>
-<li onclick="copyToClipboard('frontend/jobs/jobs.css', 'Styles')" title="Click to copy relative path">
-    <span class="file-icon">🎨</span>
-    <span class="file-name">jobs.css</span>
-</li>
-<li onclick="copyToClipboard('frontend/jobs/jobs.js', 'Script')" title="Click to copy relative path">
-    <span class="file-icon">⚡</span>
-    <span class="file-name">jobs.js</span>
-</li>
-{% endblock %}
-
 {% block content %}
+<p class="text-muted mb-4">Track and post active corporate job listings linked to departments.</p>
 <section id="section-jobs" class="tab-section active">
     <div class="action-bar">
         <div class="search-box">

@@ -1,0 +1,84 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block title %}My Dashboard - RecruitDB{% endblock %}
+{% block page_header %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                        <i class="bi bi-file-text text-warning fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-subtitle text-muted mb-1">My Applications</h6>
+                        <h2 class="card-title mb-0 fw-bold">{{ total_applications }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not applicant %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-person-plus text-primary" style="font-size: 3rem;"></i>
+        <h5 class="mt-3 fw-bold">Complete Your Profile</h5>
+        <p class="text-muted">Create an applicant profile to start applying for jobs.</p>
+        <p class="text-muted mb-0">Contact HR to set up your applicant profile.</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0 fw-bold">My Applications</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Job Title</th>
+                    <th>Applied Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ app.job.title|default:"N/A" }}</td>
+                    <td>{{ app.application_date|default:"-" }}</td>
+                    <td>
+                        {% if app.status == 'Accepted' %}
+                        <span class="badge bg-success">{{ app.status }}</span>
+                        {% elif app.status == 'Rejected' %}
+                        <span class="badge bg-danger">{{ app.status }}</span>
+                        {% elif app.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark">{{ app.status }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-3">No applications submitted yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-search text-primary" style="font-size: 3rem;"></i>
+        <h5 class="mt-3 fw-bold">Coming Soon</h5>
+        <p class="text-muted mb-0">Job search and direct application features are under development.</p>
+    </div>
+</div>
+{% endblock %}
