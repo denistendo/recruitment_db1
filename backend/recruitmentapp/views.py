@@ -446,7 +446,7 @@ def api_apply_job(request):
 
         try:
             user = Users.objects.get(pk=user_id)
-            send_application_confirmation(user.email, user.full_name, job.title)
+            send_application_confirmation(user.email, user.full_name, job.title, applicant.phone_number if applicant else None)
         except Exception:
             pass
 
