@@ -39,6 +39,11 @@
                             <span class="icon">👥</span> Applicants
                         </a>
                     </li>
+                    <li>
+                        <a href="{% url 'recruitmentapp:signup' %}" class="menu-item {% if active_tab == 'signup' %}active{% endif %}" id="nav-signup">
+                            <span class="icon">📝</span> Open Signup
+                        </a>
+                    </li>
                 </ul>
             </nav>
             <div class="sidebar-footer">

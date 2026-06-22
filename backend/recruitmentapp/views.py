@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 import json
-from .models import JobPostings, Departments, Users, Applicants
+from .models import JobPostings, Departments, Users, Applicants, Applications
 
 
 def signup_view(request):
@@ -46,6 +46,40 @@ def signup_view(request):
 
 def login_page(request):
     return render(request, 'authentication/login.html')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_signup(request):
+    try:
+        data = json.loads(request.body)
+        full_name = data.get('full_name', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        user_type = data.get('user_type', '').strip()
+
+        if not full_name or not email or not password or not user_type:
+            return JsonResponse({'status': 'error', 'message': 'All fields are required.'}, status=400)
+
+        if Users.objects.filter(email=email).exists():
+            return JsonResponse({'status': 'error', 'message': 'A user with this email already exists.'}, status=400)
+
+        max_id = Users.objects.order_by('-user_id').first()
+        next_id = (max_id.user_id + 1) if max_id else 1
+
+        Users.objects.create(
+            user_id=next_id,
+            full_name=full_name,
+            email=email,
+            password=password,
+            user_type=user_type
+        )
+
+        return JsonResponse({'status': 'success', 'message': 'Account created successfully!'}, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 def users_page(request):

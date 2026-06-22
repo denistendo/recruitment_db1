@@ -24,5 +24,7 @@ urlpatterns = [
     path('api/applicants/create/', views.api_applicant_create, name='api_applicant_create'),
     path('api/applicants/update/<int:applicant_id>/', views.api_applicant_update, name='api_applicant_update'),
     path('api/applicants/delete/<int:applicant_id>/', views.api_applicant_delete, name='api_applicant_delete'),
+
+    path('api/signup/', views.api_signup, name='api_signup'),
 ]
 
