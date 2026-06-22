@@ -112,7 +112,7 @@
                                         </a>
                                         {% endif %}
                                         {% if app.status != 'Interview Scheduled' %}
-                                        <a href="{% url 'recruitmentapp:application_interview' app.application_id %}" class="btn btn-outline-primary" title="Schedule Interview" onclick="return confirm('Move {{ app.applicant.user.full_name|escapejs }} to interview stage?')">
+                                        <a href="{% url 'recruitmentapp:schedule_interview' app.application_id %}" class="btn btn-outline-primary" title="Schedule Interview">
                                             <i class="bi bi-calendar-event"></i>
                                         </a>
                                         {% endif %}

@@ -13,96 +13,136 @@
 {% endblock %}
 
 {% block content %}
-<p class="text-muted mb-4">Manage applicant profiles linked to user accounts.</p>
-<section id="section-applicants" class="tab-section active">
-    <div class="action-bar">
-        <div class="search-box">
-            <input type="text" id="search-applicants" placeholder="Search applicants by name or phone..." onkeyup="filterApplicants()">
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" id="search-applicants" class="form-control" placeholder="Search applicants by name, email, or phone..." onkeyup="filterApplicants()">
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-primary" onclick="openCreateApplicantModal()">
+                    <i class="bi bi-plus-lg me-1"></i>Add Applicant
+                </button>
+            </div>
         </div>
-        <button class="btn btn-primary" onclick="openCreateApplicantModal()">+ Add Applicant</button>
     </div>
+</div>
 
-    <div class="table-container">
-        <table class="data-table" id="applicants-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Date of Birth</th>
-                    <th>Gender</th>
-                    <th>Phone</th>
-                    <th style="text-align: center;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="applicants-table-body">
-                {% for a in applicants %}
-                <tr id="applicant-row-{{ a.applicant_id }}">
-                    <td>{{ a.applicant_id }}</td>
-                    <td class="applicant-name-cell">{{ a.user.full_name|default:"N/A" }}</td>
-                    <td>{{ a.user.email|default:"N/A" }}</td>
-                    <td>{{ a.date_of_birth|default:"-" }}</td>
-                    <td>{{ a.gender|default:"-" }}</td>
-                    <td>{{ a.phone_number|default:"-" }}</td>
-                    <td style="text-align: center;">
-                        <button class="btn-edit" onclick="openEditApplicantModal({{ a.applicant_id }}, '{{ a.user.user_id|default:"" }}', '{{ a.date_of_birth|default:"" }}', '{{ a.gender|default:""|escapejs }}', '{{ a.phone_number|default:""|escapejs }}', '{{ a.address|default:""|escapejs }}')">Edit</button>
-                        <button class="btn-danger" onclick="deleteApplicant({{ a.applicant_id }})">Delete</button>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr id="applicants-empty-row">
-                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                        No applicant records found in the database.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-person-badge me-2"></i>Applicant Profiles
+        </h5>
+        <span class="badge bg-primary rounded-pill" id="applicant-count">{{ applicants|length }} Total</span>
     </div>
-</section>
-
-<div class="modal-overlay" id="applicant-modal">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3>Add New Applicant</h3>
-            <button class="modal-close" onclick="closeModal('applicant-modal')">&times;</button>
-        </div>
-        <form id="create-applicant-form" onsubmit="submitApplicantForm(event)">
-            <div class="form-group">
-                <label for="applicant-user">User Account</label>
-                <select id="applicant-user" required>
-                    <option value="">-- Select User --</option>
-                    {% for u in users %}
-                    <option value="{{ u.user_id }}">{{ u.full_name }} ({{ u.email }})</option>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" id="applicants-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Date of Birth</th>
+                        <th>Gender</th>
+                        <th>Phone</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="applicants-table-body">
+                    {% for a in applicants %}
+                    <tr id="applicant-row-{{ a.applicant_id }}">
+                        <td class="fw-semibold">{{ a.applicant_id }}</td>
+                        <td class="applicant-name-cell">{{ a.user.full_name|default:"N/A" }}</td>
+                        <td>{{ a.user.email|default:"N/A" }}</td>
+                        <td>{{ a.date_of_birth|date:"Y-m-d"|default:"-" }}</td>
+                        <td>
+                            {% if a.gender == 'Male' %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary">{{ a.gender }}</span>
+                            {% elif a.gender == 'Female' %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger">{{ a.gender }}</span>
+                            {% elif a.gender %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ a.gender }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ a.phone_number|default:"-" }}</td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-outline-primary" title="Edit" onclick="openEditApplicantModal({{ a.applicant_id }}, '{{ a.user.user_id|default:"" }}', '{{ a.date_of_birth|date:"Y-m-d"|default:"" }}', '{{ a.gender|default:""|escapejs }}', '{{ a.phone_number|default:""|escapejs }}', '{{ a.address|default:""|escapejs }}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" title="Delete" onclick="deleteApplicant({{ a.applicant_id }})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="applicants-empty-row">
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2 mb-0 fw-medium">No applicant records found</p>
+                            <small>Click "Add Applicant" to create the first profile.</small>
+                        </td>
+                    </tr>
                     {% endfor %}
-                </select>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="applicant-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="applicant-modal-title">Add New Applicant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="form-group">
-                <label for="applicant-dob">Date of Birth</label>
-                <input type="date" id="applicant-dob">
-            </div>
-            <div class="form-group">
-                <label for="applicant-gender">Gender</label>
-                <select id="applicant-gender">
-                    <option value="">-- Select Gender --</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="applicant-phone">Phone Number</label>
-                <input type="text" id="applicant-phone" placeholder="e.g. +1 555-123-4567">
-            </div>
-            <div class="form-group">
-                <label for="applicant-address">Address</label>
-                <input type="text" id="applicant-address" placeholder="e.g. 123 Main St, City">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('applicant-modal')">Cancel</button>
-                <button type="submit" class="btn btn-success">Save Applicant</button>
-            </div>
-        </form>
+            <form id="create-applicant-form" onsubmit="submitApplicantForm(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="applicant-user" class="form-label fw-semibold">User Account</label>
+                        <select id="applicant-user" class="form-select" required>
+                            <option value="">-- Select User --</option>
+                            {% for u in users %}
+                            <option value="{{ u.user_id }}">{{ u.full_name }} ({{ u.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="applicant-dob" class="form-label fw-semibold">Date of Birth</label>
+                        <input type="date" id="applicant-dob" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="applicant-gender" class="form-label fw-semibold">Gender</label>
+                        <select id="applicant-gender" class="form-select">
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="applicant-phone" class="form-label fw-semibold">Phone Number</label>
+                        <input type="text" id="applicant-phone" class="form-control" placeholder="e.g. +256 770 123 456">
+                    </div>
+                    <div class="mb-3">
+                        <label for="applicant-address" class="form-label fw-semibold">Address</label>
+                        <input type="text" id="applicant-address" class="form-control" placeholder="e.g. 123 Main St, Kampala">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="applicant-submit-btn">Save Applicant</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

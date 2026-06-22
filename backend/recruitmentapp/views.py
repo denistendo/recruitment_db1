@@ -653,15 +653,71 @@ def application_reject(request, application_id):
 
 
 @role_required(['HumanResourceOfficer'])
-def application_interview(request, application_id):
+def schedule_interview(request, application_id):
     try:
-        app = Applications.objects.get(pk=application_id)
-        app.status = 'Interview Scheduled'
-        app.save()
-        messages.success(request, f'Application #{application_id} moved to interview stage.')
+        app = Applications.objects.select_related('applicant__user', 'job__department').get(pk=application_id)
     except Applications.DoesNotExist:
         messages.error(request, 'Application not found.')
-    return redirect('recruitmentapp:hr_applications')
+        return redirect('recruitmentapp:hr_applications')
+
+    panel_members = InterviewPanel.objects.filter(department=app.job.department).order_by('full_name') if app.job.department else []
+
+    interview = Interviews.objects.filter(application=app).first()
+
+    if request.method == 'POST':
+        interviewer_id = request.POST.get('interviewer')
+        interview_date = request.POST.get('interview_date')
+        interview_mode = request.POST.get('interview_mode', 'In-Person')
+
+        if not interview_date:
+            messages.error(request, 'Interview date is required.')
+            return render(request, 'applications/schedule_interview.html', {
+                'active_tab': 'hr_applications',
+                'application': app,
+                'interview': interview,
+                'panel_members': panel_members,
+            })
+
+        selected_interviewer = None
+        if interviewer_id:
+            try:
+                selected_interviewer = InterviewPanel.objects.get(pk=interviewer_id)
+            except InterviewPanel.DoesNotExist:
+                pass
+
+        remarks = ''
+        if selected_interviewer:
+            remarks = f'Interviewer: {selected_interviewer.full_name}'
+
+        if interview:
+            interview.interview_date = interview_date
+            interview.interview_mode = interview_mode
+            interview.remarks = remarks
+            interview.save()
+        else:
+            max_id = Interviews.objects.order_by('-interview_id').first()
+            next_id = (max_id.interview_id + 1) if max_id else 1
+            Interviews.objects.create(
+                interview_id=next_id,
+                application=app,
+                interview_date=interview_date,
+                interview_mode=interview_mode,
+                remarks=remarks,
+            )
+
+        app.status = 'Interview Scheduled'
+        app.save()
+
+        messages.success(request, f'Interview scheduled for {app.applicant.user.full_name}.')
+        return redirect('recruitmentapp:hr_applications')
+
+    context = {
+        'active_tab': 'hr_applications',
+        'application': app,
+        'interview': interview,
+        'panel_members': panel_members,
+    }
+    return render(request, 'applications/schedule_interview.html', context)
 
 
 # ========== API ENDPOINTS (unchanged) ==========

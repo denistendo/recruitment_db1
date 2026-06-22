@@ -26,7 +26,21 @@
                     <small class="text-muted d-block">Applied Date</small>
                     <strong>{{ application.application_date|date:"Y-m-d"|default:"-" }}</strong>
                 </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Interview Date</small>
+                    <strong>{{ interview.interview_date|date:"Y-m-d"|default:"Not set" }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Interview Mode</small>
+                    <strong>{{ interview.interview_mode|default:"Not set" }}</strong>
+                </div>
+                {% if interview and interview.remarks and 'Interviewer:' in interview.remarks %}
                 <div>
+                    <small class="text-muted d-block">Assigned Interviewer</small>
+                    <strong>{{ interview.remarks|cut:"Interviewer: " }}</strong>
+                </div>
+                {% endif %}
+                <div class="mt-3">
                     <small class="text-muted d-block">Status</small>
                     <strong>{{ application.status|default:"Pending" }}</strong>
                 </div>

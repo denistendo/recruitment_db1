@@ -1,12 +1,17 @@
+function getApplicantModal() {
+    const el = document.getElementById('applicant-modal');
+    return bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+}
+
 function openCreateApplicantModal() {
     const form = document.getElementById('create-applicant-form');
     form.reset();
     delete form.dataset.editId;
 
-    document.querySelector('#applicant-modal h3').textContent = 'Add New Applicant';
-    document.querySelector('#applicant-modal .btn-success').textContent = 'Save Applicant';
+    document.getElementById('applicant-modal-title').textContent = 'Add New Applicant';
+    document.getElementById('applicant-submit-btn').textContent = 'Save Applicant';
 
-    openModal('applicant-modal');
+    getApplicantModal().show();
 }
 
 function openEditApplicantModal(applicantId, userId, dateOfBirth, gender, phoneNumber, address) {
@@ -14,8 +19,8 @@ function openEditApplicantModal(applicantId, userId, dateOfBirth, gender, phoneN
     form.reset();
     form.dataset.editId = applicantId;
 
-    document.querySelector('#applicant-modal h3').textContent = 'Edit Applicant Profile';
-    document.querySelector('#applicant-modal .btn-success').textContent = 'Update Applicant';
+    document.getElementById('applicant-modal-title').textContent = 'Edit Applicant Profile';
+    document.getElementById('applicant-submit-btn').textContent = 'Update Applicant';
 
     document.getElementById('applicant-user').value = userId;
     document.getElementById('applicant-dob').value = dateOfBirth && dateOfBirth !== 'None' ? dateOfBirth : '';
@@ -23,7 +28,7 @@ function openEditApplicantModal(applicantId, userId, dateOfBirth, gender, phoneN
     document.getElementById('applicant-phone').value = phoneNumber;
     document.getElementById('applicant-address').value = address;
 
-    openModal('applicant-modal');
+    getApplicantModal().show();
 }
 
 async function submitApplicantForm(event) {
@@ -61,7 +66,7 @@ async function submitApplicantForm(event) {
 
         if (response.ok) {
             showToast(result.message, 'success');
-            closeModal('applicant-modal');
+            getApplicantModal().hide();
             form.reset();
             delete form.dataset.editId;
             refreshApplicantsTable();
@@ -89,6 +94,7 @@ async function deleteApplicant(applicantId) {
             if (row) {
                 row.remove();
             }
+            updateApplicantCount();
             checkEmptyStates();
         } else {
             showToast(result.message || 'Failed to delete applicant.', 'error');
@@ -110,8 +116,10 @@ async function refreshApplicantsTable() {
             if (result.applicants.length === 0) {
                 tbody.innerHTML = `
                     <tr id="applicants-empty-row">
-                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                            No applicant records found in the database.
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2 mb-0 fw-medium">No applicant records found</p>
+                            <small>Click "Add Applicant" to create the first profile.</small>
                         </td>
                     </tr>`;
                 return;
@@ -120,40 +128,68 @@ async function refreshApplicantsTable() {
             result.applicants.forEach(a => {
                 const tr = document.createElement('tr');
                 tr.id = `applicant-row-${a.applicant_id}`;
-                const escapedName = a.full_name.replace(/'/g, "\\'");
-                const escapedPhone = (a.phone_number || '').replace(/'/g, "\\'");
-                const escapedAddress = (a.address || '').replace(/'/g, "\\'");
-                const escapedGender = (a.gender || '').replace(/'/g, "\\'");
+                const dob = a.date_of_birth && a.date_of_birth !== 'None' ? a.date_of_birth : '';
+                const phone = (a.phone_number || '').replace(/'/g, "\\'");
+                const address = (a.address || '').replace(/'/g, "\\'");
+                const gender = (a.gender || '').replace(/'/g, "\\'");
 
                 tr.innerHTML = `
-                    <td>${a.applicant_id}</td>
+                    <td class="fw-semibold">${a.applicant_id}</td>
                     <td class="applicant-name-cell">${a.full_name}</td>
                     <td>${a.email}</td>
-                    <td>${a.date_of_birth || '-'}</td>
-                    <td>${a.gender || '-'}</td>
+                    <td>${dob || '-'}</td>
+                    <td>${genderBadge(a.gender)}</td>
                     <td>${a.phone_number || '-'}</td>
-                    <td style="text-align: center;">
-                        <button class="btn-edit" onclick="openEditApplicantModal(${a.applicant_id}, ${a.user_id}, '${a.date_of_birth}', '${escapedGender}', '${escapedPhone}', '${escapedAddress}')">Edit</button>
-                        <button class="btn-danger" onclick="deleteApplicant(${a.applicant_id})">Delete</button>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-primary" title="Edit" onclick="openEditApplicantModal(${a.applicant_id}, ${a.user_id}, '${dob}', '${gender}', '${phone}', '${address}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" title="Delete" onclick="deleteApplicant(${a.applicant_id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+            updateApplicantCount();
         }
     } catch (error) {
         console.error('Error reloading applicants list:', error);
     }
 }
 
+function genderBadge(gender) {
+    if (!gender) return '<span class="text-muted">-</span>';
+    const cls = gender === 'Male' ? 'primary' : gender === 'Female' ? 'danger' : 'secondary';
+    return `<span class="badge bg-${cls} bg-opacity-10 text-${cls}">${gender}</span>`;
+}
+
+function updateApplicantCount() {
+    const count = document.querySelectorAll('#applicants-table-body tr[id^="applicant-row-"]').length;
+    const badge = document.getElementById('applicant-count');
+    if (badge) badge.textContent = count + ' Total';
+}
+
 function filterApplicants() {
     const query = document.getElementById('search-applicants').value.toLowerCase();
     const rows = document.querySelectorAll('#applicants-table-body tr');
+    let visible = 0;
 
     rows.forEach(row => {
         if (row.id === 'applicants-empty-row') return;
         const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(query) ? '' : 'none';
+        const match = text.includes(query);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
     });
+
+    const emptyRow = document.querySelector('#applicants-table-body #applicants-empty-row');
+    if (emptyRow) {
+        emptyRow.style.display = visible === 0 ? '' : 'none';
+    }
+    updateApplicantCount();
 }
 
 function checkEmptyStates() {
