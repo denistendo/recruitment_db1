@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Recruitment Administration Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'layout/base.css' %}">
+    {% block extra_css %}{% endblock %}
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="{% static 'layout/base.js' %}" defer></script>
+    {% block extra_js %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>RecruitDB</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li>
+                        <a href="{% url 'recruitmentapp:users' %}" class="menu-item {% if active_tab == 'users' %}active{% endif %}" id="nav-users">
+                            <span class="icon">👤</span> Users Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'recruitmentapp:jobs' %}" class="menu-item {% if active_tab == 'jobs' %}active{% endif %}" id="nav-jobs">
+                            <span class="icon">💼</span> Job Postings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="db-status">
+                    <p>Status: Connected</p>
+                    <small>SQL Server DB</small>
+                </div>
+                <div class="page-files-info">
+                    <h4>Page Source Files</h4>
+                    <ul>
+                        {% block page_files %}{% endblock %}
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-title">
+                    <h1 id="dashboard-title">{% block page_title %}{% endblock %}</h1>
+                    <p id="dashboard-subtitle">{% block page_subtitle %}{% endblock %}</p>
+                </div>
+            </header>
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block title %}Users Management - RecruitDB{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/users.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/users.js' %}" defer></script>
+{% endblock %}
+
+{% block page_title %}Users Directory{% endblock %}
+{% block page_subtitle %}Manage company recruiters, managers, and candidate accounts.{% endblock %}
+
+{% block page_files %}
+<li onclick="copyToClipboard('frontend/users/users.html', 'Template')" title="Click to copy relative path">
+    <span class="file-icon">📄</span>
+    <span class="file-name">users.html</span>
+</li>
+<li onclick="copyToClipboard('frontend/layout/base.html', 'Layout')" title="Click to copy relative path">
+    <span class="file-icon">📁</span>
+    <span class="file-name">base.html</span>
+</li>
+<li onclick="copyToClipboard('backend/recruitmentapp/views.py', 'View')" title="Click to copy relative path">
+    <span class="file-icon">🐍</span>
+    <span class="file-name">views.py</span>
+</li>
+<li onclick="copyToClipboard('frontend/users/users.css', 'Styles')" title="Click to copy relative path">
+    <span class="file-icon">🎨</span>
+    <span class="file-name">users.css</span>
+</li>
+<li onclick="copyToClipboard('frontend/users/users.js', 'Script')" title="Click to copy relative path">
+    <span class="file-icon">⚡</span>
+    <span class="file-name">users.js</span>
+</li>
+{% endblock %}
+
+{% block content %}
+<section id="section-users" class="tab-section active">
+    <div class="action-bar">
+        <div class="search-box">
+            <input type="text" id="search-users" placeholder="Search users by name or email..." onkeyup="filterUsers()">
+        </div>
+        <button class="btn btn-primary" onclick="openCreateUserModal()">+ Create User</button>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table" id="users-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th style="text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="users-table-body">
+                {% for u in users %}
+                <tr id="user-row-{{ u.user_id }}">
+                    <td>{{ u.user_id }}</td>
+                    <td class="user-name-cell">{{ u.full_name }}</td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="role-badge role-{{ u.user_type|lower }}">{{ u.user_type }}</span></td>
+                    <td style="text-align: center;">
+                        <button class="btn-edit" onclick="openEditUserModal({{ u.user_id }}, '{{ u.full_name|escapejs }}', '{{ u.email|escapejs }}', '{{ u.user_type|escapejs }}')">Edit</button>
+                        <button class="btn-danger" onclick="deleteUser({{ u.user_id }})">Delete</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr id="users-empty-row">
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        No user records found in the database.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="modal-overlay" id="user-modal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Create New User Profile</h3>
+            <button class="modal-close" onclick="closeModal('user-modal')">&times;</button>
+        </div>
+        <form id="create-user-form" onsubmit="submitUserForm(event)">
+            <div class="form-group">
+                <label for="user-fullname">Full Name</label>
+                <input type="text" id="user-fullname" required placeholder="e.g. John Doe">
+            </div>
+            <div class="form-group">
+                <label for="user-email">Email Address</label>
+                <input type="email" id="user-email" required placeholder="e.g. johndoe@company.com">
+            </div>
+            <div class="form-group">
+                <label for="user-password">Password</label>
+                <input type="password" id="user-password" required placeholder="Enter password (max 8 chars)">
+            </div>
+            <div class="form-group">
+                <label for="user-type">User Role Type</label>
+                <select id="user-type" required>
+                    <option value="Recruiter">Recruiter</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Applicant">Applicant</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('user-modal')">Cancel</button>
+                <button type="submit" class="btn btn-success">Save User</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

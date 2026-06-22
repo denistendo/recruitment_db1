@@ -1,33 +1,20 @@
-/* ==============================================================================
-   Recruitment Administration Dashboard CSS Stylesheet
-   Design System:
-     - Curated Light Mode harmonious color palette (slate, indigo, emerald, rose)
-     - Premium shadows and soft elevation effects
-     - Elegant custom cards, custom form controls, and responsive tables
-     - Smooth transitions and interactive micro-animations
-   ============================================================================== */
-
 :root {
-    /* Color Palette (HSL tailormade values) */
-    --bg-base: hsl(210, 40%, 96%);       /* Soft Light Slate */
-    --bg-surface: #ffffff;                /* White */
-    --bg-surface-elevated: #f8fafc;       /* Light Slate 50 */
-    --border-color: hsl(214, 32%, 91%);   /* Clean border */
+    --bg-base: hsl(210, 40%, 96%);       
+    --bg-surface: #ffffff;               
+    --bg-surface-elevated: #f8fafc;       
+    --border-color: hsl(214, 32%, 91%);   
     
-    /* Primary Colors */
-    --primary: hsl(245, 75%, 60%);        /* Indigo */
+    --primary: hsl(245, 75%, 60%);        
     --primary-hover: hsl(245, 75%, 50%);
-    --success: hsl(142, 72%, 29%);        /* Emerald Darker */
+    --success: hsl(142, 72%, 29%);        
     --success-hover: hsl(142, 72%, 20%);
-    --danger: hsl(350, 72%, 50%);         /* Rose Darker */
+    --danger: hsl(350, 72%, 50%);        
     --danger-hover: hsl(350, 72%, 40%);
     
-    /* Text Colors */
-    --text-primary: hsl(222, 47%, 11%);   /* Slate 900 */
-    --text-secondary: hsl(215, 16%, 37%); /* Slate 600 */
-    --text-muted: hsl(215, 16%, 57%);     /* Slate 500 */
+    --text-primary: hsl(222, 47%, 11%);   
+    --text-secondary: hsl(215, 16%, 37%); 
+    --text-muted: hsl(215, 16%, 57%);     
 
-    /* Other Tokens */
     --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --border-radius-sm: 6px;
     --border-radius-md: 10px;
@@ -36,9 +23,6 @@
     --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
-/* ==========================================
-     GLOBAL RESET & STYLES
-     ========================================== */
 * {
     margin: 0;
     padding: 0;
@@ -54,18 +38,12 @@ body {
     line-height: 1.5;
 }
 
-/* ==========================================
-     LAYOUT STRUCTURE
-     ========================================== */
 .app-container {
     display: grid;
     grid-template-columns: 260px 1fr;
     min-height: 100vh;
 }
 
-/* ==========================================
-     SIDEBAR MENU
-     ========================================== */
 .sidebar {
     background-color: hsl(210, 40%, 94%);
     border-right: 1px solid var(--border-color);
@@ -103,6 +81,7 @@ body {
     font-weight: 500;
     margin-bottom: 0.5rem;
     transition: var(--transition-smooth);
+    text-decoration: none;
 }
 
 .menu-item:hover {
@@ -125,6 +104,14 @@ body {
     border-top: 1px solid var(--border-color);
     padding-top: 1.5rem;
     color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.db-status {
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar-footer p {
@@ -137,9 +124,63 @@ body {
     font-size: 0.75rem;
 }
 
-/* ==========================================
-     MAIN CONTENT
-     ========================================== */
+.page-files-info {
+    border-top: 1px dashed var(--border-color);
+    padding-top: 1.25rem;
+}
+
+.page-files-info h4 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 0.65rem;
+}
+
+.page-files-info ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.page-files-info li {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: rgba(15, 23, 42, 0.03);
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.page-files-info li:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-color);
+    color: var(--primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.page-files-info .file-icon {
+    margin-right: 0.5rem;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.page-files-info .file-name {
+    font-family: monospace;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
 .main-content {
     padding: 2.5rem;
     display: flex;
@@ -166,9 +207,6 @@ body {
     font-size: 0.95rem;
 }
 
-/* ==========================================
-     ACTION BAR & CONTROLS
-     ========================================== */
 .action-bar {
     display: flex;
     justify-content: space-between;
@@ -200,7 +238,6 @@ body {
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
-/* Buttons */
 .btn {
     font-family: var(--font-sans);
     padding: 0.75rem 1.4rem;
@@ -278,10 +315,6 @@ body {
     border-color: var(--primary);
 }
 
-
-/* ==========================================
-     DATA TABLES
-     ========================================== */
 .table-container {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -323,57 +356,6 @@ body {
     color: var(--text-primary);
 }
 
-.user-name-cell, .job-title-cell {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-/* Role Badges */
-.role-badge {
-    display: inline-block;
-    padding: 0.2rem 0.6rem;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.role-recruiter {
-    background-color: rgba(99, 102, 241, 0.1);
-    color: hsl(245, 75%, 45%);
-}
-
-.role-manager {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: hsl(35, 90%, 35%);
-}
-
-.role-applicant {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: hsl(142, 70%, 30%);
-}
-
-/* ==========================================
-     TAB SECTIONS TOGGLE
-     ========================================== */
-.tab-section {
-    display: none;
-}
-
-.tab-section.active {
-    display: block;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==========================================
-     MODAL DIALOGS
-     ========================================== */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -439,7 +421,6 @@ body {
     color: var(--text-primary);
 }
 
-/* Form Styles */
 .form-group {
     margin-bottom: 1.25rem;
     display: flex;
@@ -489,9 +470,6 @@ body {
     padding-top: 1.25rem;
 }
 
-/* ==========================================
-     TOAST ALERTS
-     ========================================== */
 .toast-container {
     position: fixed;
     bottom: 2rem;
@@ -528,4 +506,9 @@ body {
 @keyframes slideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
