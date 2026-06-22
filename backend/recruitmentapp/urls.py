@@ -25,6 +25,7 @@ urlpatterns = [
 
     # HR Applications Management
     path('hr-applications/', views.hr_applications_view, name='hr_applications'),
+    path('applicant/<int:applicant_id>/', views.applicant_detail, name='applicant_detail'),
     path('application/shortlist/<int:application_id>/', views.application_shortlist, name='application_shortlist'),
     path('application/reject/<int:application_id>/', views.application_reject, name='application_reject'),
     path('application/interview/<int:application_id>/', views.application_interview, name='application_interview'),

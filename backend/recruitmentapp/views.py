@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
+from django.db.models import Q
 from functools import wraps
 from datetime import date
 from .mailer import send_application_confirmation
@@ -438,13 +439,59 @@ def applications_page(request):
     return render(request, 'applications/applications.html', context)
 
 
+# ========== HR APPLICANT DETAIL VIEW ==========
+
+@role_required(['SystemAdministrator', 'HumanResourceOfficer'])
+def applicant_detail(request, applicant_id):
+    try:
+        applicant = Applicants.objects.select_related('user').get(pk=applicant_id)
+    except Applicants.DoesNotExist:
+        messages.error(request, 'Applicant not found.')
+        return redirect('recruitmentapp:applicants')
+
+    qualifications = Qualifications.objects.filter(applicant=applicant).order_by('-year_completed')
+    skills_list = ApplicantSkills.objects.filter(applicant=applicant).select_related('skill')
+    applications = Applications.objects.filter(applicant=applicant).select_related('job').order_by('-application_id')
+
+    context = {
+        'active_tab': 'hr_applications',
+        'applicant': applicant,
+        'user': applicant.user,
+        'qualifications': qualifications,
+        'skills_list': skills_list,
+        'applications': applications,
+    }
+    return render(request, 'applications/applicant_detail.html', context)
+
+
 # ========== HR APPLICATIONS MANAGEMENT ==========
 
 @role_required(['HumanResourceOfficer'])
 def hr_applications_view(request):
+    search = request.GET.get('search', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
     applications_list = Applications.objects.select_related('applicant__user', 'job').all().order_by('-application_id')
+
+    if search:
+        applications_list = applications_list.filter(
+            Q(applicant__user__full_name__icontains=search) |
+            Q(job__title__icontains=search)
+        )
+
+    if status_filter:
+        applications_list = applications_list.filter(status__iexact=status_filter)
+
+    status_counts = {}
+    for app in applications_list:
+        s = app.status or 'Pending'
+        status_counts[s] = status_counts.get(s, 0) + 1
+
     context = {
         'applications': applications_list,
+        'status_counts': status_counts,
+        'current_search': search,
+        'current_status': status_filter,
         'active_tab': 'hr_applications',
     }
     return render(request, 'applications/hr_applications.html', context)

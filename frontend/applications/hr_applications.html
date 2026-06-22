@@ -1,22 +1,65 @@
 {% extends 'layout/base.html' %}
 {% load static %}
 
-{% block title %}HR Applications - RecruitDB{% endblock %}
-{% block page_header %}HR Applications Management{% endblock %}
+{% block title %}Applications - RecruitDB{% endblock %}
+{% block page_header %}Applications Management{% endblock %}
 
 {% block content %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" id="search-applications" class="form-control" placeholder="Search by applicant name or job title..." value="{{ current_search }}" oninput="filterApplications()">
+                    {% if current_search or current_status %}
+                    <a href="{% url 'recruitmentapp:hr_applications' %}" class="btn btn-outline-secondary" title="Clear filters">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">{{ applications|length }} Total</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <ul class="nav nav-pills" id="status-tabs">
+            <li class="nav-item">
+                <button class="nav-link {% if not current_status %}active{% endif %}" data-status="" onclick="filterByStatus(this, '')">All</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link {% if current_status == 'Pending' %}active{% endif %}" data-status="Pending" onclick="filterByStatus(this, 'Pending')">Pending</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link {% if current_status == 'Submitted' %}active{% endif %}" data-status="Submitted" onclick="filterByStatus(this, 'Submitted')">Submitted</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link {% if current_status == 'Under Review' %}active{% endif %}" data-status="Under Review" onclick="filterByStatus(this, 'Under Review')">Under Review</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link {% if current_status == 'Shortlisted' %}active{% endif %}" data-status="Shortlisted" onclick="filterByStatus(this, 'Shortlisted')">Shortlisted</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link {% if current_status == 'Interview Scheduled' %}active{% endif %}" data-status="Interview Scheduled" onclick="filterByStatus(this, 'Interview Scheduled')">Interview Scheduled</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link {% if current_status == 'Rejected' %}active{% endif %}" data-status="Rejected" onclick="filterByStatus(this, 'Rejected')">Rejected</button>
+            </li>
+        </ul>
+    </div>
+</div>
+
 <div class="row g-4 mb-4">
     <div class="col-12">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">
-                    <i class="bi bi-clipboard-check me-2"></i>All Applications
-                </h5>
-                <span class="badge bg-primary rounded-pill">{{ applications|length }} Total</span>
-            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
+                    <table class="table table-hover mb-0 align-middle" id="applications-table">
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
@@ -29,14 +72,14 @@
                         </thead>
                         <tbody>
                             {% for app in applications %}
-                            <tr>
+                            <tr data-status="{{ app.status|default:'Pending' }}">
                                 <td class="fw-semibold">{{ app.application_id }}</td>
-                                <td>
-                                    <a href="{% url 'recruitmentapp:applicants' %}" class="text-decoration-none fw-medium">
+                                <td class="applicant-name">
+                                    <a href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}" class="text-decoration-none fw-medium">
                                         <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:"N/A" }}
                                     </a>
                                 </td>
-                                <td>{{ app.job.title|default:"N/A" }}</td>
+                                <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
                                 <td>{{ app.application_date|default:"-" }}</td>
                                 <td>
                                     {% if app.status == 'Submitted' or app.status == 'Pending' %}
@@ -55,7 +98,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'recruitmentapp:applicants' %}" class="btn btn-outline-info" title="View Profile">
+                                        <a href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}" class="btn btn-outline-info" title="View Profile">
                                             <i class="bi bi-person"></i>
                                         </a>
                                         {% if app.status != 'Shortlisted' %}
@@ -95,32 +138,100 @@
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
-        <div class="row g-3">
+        <div class="row g-3" id="status-summary">
             <div class="col-md-3 col-6 text-center">
                 <div class="p-3">
-                    <span class="badge bg-secondary fs-6 mb-2 d-inline-block">Submitted</span>
-                    <h4 class="fw-bold mb-0">{{ applications|dictsortreversed:"application_id"|length }}</h4>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 text-center">
-                <div class="p-3">
-                    <span class="badge bg-info fs-6 mb-2 d-inline-block">Under Review</span>
-                    <h4 class="fw-bold mb-0">-</h4>
+                    <span class="badge bg-secondary fs-6 mb-2 d-inline-block">Pending</span>
+                    <h4 class="fw-bold mb-0" id="count-pending">0</h4>
                 </div>
             </div>
             <div class="col-md-3 col-6 text-center">
                 <div class="p-3">
                     <span class="badge bg-success fs-6 mb-2 d-inline-block">Shortlisted</span>
-                    <h4 class="fw-bold mb-0">-</h4>
+                    <h4 class="fw-bold mb-0" id="count-shortlisted">0</h4>
                 </div>
             </div>
             <div class="col-md-3 col-6 text-center">
                 <div class="p-3">
                     <span class="badge bg-primary fs-6 mb-2 d-inline-block">Interview</span>
-                    <h4 class="fw-bold mb-0">-</h4>
+                    <h4 class="fw-bold mb-0" id="count-interview">0</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 text-center">
+                <div class="p-3">
+                    <span class="badge bg-danger fs-6 mb-2 d-inline-block">Rejected</span>
+                    <h4 class="fw-bold mb-0" id="count-rejected">0</h4>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function filterApplications() {
+    const search = document.getElementById('search-applications').value.toLowerCase().trim();
+    const activeTab = document.querySelector('#status-tabs .nav-link.active');
+    const status = activeTab ? activeTab.getAttribute('data-status') : '';
+    const rows = document.querySelectorAll('#applications-table tbody tr[data-status]');
+    let visible = 0;
+
+    rows.forEach(function(row) {
+        const name = row.querySelector('.applicant-name')?.textContent.toLowerCase() || '';
+        const title = row.querySelector('.job-title')?.textContent.toLowerCase() || '';
+        const rowStatus = row.getAttribute('data-status') || '';
+
+        const matchesSearch = !search || name.includes(search) || title.includes(search);
+        const matchesStatus = !status || rowStatus === status;
+
+        if (matchesSearch && matchesStatus) {
+            row.style.display = '';
+            visible++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    const emptyRow = document.querySelector('#applications-table tbody tr td[colspan]');
+    if (emptyRow && !emptyRow.closest('tr').hasAttribute('data-status')) {
+        emptyRow.closest('tr').style.display = visible === 0 ? '' : 'none';
+    }
+}
+
+function filterByStatus(btn, status) {
+    document.querySelectorAll('#status-tabs .nav-link').forEach(function(tab) {
+        tab.classList.remove('active');
+    });
+    btn.classList.add('active');
+    const params = new URLSearchParams(window.location.search);
+    const search = document.getElementById('search-applications').value.trim();
+    if (search) {
+        params.set('search', search);
+    } else {
+        params.delete('search');
+    }
+    if (status) {
+        params.set('status', status);
+    } else {
+        params.delete('status');
+    }
+    window.location.search = params.toString();
+}
+
+function updateSummary() {
+    const counts = {pending: 0, shortlisted: 0, interview: 0, rejected: 0};
+    document.querySelectorAll('#applications-table tbody tr[data-status]').forEach(function(row) {
+        const s = (row.getAttribute('data-status') || '').toLowerCase();
+        if (s.includes('pending') || s.includes('submitted')) counts.pending++;
+        else if (s.includes('shortlist')) counts.shortlisted++;
+        else if (s.includes('interview')) counts.interview++;
+        else if (s.includes('reject')) counts.rejected++;
+    });
+    document.getElementById('count-pending').textContent = counts.pending;
+    document.getElementById('count-shortlisted').textContent = counts.shortlisted;
+    document.getElementById('count-interview').textContent = counts.interview;
+    document.getElementById('count-rejected').textContent = counts.rejected;
+}
+
+document.addEventListener('DOMContentLoaded', updateSummary);
+</script>
 {% endblock %}
