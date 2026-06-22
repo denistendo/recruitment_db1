@@ -35,6 +35,13 @@ urlpatterns = [
     path('application/reject/<int:application_id>/', views.application_reject, name='application_reject'),
     path('application/schedule/<int:application_id>/', views.schedule_interview, name='schedule_interview'),
 
+    # HR Department Management
+    path('departments/', views.departments_view, name='departments'),
+    path('departments/add/', views.department_add, name='department_add'),
+    path('departments/edit/<int:department_id>/', views.department_edit, name='department_edit'),
+    path('departments/delete/<int:department_id>/', views.department_delete, name='department_delete'),
+    path('departments/<int:department_id>/jobs/', views.department_jobs, name='department_jobs'),
+
     # API endpoints
     path('api/signup/', views.api_signup, name='api_signup'),
     path('api/users/', views.api_user_list, name='api_user_list'),

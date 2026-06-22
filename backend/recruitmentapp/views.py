@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Count
 from functools import wraps
 from datetime import date
 from .mailer import send_application_confirmation
@@ -53,8 +53,8 @@ def signup_view(request):
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
         email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '')
-        confirm_password = request.POST.get('confirm_password', '')
+        password = request.POST.get('password', '')[:15]
+        confirm_password = request.POST.get('confirm_password', '')[:15]
         user_type = request.POST.get('user_type', '').strip()
 
         if not all([full_name, email, password, confirm_password, user_type]):
@@ -89,7 +89,7 @@ def signup_view(request):
 def signin_view(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '')
+        password = request.POST.get('password', '')[:15]
 
         if not all([email, password]):
             messages.error(request, 'All fields are required.')
@@ -181,11 +181,15 @@ def my_interviews(request):
         assigned_apps = Applications.objects.filter(job_id__in=assigned_job_ids).select_related('applicant__user', 'job').order_by('-application_id')
         for app in assigned_apps:
             interview = Interviews.objects.filter(application=app).first()
+            assigned_interviewer = ''
+            if interview and interview.remarks and 'Interviewer:' in interview.remarks:
+                assigned_interviewer = interview.remarks.split('\n')[0].replace('Interviewer: ', '')
             interviews_list.append({
                 'application': app,
                 'interview': interview,
                 'interview_date': interview.interview_date if interview else None,
                 'interview_mode': interview.interview_mode if interview else None,
+                'assigned_interviewer': assigned_interviewer,
             })
 
     context = {
@@ -253,7 +257,13 @@ def conduct_interview(request, application_id):
 
         if interview:
             interview.score = score
-            interview.remarks = remarks or None
+            if remarks:
+                prefix = ''
+                if interview.remarks and 'Interviewer:' in interview.remarks:
+                    prefix = interview.remarks.split('\n')[0] + '\n'
+                interview.remarks = prefix + remarks
+            else:
+                interview.remarks = interview.remarks or None
             interview.save()
             messages.success(request, 'Interview results updated successfully!')
         else:
@@ -271,11 +281,19 @@ def conduct_interview(request, application_id):
 
         return redirect('recruitmentapp:my_interviews')
 
+    panel_remarks = ''
+    if interview and interview.remarks:
+        if 'Interviewer:' in interview.remarks and '\n' in interview.remarks:
+            panel_remarks = interview.remarks.split('\n', 1)[1]
+        elif 'Interviewer:' not in interview.remarks:
+            panel_remarks = interview.remarks
+
     context = {
         'active_tab': 'my_interviews',
         'application': app,
         'interview': interview,
         'applicant': app.applicant,
+        'panel_remarks': panel_remarks,
     }
     return render(request, 'dashboards/conduct_interview.html', context)
 
@@ -660,7 +678,11 @@ def schedule_interview(request, application_id):
         messages.error(request, 'Application not found.')
         return redirect('recruitmentapp:hr_applications')
 
-    panel_members = InterviewPanel.objects.filter(department=app.job.department).order_by('full_name') if app.job.department else []
+    registered_names = Users.objects.filter(user_type='InterviewPanelMember').values_list('full_name', flat=True)
+    panel_members = InterviewPanel.objects.filter(
+        department=app.job.department,
+        full_name__in=registered_names
+    ).order_by('full_name') if app.job.department else []
 
     interview = Interviews.objects.filter(application=app).first()
 
@@ -685,14 +707,24 @@ def schedule_interview(request, application_id):
             except InterviewPanel.DoesNotExist:
                 pass
 
-        remarks = ''
-        if selected_interviewer:
-            remarks = f'Interviewer: {selected_interviewer.full_name}'
-
         if interview:
+            existing_remarks = interview.remarks or ''
+            panel_notes = ''
+            if existing_remarks and 'Interviewer:' not in existing_remarks:
+                panel_notes = existing_remarks
+            elif existing_remarks and '\n' in existing_remarks:
+                panel_notes = existing_remarks.split('\n', 1)[1]
+
+            if selected_interviewer:
+                interviewer_prefix = f'Interviewer: {selected_interviewer.full_name}'
+            elif existing_remarks and 'Interviewer:' in existing_remarks:
+                interviewer_prefix = existing_remarks.split('\n')[0]
+            else:
+                interviewer_prefix = ''
+
             interview.interview_date = interview_date
             interview.interview_mode = interview_mode
-            interview.remarks = remarks
+            interview.remarks = interviewer_prefix + ('\n' + panel_notes if panel_notes else '')
             interview.save()
         else:
             max_id = Interviews.objects.order_by('-interview_id').first()
@@ -729,7 +761,7 @@ def api_signup(request):
         data = json.loads(request.body)
         full_name = data.get('full_name', '').strip()
         email = data.get('email', '').strip()
-        password = data.get('password', '')
+        password = (data.get('password', '') or '')[:15]
         user_type = data.get('user_type', '').strip()
 
         if not full_name or not email or not password or not user_type:
@@ -776,7 +808,7 @@ def api_user_create(request):
         data = json.loads(request.body)
         full_name = data.get('full_name')
         email = data.get('email')
-        password = data.get('password')
+        password = (data.get('password') or '')[:15]
         user_type = data.get('user_type')
 
         if not full_name or not email or not password or not user_type:
@@ -1041,7 +1073,7 @@ def api_user_update(request, user_id):
         user.email = email
         user.user_type = user_type
         if password:
-            user.password = password
+            user.password = password[:15]
 
         user.save()
         return JsonResponse({'status': 'success', 'message': 'User profile updated successfully!'})
@@ -1469,3 +1501,106 @@ def api_applicant_skill_delete(request, applicant_skill_id):
         return JsonResponse({'status': 'success', 'message': 'Skill removed successfully.'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========== DEPARTMENT MANAGEMENT (HR) ==========
+
+@role_required(['HumanResourceOfficer'])
+def departments_view(request):
+    departments_list = Departments.objects.annotate(job_count=models.Count('jobpostings_set')).order_by('department_id')
+    context = {
+        'active_tab': 'departments',
+        'departments': departments_list,
+    }
+    return render(request, 'departments/departments.html', context)
+
+
+@role_required(['HumanResourceOfficer'])
+def department_add(request):
+    if request.method == 'POST':
+        dept_name = request.POST.get('department_name', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        if not dept_name:
+            messages.error(request, 'Department name is required.')
+            return render(request, 'departments/add_department.html', {'active_tab': 'departments'})
+
+        max_id = Departments.objects.order_by('-department_id').first()
+        next_id = (max_id.department_id + 1) if max_id else 1
+
+        Departments.objects.create(
+            department_id=next_id,
+            department_name=dept_name,
+            description=description or None,
+        )
+        messages.success(request, f'Department "{dept_name}" created successfully.')
+        return redirect('recruitmentapp:departments')
+
+    return render(request, 'departments/add_department.html', {'active_tab': 'departments'})
+
+
+@role_required(['HumanResourceOfficer'])
+def department_edit(request, department_id):
+    try:
+        dept = Departments.objects.get(pk=department_id)
+    except Departments.DoesNotExist:
+        messages.error(request, 'Department not found.')
+        return redirect('recruitmentapp:departments')
+
+    if request.method == 'POST':
+        dept_name = request.POST.get('department_name', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        if not dept_name:
+            messages.error(request, 'Department name is required.')
+            return render(request, 'departments/edit_department.html', {
+                'active_tab': 'departments',
+                'department': dept,
+            })
+
+        dept.department_name = dept_name
+        dept.description = description or None
+        dept.save()
+        messages.success(request, f'Department "{dept_name}" updated successfully.')
+        return redirect('recruitmentapp:departments')
+
+    return render(request, 'departments/edit_department.html', {
+        'active_tab': 'departments',
+        'department': dept,
+    })
+
+
+@role_required(['HumanResourceOfficer'])
+def department_delete(request, department_id):
+    try:
+        dept = Departments.objects.get(pk=department_id)
+    except Departments.DoesNotExist:
+        messages.error(request, 'Department not found.')
+        return redirect('recruitmentapp:departments')
+
+    jobs_count = JobPostings.objects.filter(department=dept).count()
+    if jobs_count > 0:
+        messages.error(request, f'Cannot delete "{dept.department_name}" — {jobs_count} job posting(s) are linked to it.')
+        return redirect('recruitmentapp:departments')
+
+    dept_name = dept.department_name
+    dept.delete()
+    messages.success(request, f'Department "{dept_name}" deleted successfully.')
+    return redirect('recruitmentapp:departments')
+
+
+@role_required(['HumanResourceOfficer'])
+def department_jobs(request, department_id):
+    try:
+        dept = Departments.objects.get(pk=department_id)
+    except Departments.DoesNotExist:
+        messages.error(request, 'Department not found.')
+        return redirect('recruitmentapp:departments')
+
+    jobs = JobPostings.objects.filter(department=dept).order_by('-job_id')
+    context = {
+        'active_tab': 'departments',
+        'department': dept,
+        'jobs': jobs,
+    }
+    return render(request, 'departments/department_jobs.html', context)

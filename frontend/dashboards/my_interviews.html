@@ -46,8 +46,8 @@
                         <td>{{ item.interview_date|date:"Y-m-d"|default:"Not set" }}</td>
                         <td>{{ item.interview_mode|default:"Not set" }}</td>
                         <td>
-                            {% if item.interview and item.interview.remarks and 'Interviewer:' in item.interview.remarks %}
-                            {{ item.interview.remarks|cut:"Interviewer: " }}
+                            {% if item.assigned_interviewer %}
+                            {{ item.assigned_interviewer }}
                             {% else %}
                             <span class="text-muted">Not assigned</span>
                             {% endif %}

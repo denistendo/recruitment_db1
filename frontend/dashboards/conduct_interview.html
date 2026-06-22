@@ -80,7 +80,7 @@
                     </div>
                     <div class="mb-4">
                         <label for="remarks" class="form-label fw-semibold">Remarks</label>
-                        <textarea id="remarks" name="remarks" class="form-control" rows="5" placeholder="Enter your feedback, observations, and recommendations...">{{ interview.remarks|default:'' }}</textarea>
+                        <textarea id="remarks" name="remarks" class="form-control" rows="5" placeholder="Enter your feedback, observations, and recommendations...">{{ panel_remarks }}</textarea>
                         <div class="form-text">Optional: Provide detailed feedback about the candidate's interview performance.</div>
                     </div>
                     <div class="d-flex gap-2">
@@ -113,10 +113,10 @@
                         <small class="text-muted d-block">Previous Score</small>
                         <h4 class="fw-bold text-primary mb-0">{{ interview.score }} / 100</h4>
                     </div>
-                    {% if interview.remarks %}
+                    {% if panel_remarks %}
                     <div class="col-12">
                         <small class="text-muted d-block">Previous Remarks</small>
-                        <p class="mb-0 bg-light p-3 rounded">{{ interview.remarks }}</p>
+                        <p class="mb-0 bg-light p-3 rounded">{{ panel_remarks }}</p>
                     </div>
                     {% endif %}
                 </div>
