@@ -21,6 +21,7 @@ urlpatterns = [
     path('jobs/', views.jobs_page, name='jobs'),
     path('applicants/', views.applicants_page, name='applicants'),
     path('applications/', views.applications_page, name='applications'),
+    path('profile/', views.applicant_profile, name='applicant_profile'),
 
     # API endpoints
     path('api/signup/', views.api_signup, name='api_signup'),
@@ -36,4 +37,8 @@ urlpatterns = [
     path('api/applicants/create/', views.api_applicant_create, name='api_applicant_create'),
     path('api/applicants/update/<int:applicant_id>/', views.api_applicant_update, name='api_applicant_update'),
     path('api/applicants/delete/<int:applicant_id>/', views.api_applicant_delete, name='api_applicant_delete'),
+    path('api/jobs/open/', views.api_open_jobs, name='api_open_jobs'),
+    path('api/applications/apply/', views.api_apply_job, name='api_apply_job'),
+    path('api/qualifications/save/', views.api_save_qualifications, name='api_save_qualifications'),
+    path('api/skills/save/', views.api_save_skills, name='api_save_skills'),
 ]

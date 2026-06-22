@@ -4,8 +4,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from functools import wraps
+from datetime import date
 import json
-from .models import JobPostings, Departments, Users, Applicants, Applications
+from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills
 
 
 ROLE_DASHBOARD_MAP = {
@@ -151,15 +152,190 @@ def applicant_dashboard(request):
     user_id = request.session.get('user_id')
     applicant = Applicants.objects.filter(user_id=user_id).first()
     applications = []
+    applied_job_ids = []
     if applicant:
         applications = Applications.objects.filter(applicant=applicant).select_related('job').all()
+        applied_job_ids = [app.job_id for app in applications if app.job_id]
+    open_jobs = JobPostings.objects.select_related('department').all()
     context = {
         'active_tab': 'dashboard',
         'applicant': applicant,
         'applications': applications,
         'total_applications': len(applications),
+        'open_jobs': open_jobs,
+        'applied_job_ids': applied_job_ids,
     }
     return render(request, 'dashboards/applicant_dashboard.html', context)
+
+
+@role_required(['JobApplicant'])
+def applicant_profile(request):
+    user_id = request.session.get('user_id')
+    applicant = Applicants.objects.filter(user_id=user_id).first()
+    user = Users.objects.get(pk=user_id)
+
+    if request.method == 'POST':
+        date_of_birth = request.POST.get('date_of_birth')
+        gender = request.POST.get('gender')
+        phone_number = request.POST.get('phone_number')
+        address = request.POST.get('address')
+
+        if applicant:
+            applicant.date_of_birth = date_of_birth if date_of_birth else None
+            applicant.gender = gender or None
+            applicant.phone_number = phone_number or None
+            applicant.address = address or None
+            applicant.save()
+            messages.success(request, 'Profile updated successfully!')
+        else:
+            max_id = Applicants.objects.order_by('-applicant_id').first()
+            next_id = (max_id.applicant_id + 1) if max_id else 1
+            applicant = Applicants.objects.create(
+                applicant_id=next_id,
+                user_id=user_id,
+                date_of_birth=date_of_birth if date_of_birth else None,
+                gender=gender or None,
+                phone_number=phone_number or None,
+                address=address or None
+            )
+            messages.success(request, 'Profile created successfully!')
+
+        return redirect('recruitmentapp:applicant_profile')
+
+    qualifications = Qualifications.objects.filter(applicant=applicant).order_by('-year_completed') if applicant else []
+    skills_list = ApplicantSkills.objects.filter(applicant=applicant).select_related('skill') if applicant else []
+    all_skills = Skills.objects.all().order_by('skill_name')
+
+    context = {
+        'active_tab': 'profile',
+        'applicant': applicant,
+        'user': user,
+        'qualifications': qualifications,
+        'skills_list': skills_list,
+        'all_skills': all_skills,
+    }
+    return render(request, 'profile/profile.html', context)
+
+
+# ========== APPLICANT APIS ==========
+
+@role_required(['JobApplicant'])
+def api_open_jobs(request):
+    jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
+    data = []
+    for job in jobs:
+        data.append({
+            'job_id': job.job_id,
+            'title': job.title,
+            'description': job.description,
+            'department_name': job.department.department_name if job.department else 'N/A',
+            'posted_date': str(job.posted_date) if job.posted_date else '',
+            'closing_date': str(job.closing_date) if job.closing_date else '',
+        })
+    return JsonResponse({'status': 'success', 'jobs': data})
+
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["POST"])
+def api_apply_job(request):
+    try:
+        data = json.loads(request.body)
+        job_id = data.get('job_id')
+        user_id = request.session.get('user_id')
+
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Please complete your profile before applying.'}, status=400)
+
+        try:
+            job = JobPostings.objects.get(pk=job_id)
+        except JobPostings.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Job not found.'}, status=404)
+
+        if Applications.objects.filter(applicant=applicant, job=job).exists():
+            return JsonResponse({'status': 'error', 'message': 'You have already applied for this job.'}, status=400)
+
+        max_id = Applications.objects.order_by('-application_id').first()
+        next_id = (max_id.application_id + 1) if max_id else 1
+
+        Applications.objects.create(
+            application_id=next_id,
+            applicant=applicant,
+            job=job,
+            application_date=date.today(),
+            status='Pending'
+        )
+
+        return JsonResponse({'status': 'success', 'message': 'Application submitted successfully!'}, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["POST"])
+def api_save_qualifications(request):
+    try:
+        data = json.loads(request.body)
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Applicant profile not found.'}, status=400)
+
+        Qualifications.objects.filter(applicant=applicant).delete()
+
+        items = data.get('qualifications', [])
+        for item in items:
+            max_id = Qualifications.objects.order_by('-qualification_id').first()
+            next_id = (max_id.qualification_id + 1) if max_id else 1
+            Qualifications.objects.create(
+                qualification_id=next_id,
+                applicant=applicant,
+                institution=item.get('institution'),
+                award=item.get('award'),
+                year_completed=item.get('year_completed')
+            )
+
+        return JsonResponse({'status': 'success', 'message': 'Qualifications saved successfully!'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["POST"])
+def api_save_skills(request):
+    try:
+        data = json.loads(request.body)
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Applicant profile not found.'}, status=400)
+
+        ApplicantSkills.objects.filter(applicant=applicant).delete()
+
+        items = data.get('skills', [])
+        for skill_id in items:
+            try:
+                skill = Skills.objects.get(pk=skill_id)
+            except Skills.DoesNotExist:
+                continue
+            max_id = ApplicantSkills.objects.order_by('-applicant_skill_id').first()
+            next_id = (max_id.applicant_skill_id + 1) if max_id else 1
+            ApplicantSkills.objects.create(
+                applicant_skill_id=next_id,
+                applicant=applicant,
+                skill=skill,
+                proficiency_level='Intermediate'
+            )
+
+        return JsonResponse({'status': 'success', 'message': 'Skills saved successfully!'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 @role_required(['DepartmentManager'])
