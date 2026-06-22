@@ -308,11 +308,14 @@ def applicant_dashboard(request):
         applications = Applications.objects.filter(applicant=applicant).select_related('job').all()
         applied_job_ids = [app.job_id for app in applications if app.job_id]
     open_jobs = JobPostings.objects.select_related('department').all()
+    if applied_job_ids:
+        open_jobs = open_jobs.exclude(job_id__in=applied_job_ids)
     context = {
         'active_tab': 'dashboard',
         'applicant': applicant,
         'applications': applications,
         'total_applications': len(applications),
+        'total_open_positions': open_jobs.count(),
         'open_jobs': open_jobs,
         'applied_job_ids': applied_job_ids,
     }
@@ -1405,15 +1408,23 @@ def api_applicant_skill_create(request):
             return JsonResponse({'status': 'error', 'message': 'Please create your profile first.'}, status=400)
 
         skill_id = data.get('skill_id')
+        skill_name = data.get('skill_name', '').strip()
         proficiency_level = data.get('proficiency_level', 'Intermediate')
 
-        if not skill_id:
+        if skill_id:
+            try:
+                skill = Skills.objects.get(pk=skill_id)
+            except Skills.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Invalid Skill ID.'}, status=400)
+        elif skill_name:
+            max_skill_id = Skills.objects.order_by('-skill_id').first()
+            next_skill_id = (max_skill_id.skill_id + 1) if max_skill_id else 1
+            skill, _ = Skills.objects.get_or_create(
+                skill_name=skill_name,
+                defaults={'skill_id': next_skill_id}
+            )
+        else:
             return JsonResponse({'status': 'error', 'message': 'Skill is required.'}, status=400)
-
-        try:
-            skill = Skills.objects.get(pk=skill_id)
-        except Skills.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Invalid Skill ID.'}, status=400)
 
         if ApplicantSkills.objects.filter(applicant=applicant, skill=skill).exists():
             return JsonResponse({'status': 'error', 'message': 'You have already added this skill.'}, status=400)
@@ -1460,6 +1471,7 @@ def api_applicant_skill_update(request, applicant_skill_id):
 
         data = json.loads(request.body)
         skill_id = data.get('skill_id')
+        skill_name = data.get('skill_name', '').strip()
         proficiency_level = data.get('proficiency_level')
 
         if skill_id:
@@ -1467,6 +1479,16 @@ def api_applicant_skill_update(request, applicant_skill_id):
                 skill = Skills.objects.get(pk=skill_id)
             except Skills.DoesNotExist:
                 return JsonResponse({'status': 'error', 'message': 'Invalid Skill ID.'}, status=400)
+            if ApplicantSkills.objects.filter(applicant=applicant, skill=skill).exclude(pk=applicant_skill_id).exists():
+                return JsonResponse({'status': 'error', 'message': 'You have already added this skill.'}, status=400)
+            app_skill.skill = skill
+        elif skill_name:
+            max_skill_id = Skills.objects.order_by('-skill_id').first()
+            next_skill_id = (max_skill_id.skill_id + 1) if max_skill_id else 1
+            skill, _ = Skills.objects.get_or_create(
+                skill_name=skill_name,
+                defaults={'skill_id': next_skill_id}
+            )
             if ApplicantSkills.objects.filter(applicant=applicant, skill=skill).exclude(pk=applicant_skill_id).exists():
                 return JsonResponse({'status': 'error', 'message': 'You have already added this skill.'}, status=400)
             app_skill.skill = skill
@@ -1501,6 +1523,27 @@ def api_applicant_skill_delete(request, applicant_skill_id):
         return JsonResponse({'status': 'success', 'message': 'Skill removed successfully.'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========== PRINT PROFILE (Applicant) ==========
+
+@role_required(['JobApplicant'])
+def print_profile(request):
+    user_id = request.session.get('user_id')
+    user = Users.objects.get(pk=user_id)
+    applicant = Applicants.objects.filter(user_id=user_id).first()
+    qualifications = Qualifications.objects.filter(applicant=applicant).order_by('-year_completed') if applicant else []
+    skills_list = ApplicantSkills.objects.filter(applicant=applicant).select_related('skill') if applicant else []
+    applications = Applications.objects.filter(applicant=applicant).select_related('job__department').all() if applicant else []
+
+    context = {
+        'user': user,
+        'applicant': applicant,
+        'qualifications': qualifications,
+        'skills_list': skills_list,
+        'applications': applications,
+    }
+    return render(request, 'profile/print_profile.html', context)
 
 
 # ========== DEPARTMENT MANAGEMENT (HR) ==========

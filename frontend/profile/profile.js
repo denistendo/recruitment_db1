@@ -10,9 +10,17 @@ function cancelEditProfile() {
     document.getElementById('edit-profile-btn').style.display = 'inline-block';
 }
 
+function parseDateDDMMYYYY(value) {
+    if (!value) return null;
+    const parts = value.split('/');
+    if (parts.length !== 3) return value;
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+}
+
 async function saveProfile() {
+    const dobInput = document.getElementById('edit-dob').value;
     const data = {
-        date_of_birth: document.getElementById('edit-dob').value || null,
+        date_of_birth: parseDateDDMMYYYY(dobInput),
         gender: document.getElementById('edit-gender').value || null,
         phone_number: document.getElementById('edit-phone').value || null,
         address: document.getElementById('edit-address').value || null,
@@ -135,7 +143,7 @@ function openEditSkillModal(applicantSkillId, skillId, skillName, proficiency) {
     form.dataset.editId = applicantSkillId;
     document.getElementById('skill-modal-title').textContent = 'Edit Skill';
     document.getElementById('skill-submit-btn').textContent = 'Update Skill';
-    document.getElementById('skill-select').value = skillId;
+    document.getElementById('skill-input').value = skillName;
     document.getElementById('skill-proficiency').value = proficiency;
     openModal('skill-modal');
 }
@@ -144,10 +152,15 @@ async function submitSkillForm(event) {
     event.preventDefault();
     const form = document.getElementById('skill-form');
     const editId = form.dataset.editId;
-    const skillId = document.getElementById('skill-select').value;
+    const skillName = document.getElementById('skill-input').value.trim();
     const proficiency = document.getElementById('skill-proficiency').value;
 
-    const payload = { skill_id: parseInt(skillId), proficiency_level: proficiency };
+    if (!skillName) {
+        showToast('Please enter or select a skill.', 'error');
+        return;
+    }
+
+    const payload = { skill_name: skillName, proficiency_level: proficiency };
 
     const url = editId ? `/api/applicant-skills/update/${editId}/` : '/api/applicant-skills/create/';
     const method = editId ? 'PUT' : 'POST';

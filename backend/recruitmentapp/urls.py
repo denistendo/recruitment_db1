@@ -27,6 +27,7 @@ urlpatterns = [
     path('applicants/', views.applicants_page, name='applicants'),
     path('applications/', views.applications_page, name='applications'),
     path('profile/', views.applicant_profile, name='applicant_profile'),
+    path('profile/print/', views.print_profile, name='print_profile'),
 
     # HR Applications Management
     path('hr-applications/', views.hr_applications_view, name='hr_applications'),
