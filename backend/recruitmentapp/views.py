@@ -39,13 +39,29 @@ def signup_view(request):
         )
 
         messages.success(request, 'Account created successfully! Please log in.')
-        return redirect('recruitmentapp:login')
+        return redirect('recruitmentapp:signin')
 
     return render(request, 'authentication/signup.html')
 
 
-def login_page(request):
-    return render(request, 'authentication/login.html')
+def signin_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+
+        if not all([email, password]):
+            messages.error(request, 'All fields are required.')
+            return render(request, 'authentication/signin.html')
+
+        user = Users.objects.filter(email=email).first()
+        if not user or user.password != password:
+            messages.error(request, 'Invalid credentials.')
+            return render(request, 'authentication/signin.html')
+
+        messages.success(request, 'Welcome back!')
+        return redirect('recruitmentapp:users')
+
+    return render(request, 'authentication/signin.html')
 
 
 @csrf_exempt

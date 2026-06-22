@@ -6,7 +6,7 @@ app_name = 'recruitmentapp'
 urlpatterns = [
     path('', views.users_page, name='users'),
     path('signup/', views.signup_view, name='signup'),
-    path('login/', views.login_page, name='login'),
+    path('signin/', views.signin_view, name='signin'),
     path('jobs/', views.jobs_page, name='jobs'),
     path('applicants/', views.applicants_page, name='applicants'),
 
