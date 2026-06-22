@@ -1,9 +1,51 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.contrib import messages
 import json
 from .models import JobPostings, Departments, Users, Applicants
+
+
+def signup_view(request):
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        user_type = request.POST.get('user_type', '').strip()
+
+        if not all([full_name, email, password, confirm_password, user_type]):
+            messages.error(request, 'All fields are required.')
+            return render(request, 'authentication/signup.html')
+
+        if password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'authentication/signup.html')
+
+        if Users.objects.filter(email=email).exists():
+            messages.error(request, 'A user with this email already exists.')
+            return render(request, 'authentication/signup.html')
+
+        max_id = Users.objects.order_by('-user_id').first()
+        next_id = (max_id.user_id + 1) if max_id else 1
+
+        Users.objects.create(
+            user_id=next_id,
+            full_name=full_name,
+            email=email,
+            password=password,
+            user_type=user_type
+        )
+
+        messages.success(request, 'Account created successfully! Please log in.')
+        return redirect('recruitmentapp:login')
+
+    return render(request, 'authentication/signup.html')
+
+
+def login_page(request):
+    return render(request, 'authentication/login.html')
 
 
 def users_page(request):

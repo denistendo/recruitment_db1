@@ -69,7 +69,7 @@
                     <td>{{ a.gender|default:"-" }}</td>
                     <td>{{ a.phone_number|default:"-" }}</td>
                     <td style="text-align: center;">
-                        <button class="btn-edit" onclick="openEditApplicantModal({{ a.applicant_id }}, {{ a.user.user_id }}, '{{ a.date_of_birth|default:"" }}', '{{ a.gender|escapejs|default:"" }}', '{{ a.phone_number|escapejs|default:"" }}', '{{ a.address|escapejs|default:"" }}')">Edit</button>
+                        <button class="btn-edit" onclick="openEditApplicantModal({{ a.applicant_id }}, '{{ a.user.user_id|default:"" }}', '{{ a.date_of_birth|default:"" }}', '{{ a.gender|default:""|escapejs }}', '{{ a.phone_number|default:""|escapejs }}', '{{ a.address|default:""|escapejs }}')">Edit</button>
                         <button class="btn-danger" onclick="deleteApplicant({{ a.applicant_id }})">Delete</button>
                     </td>
                 </tr>
