@@ -39,6 +39,10 @@ urlpatterns = [
     path('api/applicants/delete/<int:applicant_id>/', views.api_applicant_delete, name='api_applicant_delete'),
     path('api/jobs/open/', views.api_open_jobs, name='api_open_jobs'),
     path('api/applications/apply/', views.api_apply_job, name='api_apply_job'),
+    path('api/applications/', views.api_application_list, name='api_application_list'),
+    path('api/applications/create/', views.api_application_create, name='api_application_create'),
+    path('api/applications/update/<int:application_id>/', views.api_application_update, name='api_application_update'),
+    path('api/applications/delete/<int:application_id>/', views.api_application_delete, name='api_application_delete'),
     path('api/qualifications/save/', views.api_save_qualifications, name='api_save_qualifications'),
     path('api/skills/save/', views.api_save_skills, name='api_save_skills'),
 ]

@@ -396,8 +396,13 @@ def applications_page(request):
     else:
         applications_list = Applications.objects.select_related('applicant__user', 'job').all().order_by('-application_id')
 
+    applicants_list = Applicants.objects.select_related('user').all().order_by('applicant_id')
+    jobs_list = JobPostings.objects.select_related('department').all().order_by('title')
+
     context = {
         'applications': applications_list,
+        'applicants_list': applicants_list,
+        'jobs_list': jobs_list,
         'active_tab': 'applications',
     }
     return render(request, 'applications/applications.html', context)
@@ -768,5 +773,131 @@ def api_job_update(request, job_id):
         return JsonResponse({'status': 'success', 'message': 'Job posting updated successfully!'})
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========== APPLICATIONS API ==========
+
+def api_application_list(request):
+    applications = Applications.objects.select_related('applicant__user', 'job__department').all().order_by('-application_id')
+    data = []
+    for app in applications:
+        data.append({
+            'application_id': app.application_id,
+            'applicant_id': app.applicant.applicant_id if app.applicant else None,
+            'applicant_name': app.applicant.user.full_name if app.applicant and app.applicant.user else 'N/A',
+            'job_id': app.job.job_id if app.job else None,
+            'job_title': app.job.title if app.job else 'N/A',
+            'application_date': str(app.application_date) if app.application_date else '',
+            'status': app.status or '',
+        })
+    return JsonResponse({'status': 'success', 'applications': data})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_application_create(request):
+    try:
+        data = json.loads(request.body)
+        applicant_id = data.get('applicant_id')
+        job_id = data.get('job_id')
+        application_date = data.get('application_date')
+        status = data.get('status', 'Pending')
+
+        if not applicant_id or not job_id:
+            return JsonResponse({'status': 'error', 'message': 'Applicant and Job are required.'}, status=400)
+
+        try:
+            applicant = Applicants.objects.get(pk=applicant_id)
+        except Applicants.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Applicant ID.'}, status=400)
+
+        try:
+            job = JobPostings.objects.get(pk=job_id)
+        except JobPostings.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Job ID.'}, status=400)
+
+        if Applications.objects.filter(applicant=applicant, job=job).exists():
+            return JsonResponse({'status': 'error', 'message': 'This applicant has already applied for this job.'}, status=400)
+
+        max_id = Applications.objects.all().order_by('-application_id').first()
+        next_id = (max_id.application_id + 1) if max_id else 1
+
+        app = Applications.objects.create(
+            application_id=next_id,
+            applicant=applicant,
+            job=job,
+            application_date=application_date if application_date else date.today(),
+            status=status
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Application created successfully!',
+            'application': {'application_id': app.application_id}
+        }, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def api_application_update(request, application_id):
+    try:
+        try:
+            app = Applications.objects.get(pk=application_id)
+        except Applications.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Application not found.'}, status=404)
+
+        data = json.loads(request.body)
+        applicant_id = data.get('applicant_id')
+        job_id = data.get('job_id')
+        application_date = data.get('application_date')
+        status = data.get('status')
+
+        if not applicant_id or not job_id:
+            return JsonResponse({'status': 'error', 'message': 'Applicant and Job are required.'}, status=400)
+
+        try:
+            applicant = Applicants.objects.get(pk=applicant_id)
+        except Applicants.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Applicant ID.'}, status=400)
+
+        try:
+            job = JobPostings.objects.get(pk=job_id)
+        except JobPostings.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Job ID.'}, status=400)
+
+        if Applications.objects.filter(applicant=applicant, job=job).exclude(pk=application_id).exists():
+            return JsonResponse({'status': 'error', 'message': 'Another application already exists for this applicant and job.'}, status=400)
+
+        app.applicant = applicant
+        app.job = job
+        app.application_date = application_date if application_date else None
+        app.status = status or 'Pending'
+        app.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Application updated successfully!'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def api_application_delete(request, application_id):
+    try:
+        try:
+            app = Applications.objects.get(pk=application_id)
+        except Applications.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Application not found.'}, status=404)
+
+        app.delete()
+        return JsonResponse({'status': 'success', 'message': f'Application {application_id} deleted successfully.'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

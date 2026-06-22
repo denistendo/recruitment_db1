@@ -1,0 +1,29 @@
+.qualification-row {
+    background-color: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+#skills-container {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#skills-container .form-check {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition-smooth);
+}
+
+#skills-container .form-check:hover {
+    background-color: var(--bg-surface-elevated);
+    border-color: var(--primary);
+}
+
+#skills-container .form-check-input:checked + .form-check-label {
+    color: var(--primary);
+    font-weight: 600;
+}

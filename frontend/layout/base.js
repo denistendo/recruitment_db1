@@ -28,6 +28,17 @@ function showToast(message, type = 'success') {
     }, 4000);
 }
 
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    const icon = btn.querySelector('i');
+    if (icon) {
+        icon.className = isPassword ? 'bi bi-eye-slash-fill' : 'bi bi-eye-fill';
+    }
+}
+
 function copyToClipboard(text, friendlyName) {
     navigator.clipboard.writeText(text).then(() => {
         showToast(`Copied ${friendlyName} path to clipboard!`, 'success');

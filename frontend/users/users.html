@@ -74,7 +74,12 @@
             </div>
             <div class="form-group">
                 <label for="user-password">Password</label>
-                <input type="password" id="user-password" required placeholder="Enter password (max 8 chars)">
+                <div class="password-wrapper">
+                    <input type="password" id="user-password" required placeholder="Enter password (max 8 chars)">
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('user-password', this)">
+                        <i class="bi bi-eye-fill"></i>
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="user-type">User Role Type</label>
