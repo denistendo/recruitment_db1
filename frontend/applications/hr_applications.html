@@ -1,0 +1,126 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block title %}HR Applications - RecruitDB{% endblock %}
+{% block page_header %}HR Applications Management{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-clipboard-check me-2"></i>All Applications
+                </h5>
+                <span class="badge bg-primary rounded-pill">{{ applications|length }} Total</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Applicant Name</th>
+                                <th>Job Title</th>
+                                <th>Applied Date</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td class="fw-semibold">{{ app.application_id }}</td>
+                                <td>
+                                    <a href="{% url 'recruitmentapp:applicants' %}" class="text-decoration-none fw-medium">
+                                        <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:"N/A" }}
+                                    </a>
+                                </td>
+                                <td>{{ app.job.title|default:"N/A" }}</td>
+                                <td>{{ app.application_date|default:"-" }}</td>
+                                <td>
+                                    {% if app.status == 'Submitted' or app.status == 'Pending' %}
+                                    <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>
+                                    {% elif app.status == 'Under Review' %}
+                                    <span class="badge bg-info text-dark">{{ app.status }}</span>
+                                    {% elif app.status == 'Shortlisted' %}
+                                    <span class="badge bg-success">{{ app.status }}</span>
+                                    {% elif app.status == 'Rejected' %}
+                                    <span class="badge bg-danger">{{ app.status }}</span>
+                                    {% elif app.status == 'Interview Scheduled' %}
+                                    <span class="badge bg-primary">{{ app.status }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ app.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'recruitmentapp:applicants' %}" class="btn btn-outline-info" title="View Profile">
+                                            <i class="bi bi-person"></i>
+                                        </a>
+                                        {% if app.status != 'Shortlisted' %}
+                                        <a href="{% url 'recruitmentapp:application_shortlist' app.application_id %}" class="btn btn-outline-success" title="Shortlist" onclick="return confirm('Shortlist this applicant for {{ app.job.title|escapejs }}?')">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if app.status != 'Rejected' %}
+                                        <a href="{% url 'recruitmentapp:application_reject' app.application_id %}" class="btn btn-outline-danger" title="Reject" onclick="return confirm('Reject this application from {{ app.applicant.user.full_name|escapejs }}?')">
+                                            <i class="bi bi-x-circle"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if app.status != 'Interview Scheduled' %}
+                                        <a href="{% url 'recruitmentapp:application_interview' app.application_id %}" class="btn btn-outline-primary" title="Schedule Interview" onclick="return confirm('Move {{ app.applicant.user.full_name|escapejs }} to interview stage?')">
+                                            <i class="bi bi-calendar-event"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                                    <p class="mt-2 mb-0 fw-medium">No applications found</p>
+                                    <small>Applications submitted by applicants will appear here.</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3 col-6 text-center">
+                <div class="p-3">
+                    <span class="badge bg-secondary fs-6 mb-2 d-inline-block">Submitted</span>
+                    <h4 class="fw-bold mb-0">{{ applications|dictsortreversed:"application_id"|length }}</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 text-center">
+                <div class="p-3">
+                    <span class="badge bg-info fs-6 mb-2 d-inline-block">Under Review</span>
+                    <h4 class="fw-bold mb-0">-</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 text-center">
+                <div class="p-3">
+                    <span class="badge bg-success fs-6 mb-2 d-inline-block">Shortlisted</span>
+                    <h4 class="fw-bold mb-0">-</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 text-center">
+                <div class="p-3">
+                    <span class="badge bg-primary fs-6 mb-2 d-inline-block">Interview</span>
+                    <h4 class="fw-bold mb-0">-</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

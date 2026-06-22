@@ -4,14 +4,26 @@
 {% block title %}Applications - RecruitDB{% endblock %}
 {% block page_header %}Applications{% endblock %}
 
+{% block extra_css %}
+{% if session_user.user_type != 'JobApplicant' %}
+<link rel="stylesheet" href="{% static 'applications/applications.css' %}">
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if session_user.user_type != 'JobApplicant' %}
+<script src="{% static 'applications/applications.js' %}" defer></script>
+{% endif %}
+{% endblock %}
+
 {% block content %}
+{% if session_user.user_type == 'JobApplicant' %}
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
                     <th>ID</th>
-                    <th>Applicant</th>
                     <th>Job Title</th>
                     <th>Applied Date</th>
                     <th>Status</th>
@@ -21,7 +33,6 @@
                 {% for app in applications %}
                 <tr>
                     <td>{{ app.application_id }}</td>
-                    <td>{{ app.applicant.user.full_name|default:"N/A" }}</td>
                     <td>{{ app.job.title|default:"N/A" }}</td>
                     <td>{{ app.application_date|default:"-" }}</td>
                     <td>
@@ -38,7 +49,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="4" class="text-center text-muted py-4">
                         <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                         <p class="mt-2 mb-0">No applications found</p>
                     </td>
@@ -48,4 +59,99 @@
         </table>
     </div>
 </div>
+{% else %}
+<p class="text-muted mb-4">Manage job applications submitted by applicants.</p>
+<section id="section-applications" class="tab-section active">
+    <div class="action-bar">
+        <div class="search-box">
+            <input type="text" id="search-applications" placeholder="Search by applicant, job or status..." onkeyup="filterApplications()">
+        </div>
+        <button class="btn btn-primary" onclick="openCreateApplicationModal()">+ Add Application</button>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table" id="applications-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Applicant</th>
+                    <th>Job Title</th>
+                    <th>Applied Date</th>
+                    <th>Status</th>
+                    <th style="text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="applications-table-body">
+                {% for app in applications %}
+                <tr id="application-row-{{ app.application_id }}">
+                    <td>{{ app.application_id }}</td>
+                    <td class="applicant-name-cell">{{ app.applicant.user.full_name|default:"N/A" }}</td>
+                    <td>{{ app.job.title|default:"N/A" }}</td>
+                    <td>{{ app.application_date|default:"-" }}</td>
+                    <td>
+                        <span class="status-badge status-{{ app.status|lower }}">{{ app.status }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn-edit" onclick="openEditApplicationModal({{ app.application_id }}, {{ app.applicant.applicant_id|default:'null' }}, {{ app.job.job_id|default:'null' }}, '{{ app.application_date|default:'' }}', '{{ app.status|default:'Pending'|escapejs }}')">Edit</button>
+                        <button class="btn-danger" onclick="deleteApplication({{ app.application_id }})">Delete</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr id="applications-empty-row">
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        No applications found in the database.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="modal-overlay" id="application-modal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Add New Application</h3>
+            <button class="modal-close" onclick="closeModal('application-modal')">&times;</button>
+        </div>
+        <form id="create-application-form" onsubmit="submitApplicationForm(event)">
+            <div class="form-group">
+                <label for="application-applicant">Applicant</label>
+                <select id="application-applicant" required>
+                    <option value="">-- Select Applicant --</option>
+                    {% for a in applicants_list %}
+                    <option value="{{ a.applicant_id }}">{{ a.user.full_name|default:"N/A" }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="application-job">Job Vacancy</label>
+                <select id="application-job" required>
+                    <option value="">-- Select Job --</option>
+                    {% for j in jobs_list %}
+                    <option value="{{ j.job_id }}">{{ j.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="application-date">Application Date</label>
+                <input type="date" id="application-date">
+            </div>
+            <div class="form-group">
+                <label for="application-status">Status</label>
+                <select id="application-status">
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Withdrawn">Withdrawn</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('application-modal')">Cancel</button>
+                <button type="submit" class="btn btn-success">Save Application</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

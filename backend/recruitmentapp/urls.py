@@ -23,6 +23,12 @@ urlpatterns = [
     path('applications/', views.applications_page, name='applications'),
     path('profile/', views.applicant_profile, name='applicant_profile'),
 
+    # HR Applications Management
+    path('hr-applications/', views.hr_applications_view, name='hr_applications'),
+    path('application/shortlist/<int:application_id>/', views.application_shortlist, name='application_shortlist'),
+    path('application/reject/<int:application_id>/', views.application_reject, name='application_reject'),
+    path('application/interview/<int:application_id>/', views.application_interview, name='application_interview'),
+
     # API endpoints
     path('api/signup/', views.api_signup, name='api_signup'),
     path('api/users/', views.api_user_list, name='api_user_list'),
@@ -44,5 +50,12 @@ urlpatterns = [
     path('api/applications/update/<int:application_id>/', views.api_application_update, name='api_application_update'),
     path('api/applications/delete/<int:application_id>/', views.api_application_delete, name='api_application_delete'),
     path('api/qualifications/save/', views.api_save_qualifications, name='api_save_qualifications'),
+    path('api/qualifications/create/', views.api_qualification_create, name='api_qualification_create'),
+    path('api/qualifications/update/<int:qualification_id>/', views.api_qualification_update, name='api_qualification_update'),
+    path('api/qualifications/delete/<int:qualification_id>/', views.api_qualification_delete, name='api_qualification_delete'),
     path('api/skills/save/', views.api_save_skills, name='api_save_skills'),
+    path('api/applicant-skills/create/', views.api_applicant_skill_create, name='api_applicant_skill_create'),
+    path('api/applicant-skills/update/<int:applicant_skill_id>/', views.api_applicant_skill_update, name='api_applicant_skill_update'),
+    path('api/applicant-skills/delete/<int:applicant_skill_id>/', views.api_applicant_skill_delete, name='api_applicant_skill_delete'),
+    path('api/profile/update/', views.api_update_profile, name='api_update_profile'),
 ]

@@ -1,95 +1,205 @@
-function addQualificationRow() {
-    const container = document.getElementById('qualifications-container');
-    const noMsg = document.getElementById('no-quals-msg');
-    if (noMsg) noMsg.remove();
-
-    const row = document.createElement('div');
-    row.className = 'qualification-row';
-    row.innerHTML = `
-        <div class="form-group-row">
-            <div class="form-group">
-                <label>Institution</label>
-                <input type="text" class="qual-institution" placeholder="University name">
-            </div>
-            <div class="form-group">
-                <label>Award</label>
-                <input type="text" class="qual-award" placeholder="Degree / Diploma">
-            </div>
-        </div>
-        <div class="form-group-row" style="align-items: end;">
-            <div class="form-group">
-                <label>Year Completed</label>
-                <input type="number" class="qual-year" placeholder="2024" min="1900" max="2099">
-            </div>
-            <div class="form-group">
-                <button class="btn btn-sm btn-danger" onclick="this.closest('.qualification-row').remove()">
-                    <i class="bi bi-trash"></i> Remove
-                </button>
-            </div>
-        </div>
-    `;
-    container.appendChild(row);
+function toggleEditProfile() {
+    document.getElementById('profile-display').style.display = 'none';
+    document.getElementById('profile-edit').style.display = 'block';
+    document.getElementById('edit-profile-btn').style.display = 'none';
 }
 
-function saveQualifications() {
-    const rows = document.querySelectorAll('.qualification-row');
-    const qualifications = [];
-    rows.forEach(row => {
-        const institution = row.querySelector('.qual-institution').value.trim();
-        const award = row.querySelector('.qual-award').value.trim();
-        const year = row.querySelector('.qual-year').value.trim();
-        if (institution || award) {
-            qualifications.push({
-                institution: institution,
-                award: award,
-                year_completed: year ? parseInt(year) : null
-            });
-        }
-    });
+function cancelEditProfile() {
+    document.getElementById('profile-display').style.display = 'block';
+    document.getElementById('profile-edit').style.display = 'none';
+    document.getElementById('edit-profile-btn').style.display = 'inline-block';
+}
 
-    fetch('/api/qualifications/save/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-        body: JSON.stringify({ qualifications: qualifications })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            showToast(data.message, 'success');
+async function saveProfile() {
+    const data = {
+        date_of_birth: document.getElementById('edit-dob').value || null,
+        gender: document.getElementById('edit-gender').value || null,
+        phone_number: document.getElementById('edit-phone').value || null,
+        address: document.getElementById('edit-address').value || null,
+    };
+
+    try {
+        const response = await fetch('/api/profile/update/', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (response.ok) {
+            showToast(result.message, 'success');
+            setTimeout(() => location.reload(), 1000);
         } else {
-            showToast(data.message || 'Error saving qualifications', 'error');
+            showToast(result.message || 'Error saving profile.', 'error');
         }
-    })
-    .catch(() => showToast('Network error', 'error'));
-}
-
-function saveSkills() {
-    const checkboxes = document.querySelectorAll('.skill-checkbox:checked');
-    const skills = [];
-    checkboxes.forEach(cb => skills.push(parseInt(cb.value)));
-
-    fetch('/api/skills/save/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-        body: JSON.stringify({ skills: skills })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            showToast(data.message, 'success');
-        } else {
-            showToast(data.message || 'Error saving skills', 'error');
-        }
-    })
-    .catch(() => showToast('Network error', 'error'));
-}
-
-function getCSRFToken() {
-    const name = 'csrftoken';
-    const cookies = document.cookie.split(';');
-    for (let c of cookies) {
-        c = c.trim();
-        if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
+    } catch (err) {
+        showToast('Network error: ' + err.message, 'error');
     }
-    return '';
+}
+
+function openAddQualificationModal() {
+    document.getElementById('qualification-form').reset();
+    delete document.getElementById('qualification-form').dataset.editId;
+    document.getElementById('qual-modal-title').textContent = 'Add Qualification';
+    document.getElementById('qual-submit-btn').textContent = 'Add Qualification';
+    openModal('qualification-modal');
+}
+
+function openEditQualificationModal(id, institution, award, year) {
+    const form = document.getElementById('qualification-form');
+    form.reset();
+    form.dataset.editId = id;
+    document.getElementById('qual-modal-title').textContent = 'Edit Qualification';
+    document.getElementById('qual-submit-btn').textContent = 'Update Qualification';
+    document.getElementById('qual-institution').value = institution;
+    document.getElementById('qual-award').value = award;
+    document.getElementById('qual-year').value = year && year !== 'None' ? year : '';
+    openModal('qualification-modal');
+}
+
+async function submitQualificationForm(event) {
+    event.preventDefault();
+    const form = document.getElementById('qualification-form');
+    const editId = form.dataset.editId;
+    const institution = document.getElementById('qual-institution').value.trim();
+    const award = document.getElementById('qual-award').value.trim();
+    const year = document.getElementById('qual-year').value;
+
+    const payload = {
+        institution: institution,
+        award: award,
+        year_completed: year ? parseInt(year) : null
+    };
+
+    const url = editId ? `/api/qualifications/update/${editId}/` : '/api/qualifications/create/';
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (response.ok) {
+            showToast(result.message, 'success');
+            closeModal('qualification-modal');
+            form.reset();
+            delete form.dataset.editId;
+            reloadPage();
+        } else {
+            showToast(result.message || 'Error saving qualification.', 'error');
+        }
+    } catch (err) {
+        showToast('Network error: ' + err.message, 'error');
+    }
+}
+
+async function deleteQualification(id) {
+    if (!confirm('Delete this qualification?')) return;
+    try {
+        const response = await fetch(`/api/qualifications/delete/${id}/`, { method: 'DELETE' });
+        const result = await response.json();
+        if (response.ok) {
+            showToast(result.message, 'success');
+            const row = document.getElementById(`qual-row-${id}`);
+            if (row) row.remove();
+            checkQualsEmpty();
+        } else {
+            showToast(result.message || 'Error deleting qualification.', 'error');
+        }
+    } catch (err) {
+        showToast('Network error: ' + err.message, 'error');
+    }
+}
+
+function checkQualsEmpty() {
+    const rows = document.querySelectorAll('#qualifications-table tbody tr');
+    const hasData = Array.from(rows).some(r => r.id !== 'quals-empty-row');
+    if (!hasData) {
+        const tbody = document.querySelector('#qualifications-table tbody');
+        tbody.innerHTML = `<tr id="quals-empty-row"><td colspan="4" class="text-center text-muted py-4">No qualifications added yet.</td></tr>`;
+    }
+}
+
+function openAddSkillModal() {
+    document.getElementById('skill-form').reset();
+    delete document.getElementById('skill-form').dataset.editId;
+    document.getElementById('skill-modal-title').textContent = 'Add Skill';
+    document.getElementById('skill-submit-btn').textContent = 'Add Skill';
+    openModal('skill-modal');
+}
+
+function openEditSkillModal(applicantSkillId, skillId, skillName, proficiency) {
+    const form = document.getElementById('skill-form');
+    form.reset();
+    form.dataset.editId = applicantSkillId;
+    document.getElementById('skill-modal-title').textContent = 'Edit Skill';
+    document.getElementById('skill-submit-btn').textContent = 'Update Skill';
+    document.getElementById('skill-select').value = skillId;
+    document.getElementById('skill-proficiency').value = proficiency;
+    openModal('skill-modal');
+}
+
+async function submitSkillForm(event) {
+    event.preventDefault();
+    const form = document.getElementById('skill-form');
+    const editId = form.dataset.editId;
+    const skillId = document.getElementById('skill-select').value;
+    const proficiency = document.getElementById('skill-proficiency').value;
+
+    const payload = { skill_id: parseInt(skillId), proficiency_level: proficiency };
+
+    const url = editId ? `/api/applicant-skills/update/${editId}/` : '/api/applicant-skills/create/';
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (response.ok) {
+            showToast(result.message, 'success');
+            closeModal('skill-modal');
+            form.reset();
+            delete form.dataset.editId;
+            reloadPage();
+        } else {
+            showToast(result.message || 'Error saving skill.', 'error');
+        }
+    } catch (err) {
+        showToast('Network error: ' + err.message, 'error');
+    }
+}
+
+async function deleteSkill(applicantSkillId) {
+    if (!confirm('Remove this skill?')) return;
+    try {
+        const response = await fetch(`/api/applicant-skills/delete/${applicantSkillId}/`, { method: 'DELETE' });
+        const result = await response.json();
+        if (response.ok) {
+            showToast(result.message, 'success');
+            const row = document.getElementById(`skill-row-${applicantSkillId}`);
+            if (row) row.remove();
+            checkSkillsEmpty();
+        } else {
+            showToast(result.message || 'Error removing skill.', 'error');
+        }
+    } catch (err) {
+        showToast('Network error: ' + err.message, 'error');
+    }
+}
+
+function checkSkillsEmpty() {
+    const rows = document.querySelectorAll('#skills-table tbody tr');
+    const hasData = Array.from(rows).some(r => r.id !== 'skills-empty-row');
+    if (!hasData) {
+        const tbody = document.querySelector('#skills-table tbody');
+        tbody.innerHTML = `<tr id="skills-empty-row"><td colspan="3" class="text-center text-muted py-4">No skills added yet.</td></tr>`;
+    }
+}
+
+function reloadPage() {
+    setTimeout(() => location.reload(), 500);
 }

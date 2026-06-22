@@ -46,6 +46,13 @@
                             <i class="bi bi-briefcase me-2"></i>Job Postings
                         </a>
                     </li>
+                    {% if session_user.user_type == 'HumanResourceOfficer' %}
+                    <li class="nav-item mb-1">
+                        <a href="{% url 'recruitmentapp:hr_applications' %}" class="nav-link text-white {% if active_tab == 'hr_applications' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-clipboard-check me-2"></i>HR Applications
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item mb-1">
                         <a href="{% url 'recruitmentapp:applications' %}" class="nav-link text-white {% if active_tab == 'applications' %}active bg-primary rounded{% endif %}">
                             <i class="bi bi-file-text me-2"></i>Applications

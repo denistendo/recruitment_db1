@@ -5,8 +5,9 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from functools import wraps
 from datetime import date
+from .mailer import send_application_confirmation
 import json
-from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills
+from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews
 
 
 ROLE_DASHBOARD_MAP = {
@@ -70,7 +71,7 @@ def signup_view(request):
         max_id = Users.objects.order_by('-user_id').first()
         next_id = (max_id.user_id + 1) if max_id else 1
 
-        Users.objects.create(
+        user = Users.objects.create(
             user_id=next_id,
             full_name=full_name,
             email=email,
@@ -206,6 +207,25 @@ def applicant_profile(request):
     skills_list = ApplicantSkills.objects.filter(applicant=applicant).select_related('skill') if applicant else []
     all_skills = Skills.objects.all().order_by('skill_name')
 
+    total_applications = 0
+    total_interviews = 0
+    latest_application = None
+    if applicant:
+        apps = Applications.objects.filter(applicant=applicant)
+        total_applications = apps.count()
+        latest_application = apps.order_by('-application_id').first()
+        total_interviews = Interviews.objects.filter(application__applicant=applicant).count()
+
+    completion = 0
+    if applicant:
+        completion += 25
+        if applicant.date_of_birth:
+            completion += 25
+    if qualifications:
+        completion += 25
+    if skills_list:
+        completion += 25
+
     context = {
         'active_tab': 'profile',
         'applicant': applicant,
@@ -213,6 +233,10 @@ def applicant_profile(request):
         'qualifications': qualifications,
         'skills_list': skills_list,
         'all_skills': all_skills,
+        'total_applications': total_applications,
+        'total_interviews': total_interviews,
+        'latest_application': latest_application,
+        'completion': completion,
     }
     return render(request, 'profile/profile.html', context)
 
@@ -266,6 +290,12 @@ def api_apply_job(request):
             application_date=date.today(),
             status='Pending'
         )
+
+        try:
+            user = Users.objects.get(pk=user_id)
+            send_application_confirmation(user.email, user.full_name, job.title)
+        except Exception:
+            pass
 
         return JsonResponse({'status': 'success', 'message': 'Application submitted successfully!'}, status=201)
 
@@ -406,6 +436,54 @@ def applications_page(request):
         'active_tab': 'applications',
     }
     return render(request, 'applications/applications.html', context)
+
+
+# ========== HR APPLICATIONS MANAGEMENT ==========
+
+@role_required(['HumanResourceOfficer'])
+def hr_applications_view(request):
+    applications_list = Applications.objects.select_related('applicant__user', 'job').all().order_by('-application_id')
+    context = {
+        'applications': applications_list,
+        'active_tab': 'hr_applications',
+    }
+    return render(request, 'applications/hr_applications.html', context)
+
+
+@role_required(['HumanResourceOfficer'])
+def application_shortlist(request, application_id):
+    try:
+        app = Applications.objects.get(pk=application_id)
+        app.status = 'Shortlisted'
+        app.save()
+        messages.success(request, f'Application #{application_id} shortlisted successfully.')
+    except Applications.DoesNotExist:
+        messages.error(request, 'Application not found.')
+    return redirect('recruitmentapp:hr_applications')
+
+
+@role_required(['HumanResourceOfficer'])
+def application_reject(request, application_id):
+    try:
+        app = Applications.objects.get(pk=application_id)
+        app.status = 'Rejected'
+        app.save()
+        messages.success(request, f'Application #{application_id} has been rejected.')
+    except Applications.DoesNotExist:
+        messages.error(request, 'Application not found.')
+    return redirect('recruitmentapp:hr_applications')
+
+
+@role_required(['HumanResourceOfficer'])
+def application_interview(request, application_id):
+    try:
+        app = Applications.objects.get(pk=application_id)
+        app.status = 'Interview Scheduled'
+        app.save()
+        messages.success(request, f'Application #{application_id} moved to interview stage.')
+    except Applications.DoesNotExist:
+        messages.error(request, 'Application not found.')
+    return redirect('recruitmentapp:hr_applications')
 
 
 # ========== API ENDPOINTS (unchanged) ==========
@@ -832,6 +910,13 @@ def api_application_create(request):
             status=status
         )
 
+        try:
+            user = applicant.user
+            if user:
+                send_application_confirmation(user.email, user.full_name, job.title)
+        except Exception:
+            pass
+
         return JsonResponse({
             'status': 'success',
             'message': 'Application created successfully!',
@@ -899,5 +984,254 @@ def api_application_delete(request, application_id):
 
         app.delete()
         return JsonResponse({'status': 'success', 'message': f'Application {application_id} deleted successfully.'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========== PROFILE API (JobApplicant) ==========
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["PUT"])
+def api_update_profile(request):
+    try:
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        data = json.loads(request.body)
+
+        date_of_birth = data.get('date_of_birth')
+        gender = data.get('gender')
+        phone_number = data.get('phone_number')
+        address = data.get('address')
+
+        if applicant:
+            applicant.date_of_birth = date_of_birth if date_of_birth else None
+            applicant.gender = gender or None
+            applicant.phone_number = phone_number or None
+            applicant.address = address or None
+            applicant.save()
+            return JsonResponse({'status': 'success', 'message': 'Profile updated successfully!'})
+        else:
+            max_id = Applicants.objects.order_by('-applicant_id').first()
+            next_id = (max_id.applicant_id + 1) if max_id else 1
+            Applicants.objects.create(
+                applicant_id=next_id,
+                user_id=user_id,
+                date_of_birth=date_of_birth if date_of_birth else None,
+                gender=gender or None,
+                phone_number=phone_number or None,
+                address=address or None
+            )
+            return JsonResponse({'status': 'success', 'message': 'Profile created successfully!'}, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========== QUALIFICATIONS API ==========
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["POST"])
+def api_qualification_create(request):
+    try:
+        data = json.loads(request.body)
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Please create your profile first.'}, status=400)
+
+        institution = data.get('institution', '').strip()
+        award = data.get('award', '').strip()
+        year_completed = data.get('year_completed')
+
+        if not institution or not award:
+            return JsonResponse({'status': 'error', 'message': 'Institution and Award are required.'}, status=400)
+
+        max_id = Qualifications.objects.order_by('-qualification_id').first()
+        next_id = (max_id.qualification_id + 1) if max_id else 1
+
+        qual = Qualifications.objects.create(
+            qualification_id=next_id,
+            applicant=applicant,
+            institution=institution,
+            award=award,
+            year_completed=year_completed if year_completed else None
+        )
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Qualification added successfully!',
+            'qualification': {
+                'qualification_id': qual.qualification_id,
+                'institution': qual.institution,
+                'award': qual.award,
+                'year_completed': qual.year_completed,
+            }
+        }, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["PUT"])
+def api_qualification_update(request, qualification_id):
+    try:
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Applicant profile not found.'}, status=400)
+
+        try:
+            qual = Qualifications.objects.get(pk=qualification_id, applicant=applicant)
+        except Qualifications.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Qualification not found.'}, status=404)
+
+        data = json.loads(request.body)
+        qual.institution = data.get('institution', qual.institution)
+        qual.award = data.get('award', qual.award)
+        qual.year_completed = data.get('year_completed', qual.year_completed)
+        qual.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Qualification updated successfully!'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["DELETE"])
+def api_qualification_delete(request, qualification_id):
+    try:
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Applicant profile not found.'}, status=400)
+
+        try:
+            qual = Qualifications.objects.get(pk=qualification_id, applicant=applicant)
+        except Qualifications.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Qualification not found.'}, status=404)
+
+        qual.delete()
+        return JsonResponse({'status': 'success', 'message': 'Qualification deleted successfully.'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========== APPLICANT SKILLS API ==========
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["POST"])
+def api_applicant_skill_create(request):
+    try:
+        data = json.loads(request.body)
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Please create your profile first.'}, status=400)
+
+        skill_id = data.get('skill_id')
+        proficiency_level = data.get('proficiency_level', 'Intermediate')
+
+        if not skill_id:
+            return JsonResponse({'status': 'error', 'message': 'Skill is required.'}, status=400)
+
+        try:
+            skill = Skills.objects.get(pk=skill_id)
+        except Skills.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Skill ID.'}, status=400)
+
+        if ApplicantSkills.objects.filter(applicant=applicant, skill=skill).exists():
+            return JsonResponse({'status': 'error', 'message': 'You have already added this skill.'}, status=400)
+
+        max_id = ApplicantSkills.objects.order_by('-applicant_skill_id').first()
+        next_id = (max_id.applicant_skill_id + 1) if max_id else 1
+
+        app_skill = ApplicantSkills.objects.create(
+            applicant_skill_id=next_id,
+            applicant=applicant,
+            skill=skill,
+            proficiency_level=proficiency_level
+        )
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Skill added successfully!',
+            'applicant_skill': {
+                'applicant_skill_id': app_skill.applicant_skill_id,
+                'skill_id': skill.skill_id,
+                'skill_name': skill.skill_name,
+                'proficiency_level': app_skill.proficiency_level,
+            }
+        }, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["PUT"])
+def api_applicant_skill_update(request, applicant_skill_id):
+    try:
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Applicant profile not found.'}, status=400)
+
+        try:
+            app_skill = ApplicantSkills.objects.get(pk=applicant_skill_id, applicant=applicant)
+        except ApplicantSkills.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Skill entry not found.'}, status=404)
+
+        data = json.loads(request.body)
+        skill_id = data.get('skill_id')
+        proficiency_level = data.get('proficiency_level')
+
+        if skill_id:
+            try:
+                skill = Skills.objects.get(pk=skill_id)
+            except Skills.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Invalid Skill ID.'}, status=400)
+            if ApplicantSkills.objects.filter(applicant=applicant, skill=skill).exclude(pk=applicant_skill_id).exists():
+                return JsonResponse({'status': 'error', 'message': 'You have already added this skill.'}, status=400)
+            app_skill.skill = skill
+
+        if proficiency_level:
+            app_skill.proficiency_level = proficiency_level
+
+        app_skill.save()
+        return JsonResponse({'status': 'success', 'message': 'Skill updated successfully!'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@role_required(['JobApplicant'])
+@require_http_methods(["DELETE"])
+def api_applicant_skill_delete(request, applicant_skill_id):
+    try:
+        user_id = request.session.get('user_id')
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        if not applicant:
+            return JsonResponse({'status': 'error', 'message': 'Applicant profile not found.'}, status=400)
+
+        try:
+            app_skill = ApplicantSkills.objects.get(pk=applicant_skill_id, applicant=applicant)
+        except ApplicantSkills.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Skill entry not found.'}, status=404)
+
+        app_skill.delete()
+        return JsonResponse({'status': 'success', 'message': 'Skill removed successfully.'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
