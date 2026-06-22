@@ -67,6 +67,14 @@
                     </li>
                     {% endif %}
 
+                    {% if session_user.user_type == 'InterviewPanelMember' %}
+                    <li class="nav-item mb-1">
+                        <a href="{% url 'recruitmentapp:my_interviews' %}" class="nav-link text-white {% if active_tab == 'my_interviews' %}active bg-primary rounded{% endif %}">
+                            <i class="bi bi-clipboard-data me-2"></i>My Interviews
+                        </a>
+                    </li>
+                    {% endif %}
+
                     {% if session_user.user_type == 'JobApplicant' %}
                     <li class="nav-item mb-1">
                         <a href="{% url 'recruitmentapp:applications' %}" class="nav-link text-white {% if active_tab == 'applications' %}active bg-primary rounded{% endif %}">

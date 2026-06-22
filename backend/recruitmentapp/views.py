@@ -8,7 +8,7 @@ from functools import wraps
 from datetime import date
 from .mailer import send_application_confirmation
 import json
-from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews
+from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews, InterviewPanel, JobPanelAssignment
 
 
 ROLE_DASHBOARD_MAP = {
@@ -143,10 +143,141 @@ def hr_dashboard(request):
 
 @role_required(['InterviewPanelMember'])
 def panel_dashboard(request):
+    user_id = request.session.get('user_id')
+    user = Users.objects.get(pk=user_id)
+
+    panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
+
+    total_interviews = 0
+    pending_interviews = 0
+    completed_interviews = 0
+
+    if panel_member:
+        assigned_job_ids = JobPanelAssignment.objects.filter(panel=panel_member).values_list('job_id', flat=True)
+        assigned_applications = Applications.objects.filter(job_id__in=assigned_job_ids)
+        total_interviews = assigned_applications.count()
+        completed_interviews = Interviews.objects.filter(application__in=assigned_applications, score__isnull=False).count()
+        pending_interviews = total_interviews - completed_interviews
+
     context = {
         'active_tab': 'dashboard',
+        'panel_member': panel_member,
+        'total_interviews': total_interviews,
+        'pending_interviews': pending_interviews,
+        'completed_interviews': completed_interviews,
     }
     return render(request, 'dashboards/panel_dashboard.html', context)
+
+
+@role_required(['InterviewPanelMember'])
+def my_interviews(request):
+    user_id = request.session.get('user_id')
+    user = Users.objects.get(pk=user_id)
+    panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
+
+    interviews_list = []
+    if panel_member:
+        assigned_job_ids = JobPanelAssignment.objects.filter(panel=panel_member).values_list('job_id', flat=True)
+        assigned_apps = Applications.objects.filter(job_id__in=assigned_job_ids).select_related('applicant__user', 'job').order_by('-application_id')
+        for app in assigned_apps:
+            interview = Interviews.objects.filter(application=app).first()
+            interviews_list.append({
+                'application': app,
+                'interview': interview,
+                'interview_date': interview.interview_date if interview else None,
+                'interview_mode': interview.interview_mode if interview else None,
+            })
+
+    context = {
+        'active_tab': 'my_interviews',
+        'interviews_list': interviews_list,
+        'panel_member': panel_member,
+    }
+    return render(request, 'dashboards/my_interviews.html', context)
+
+
+@role_required(['InterviewPanelMember'])
+def candidate_profile(request, applicant_id):
+    try:
+        applicant = Applicants.objects.select_related('user').get(pk=applicant_id)
+    except Applicants.DoesNotExist:
+        messages.error(request, 'Applicant not found.')
+        return redirect('recruitmentapp:my_interviews')
+
+    qualifications = Qualifications.objects.filter(applicant=applicant).order_by('-year_completed')
+    skills_list = ApplicantSkills.objects.filter(applicant=applicant).select_related('skill')
+
+    context = {
+        'active_tab': 'my_interviews',
+        'applicant': applicant,
+        'user': applicant.user,
+        'qualifications': qualifications,
+        'skills_list': skills_list,
+    }
+    return render(request, 'dashboards/candidate_profile.html', context)
+
+
+@role_required(['InterviewPanelMember'])
+def conduct_interview(request, application_id):
+    try:
+        app = Applications.objects.select_related('applicant__user', 'job').get(pk=application_id)
+    except Applications.DoesNotExist:
+        messages.error(request, 'Application not found.')
+        return redirect('recruitmentapp:my_interviews')
+
+    interview = Interviews.objects.filter(application=app).first()
+
+    if request.method == 'POST':
+        score = request.POST.get('score')
+        remarks = request.POST.get('remarks', '').strip()
+
+        if not score:
+            messages.error(request, 'Score is required.')
+            return render(request, 'dashboards/conduct_interview.html', {
+                'active_tab': 'my_interviews',
+                'application': app,
+                'interview': interview,
+                'applicant': app.applicant,
+            })
+
+        try:
+            score = int(score)
+        except (ValueError, TypeError):
+            messages.error(request, 'Score must be a number.')
+            return render(request, 'dashboards/conduct_interview.html', {
+                'active_tab': 'my_interviews',
+                'application': app,
+                'interview': interview,
+                'applicant': app.applicant,
+            })
+
+        if interview:
+            interview.score = score
+            interview.remarks = remarks or None
+            interview.save()
+            messages.success(request, 'Interview results updated successfully!')
+        else:
+            max_id = Interviews.objects.order_by('-interview_id').first()
+            next_id = (max_id.interview_id + 1) if max_id else 1
+            Interviews.objects.create(
+                interview_id=next_id,
+                application=app,
+                interview_date=app.application_date,
+                interview_mode='In-Person',
+                score=score,
+                remarks=remarks or None,
+            )
+            messages.success(request, 'Interview results submitted successfully!')
+
+        return redirect('recruitmentapp:my_interviews')
+
+    context = {
+        'active_tab': 'my_interviews',
+        'application': app,
+        'interview': interview,
+        'applicant': app.applicant,
+    }
+    return render(request, 'dashboards/conduct_interview.html', context)
 
 
 @role_required(['JobApplicant'])

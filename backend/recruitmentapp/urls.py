@@ -16,6 +16,11 @@ urlpatterns = [
     path('applicant-dashboard/', views.applicant_dashboard, name='applicant_dashboard'),
     path('department-dashboard/', views.department_dashboard, name='department_dashboard'),
 
+    # Panel Member
+    path('my-interviews/', views.my_interviews, name='my_interviews'),
+    path('candidate-profile/<int:applicant_id>/', views.candidate_profile, name='candidate_profile'),
+    path('conduct-interview/<int:application_id>/', views.conduct_interview, name='conduct_interview'),
+
     # Functional pages
     path('users/', views.users_page, name='users'),
     path('jobs/', views.jobs_page, name='jobs'),
