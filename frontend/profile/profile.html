@@ -45,7 +45,7 @@
                 <h6 class="text-muted mb-1 small">Latest Status</h6>
                 <div class="mt-1">
                     {% if latest_application %}
-                    <span class="badge fs-6 {% if latest_application.status == 'Accepted' %}bg-success{% elif latest_application.status == 'Rejected' %}bg-danger{% elif latest_application.status == 'Pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                    <span class="badge fs-6 {% if latest_application.status == 'Accepted' %}bg-success{% elif latest_application.status == 'Rejected' %}bg-danger{% elif latest_application.status == 'Pending' %}bg-warning text-dark{% elif latest_application.status == 'Interviewed' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
                         {{ latest_application.status }}
                     </span>
                     {% else %}

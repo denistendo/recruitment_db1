@@ -29,3 +29,107 @@ def send_application_confirmation(user_email, full_name, job_title, phone_number
         recipient_list=[user_email],
         fail_silently=False,
     )
+
+
+def send_interview_scheduled(user_email, full_name, job_title, interview_date, interview_mode):
+    subject = 'Interview Scheduled — Recruitment Platform'
+    message = (
+        f'Dear {full_name},\n\n'
+        f'We are pleased to inform you that an interview has been scheduled for your application for the position:\n'
+        f'  "{job_title}"\n\n'
+        f'Interview Details:\n'
+        f'  - Date: {interview_date}\n'
+        f'  - Mode: {interview_mode}\n\n'
+        f'Please make sure to be available at the scheduled time. '
+        f'If you have any questions or need to reschedule, please contact our recruitment team.\n\n'
+        f'Best regards,\n'
+        f'Recruitment Team'
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
+        fail_silently=False,
+    )
+
+
+def send_shortlisted(user_email, full_name, job_title):
+    subject = 'Application Shortlisted — Recruitment Platform'
+    message = (
+        f'Dear {full_name},\n\n'
+        f'Congratulations! We are pleased to inform you that your application for the position:\n'
+        f'  "{job_title}"\n\n'
+        f'has been shortlisted. You have been selected to move forward in the recruitment process.\n\n'
+        f'Our recruitment team will contact you with further details regarding the next steps.\n\n'
+        f'Best regards,\n'
+        f'Recruitment Team'
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
+        fail_silently=False,
+    )
+
+
+def send_interviewed(user_email, full_name, job_title):
+    subject = 'Interview Completed — Recruitment Platform'
+    message = (
+        f'Dear {full_name},\n\n'
+        f'Thank you for attending the interview for the position:\n'
+        f'  "{job_title}"\n\n'
+        f'Your interview has been completed successfully. Our recruitment team is now reviewing your results.\n\n'
+        f'You will be contacted via email or telephone with further details regarding the outcome.\n\n'
+        f'Best regards,\n'
+        f'Recruitment Team'
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
+        fail_silently=False,
+    )
+
+
+def send_rejected(user_email, full_name, job_title):
+    subject = 'Application Update — Recruitment Platform'
+    message = (
+        f'Dear {full_name},\n\n'
+        f'Thank you for your interest in the position:\n'
+        f'  "{job_title}"\n\n'
+        f'After careful consideration, we regret to inform you that your application has not been successful at this time.\n\n'
+        f'We appreciate the time and effort you put into your application and wish you all the best in your future endeavors.\n\n'
+        f'Best regards,\n'
+        f'Recruitment Team'
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
+        fail_silently=False,
+    )
+
+
+def send_accepted(user_email, full_name, job_title):
+    subject = 'Application Accepted — Recruitment Platform'
+    message = (
+        f'Dear {full_name},\n\n'
+        f'Congratulations! We are delighted to inform you that your application for the position:\n'
+        f'  "{job_title}"\n\n'
+        f'has been accepted. We were impressed with your qualifications and are excited to welcome you.\n\n'
+        f'Further communication regarding the next steps will be sent to you shortly.\n\n'
+        f'If you have any questions in the meantime, please do not hesitate to reach out.\n\n'
+        f'Best regards,\n'
+        f'Recruitment Team'
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
+        fail_silently=False,
+    )

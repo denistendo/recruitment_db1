@@ -133,14 +133,14 @@
                             <td>
                                 {% if app.status == 'Submitted' or app.status == 'Pending' %}
                                 <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>
-                                {% elif app.status == 'Under Review' %}
-                                <span class="badge bg-info text-dark">{{ app.status }}</span>
                                 {% elif app.status == 'Shortlisted' %}
                                 <span class="badge bg-success">{{ app.status }}</span>
                                 {% elif app.status == 'Rejected' %}
                                 <span class="badge bg-danger">{{ app.status }}</span>
                                 {% elif app.status == 'Interview Scheduled' %}
                                 <span class="badge bg-primary">{{ app.status }}</span>
+                                {% elif app.status == 'Interviewed' %}
+                                <span class="badge bg-info text-dark">{{ app.status }}</span>
                                 {% else %}
                                 <span class="badge bg-secondary">{{ app.status }}</span>
                                 {% endif %}

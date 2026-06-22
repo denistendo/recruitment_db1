@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db.models import Q, Count
 from functools import wraps
 from datetime import date
-from .mailer import send_application_confirmation
+from .mailer import send_application_confirmation, send_interview_scheduled, send_shortlisted, send_accepted, send_interviewed, send_rejected
 import json
 from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews, InterviewPanel, JobPanelAssignment
 
@@ -153,10 +153,10 @@ def panel_dashboard(request):
     completed_interviews = 0
 
     if panel_member:
-        assigned_job_ids = JobPanelAssignment.objects.filter(panel=panel_member).values_list('job_id', flat=True)
-        assigned_applications = Applications.objects.filter(job_id__in=assigned_job_ids)
-        total_interviews = assigned_applications.count()
-        completed_interviews = Interviews.objects.filter(application__in=assigned_applications, score__isnull=False).count()
+        interviewer_prefix = f'Interviewer: {panel_member.full_name}'
+        assigned_interviews = Interviews.objects.filter(remarks__startswith=interviewer_prefix)
+        total_interviews = assigned_interviews.count()
+        completed_interviews = assigned_interviews.filter(score__isnull=False).count()
         pending_interviews = total_interviews - completed_interviews
 
     context = {
@@ -177,12 +177,12 @@ def my_interviews(request):
 
     interviews_list = []
     if panel_member:
-        assigned_job_ids = JobPanelAssignment.objects.filter(panel=panel_member).values_list('job_id', flat=True)
-        assigned_apps = Applications.objects.filter(job_id__in=assigned_job_ids).select_related('applicant__user', 'job').order_by('-application_id')
-        for app in assigned_apps:
-            interview = Interviews.objects.filter(application=app).first()
+        interviewer_prefix = f'Interviewer: {panel_member.full_name}'
+        assigned_interviews = Interviews.objects.filter(remarks__startswith=interviewer_prefix).select_related('application__applicant__user', 'application__job')
+        for interview in assigned_interviews:
+            app = interview.application
             assigned_interviewer = ''
-            if interview and interview.remarks and 'Interviewer:' in interview.remarks:
+            if interview.remarks and 'Interviewer:' in interview.remarks:
                 assigned_interviewer = interview.remarks.split('\n')[0].replace('Interviewer: ', '')
             interviews_list.append({
                 'application': app,
@@ -265,6 +265,9 @@ def conduct_interview(request, application_id):
             else:
                 interview.remarks = interview.remarks or None
             interview.save()
+            if app.status == 'Interview Scheduled':
+                app.status = 'Interviewed'
+                app.save()
             messages.success(request, 'Interview results updated successfully!')
         else:
             max_id = Interviews.objects.order_by('-interview_id').first()
@@ -277,7 +280,16 @@ def conduct_interview(request, application_id):
                 score=score,
                 remarks=remarks or None,
             )
+            if app.status == 'Interview Scheduled':
+                app.status = 'Interviewed'
+                app.save()
             messages.success(request, 'Interview results submitted successfully!')
+
+        if app.status == 'Interviewed':
+            try:
+                send_interviewed(app.applicant.user.email, app.applicant.user.full_name, app.job.title)
+            except Exception:
+                pass
 
         return redirect('recruitmentapp:my_interviews')
 
@@ -634,13 +646,22 @@ def hr_applications_view(request):
     if status_filter:
         applications_list = applications_list.filter(status__iexact=status_filter)
 
-    status_counts = {}
+    interview_ids = [a.application_id for a in applications_list]
+    interviews_qs = Interviews.objects.filter(application_id__in=interview_ids)
+    interview_map = {iv.application_id: iv for iv in interviews_qs}
+
+    enriched_apps = []
     for app in applications_list:
+        app.interview_obj = interview_map.get(app.application_id)
+        enriched_apps.append(app)
+
+    status_counts = {}
+    for app in enriched_apps:
         s = app.status or 'Pending'
         status_counts[s] = status_counts.get(s, 0) + 1
 
     context = {
-        'applications': applications_list,
+        'applications': enriched_apps,
         'status_counts': status_counts,
         'current_search': search,
         'current_status': status_filter,
@@ -652,9 +673,13 @@ def hr_applications_view(request):
 @role_required(['HumanResourceOfficer'])
 def application_shortlist(request, application_id):
     try:
-        app = Applications.objects.get(pk=application_id)
+        app = Applications.objects.select_related('applicant__user', 'job').get(pk=application_id)
         app.status = 'Shortlisted'
         app.save()
+        try:
+            send_shortlisted(app.applicant.user.email, app.applicant.user.full_name, app.job.title)
+        except Exception:
+            pass
         messages.success(request, f'Application #{application_id} shortlisted successfully.')
     except Applications.DoesNotExist:
         messages.error(request, 'Application not found.')
@@ -664,10 +689,30 @@ def application_shortlist(request, application_id):
 @role_required(['HumanResourceOfficer'])
 def application_reject(request, application_id):
     try:
-        app = Applications.objects.get(pk=application_id)
+        app = Applications.objects.select_related('applicant__user', 'job').get(pk=application_id)
         app.status = 'Rejected'
         app.save()
+        try:
+            send_rejected(app.applicant.user.email, app.applicant.user.full_name, app.job.title)
+        except Exception:
+            pass
         messages.success(request, f'Application #{application_id} has been rejected.')
+    except Applications.DoesNotExist:
+        messages.error(request, 'Application not found.')
+    return redirect('recruitmentapp:hr_applications')
+
+
+@role_required(['HumanResourceOfficer'])
+def application_accept(request, application_id):
+    try:
+        app = Applications.objects.select_related('applicant__user', 'job').get(pk=application_id)
+        app.status = 'Accepted'
+        app.save()
+        try:
+            send_accepted(app.applicant.user.email, app.applicant.user.full_name, app.job.title)
+        except Exception:
+            pass
+        messages.success(request, f'Application #{application_id} accepted successfully.')
     except Applications.DoesNotExist:
         messages.error(request, 'Application not found.')
     return redirect('recruitmentapp:hr_applications')
@@ -742,6 +787,17 @@ def schedule_interview(request, application_id):
 
         app.status = 'Interview Scheduled'
         app.save()
+
+        try:
+            send_interview_scheduled(
+                app.applicant.user.email,
+                app.applicant.user.full_name,
+                app.job.title,
+                interview_date,
+                interview_mode,
+            )
+        except Exception:
+            pass
 
         messages.success(request, f'Interview scheduled for {app.applicant.user.full_name}.')
         return redirect('recruitmentapp:hr_applications')
@@ -1550,7 +1606,7 @@ def print_profile(request):
 
 @role_required(['HumanResourceOfficer'])
 def departments_view(request):
-    departments_list = Departments.objects.annotate(job_count=models.Count('jobpostings_set')).order_by('department_id')
+    departments_list = Departments.objects.annotate(job_count=Count('jobpostings')).order_by('department_id')
     context = {
         'active_tab': 'departments',
         'departments': departments_list,

@@ -34,6 +34,7 @@ urlpatterns = [
     path('applicant/<int:applicant_id>/', views.applicant_detail, name='applicant_detail'),
     path('application/shortlist/<int:application_id>/', views.application_shortlist, name='application_shortlist'),
     path('application/reject/<int:application_id>/', views.application_reject, name='application_reject'),
+    path('application/accept/<int:application_id>/', views.application_accept, name='application_accept'),
     path('application/schedule/<int:application_id>/', views.schedule_interview, name='schedule_interview'),
 
     # HR Department Management

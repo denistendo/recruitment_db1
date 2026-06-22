@@ -36,16 +36,13 @@
                 <button class="nav-link {% if current_status == 'Pending' %}active{% endif %}" data-status="Pending" onclick="filterByStatus(this, 'Pending')">Pending</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link {% if current_status == 'Submitted' %}active{% endif %}" data-status="Submitted" onclick="filterByStatus(this, 'Submitted')">Submitted</button>
+                <button class="nav-link {% if current_status == 'Interview Scheduled' %}active{% endif %}" data-status="Interview Scheduled" onclick="filterByStatus(this, 'Interview Scheduled')">Interview Scheduled</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link {% if current_status == 'Under Review' %}active{% endif %}" data-status="Under Review" onclick="filterByStatus(this, 'Under Review')">Under Review</button>
+                <button class="nav-link {% if current_status == 'Interviewed' %}active{% endif %}" data-status="Interviewed" onclick="filterByStatus(this, 'Interviewed')">Interviewed</button>
             </li>
             <li class="nav-item">
                 <button class="nav-link {% if current_status == 'Shortlisted' %}active{% endif %}" data-status="Shortlisted" onclick="filterByStatus(this, 'Shortlisted')">Shortlisted</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link {% if current_status == 'Interview Scheduled' %}active{% endif %}" data-status="Interview Scheduled" onclick="filterByStatus(this, 'Interview Scheduled')">Interview Scheduled</button>
             </li>
             <li class="nav-item">
                 <button class="nav-link {% if current_status == 'Rejected' %}active{% endif %}" data-status="Rejected" onclick="filterByStatus(this, 'Rejected')">Rejected</button>
@@ -82,16 +79,16 @@
                                 <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
                                 <td>{{ app.application_date|default:"-" }}</td>
                                 <td>
-                                    {% if app.status == 'Submitted' or app.status == 'Pending' %}
-                                    <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>
-                                    {% elif app.status == 'Under Review' %}
-                                    <span class="badge bg-info text-dark">{{ app.status }}</span>
+                                    {% if app.status == 'Pending' %}
+                                    <span class="badge bg-secondary">Pending</span>
                                     {% elif app.status == 'Shortlisted' %}
-                                    <span class="badge bg-success">{{ app.status }}</span>
+                                    <span class="badge bg-success">Shortlisted</span>
                                     {% elif app.status == 'Rejected' %}
-                                    <span class="badge bg-danger">{{ app.status }}</span>
+                                    <span class="badge bg-danger">Rejected</span>
                                     {% elif app.status == 'Interview Scheduled' %}
-                                    <span class="badge bg-primary">{{ app.status }}</span>
+                                    <span class="badge bg-primary">Interview Scheduled</span>
+                                    {% elif app.status == 'Interviewed' %}
+                                    <span class="badge bg-info text-dark">Interviewed</span>
                                     {% else %}
                                     <span class="badge bg-secondary">{{ app.status }}</span>
                                     {% endif %}
@@ -101,17 +98,31 @@
                                         <a href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}" class="btn btn-outline-info" title="View Profile">
                                             <i class="bi bi-person"></i>
                                         </a>
-                                        {% if app.status != 'Shortlisted' %}
-                                        <a href="{% url 'recruitmentapp:application_shortlist' app.application_id %}" class="btn btn-outline-success" title="Shortlist" onclick="return confirm('Shortlist this applicant for {{ app.job.title|escapejs }}?')">
+                                        {% if app.status == 'Interviewed' and app.interview_obj %}
+                                        <button type="button" class="btn btn-outline-secondary" title="View Scores"
+                                            data-bs-toggle="modal" data-bs-target="#scoresModal{{ app.application_id }}">
+                                            <i class="bi bi-bar-chart"></i>
+                                        </button>
+                                        {% endif %}
+                                        {% if app.status != 'Shortlisted' and app.status != 'Accepted' %}
+                                        <button type="button" class="btn btn-outline-success" title="Shortlist"
+                                            data-bs-toggle="modal" data-bs-target="#shortlistModal{{ app.application_id }}">
                                             <i class="bi bi-check2-circle"></i>
-                                        </a>
+                                        </button>
                                         {% endif %}
-                                        {% if app.status != 'Rejected' %}
-                                        <a href="{% url 'recruitmentapp:application_reject' app.application_id %}" class="btn btn-outline-danger" title="Reject" onclick="return confirm('Reject this application from {{ app.applicant.user.full_name|escapejs }}?')">
+                                        {% if app.status == 'Shortlisted' and app.status != 'Accepted' %}
+                                        <button type="button" class="btn btn-outline-primary" title="Accept"
+                                            data-bs-toggle="modal" data-bs-target="#acceptModal{{ app.application_id }}">
+                                            <i class="bi bi-award"></i>
+                                        </button>
+                                        {% endif %}
+                                        {% if app.status != 'Rejected' and app.status != 'Accepted' %}
+                                        <button type="button" class="btn btn-outline-danger" title="Reject"
+                                            data-bs-toggle="modal" data-bs-target="#rejectModal{{ app.application_id }}">
                                             <i class="bi bi-x-circle"></i>
-                                        </a>
+                                        </button>
                                         {% endif %}
-                                        {% if app.status != 'Interview Scheduled' %}
+                                        {% if app.status != 'Interview Scheduled' and app.status != 'Interviewed' and app.status != 'Rejected' %}
                                         <a href="{% url 'recruitmentapp:schedule_interview' app.application_id %}" class="btn btn-outline-primary" title="Schedule Interview">
                                             <i class="bi bi-calendar-event"></i>
                                         </a>
@@ -147,14 +158,14 @@
             </div>
             <div class="col-md-3 col-6 text-center">
                 <div class="p-3">
-                    <span class="badge bg-success fs-6 mb-2 d-inline-block">Shortlisted</span>
-                    <h4 class="fw-bold mb-0" id="count-shortlisted">0</h4>
+                    <span class="badge bg-info text-dark fs-6 mb-2 d-inline-block">Interviewed</span>
+                    <h4 class="fw-bold mb-0" id="count-interviewed">0</h4>
                 </div>
             </div>
             <div class="col-md-3 col-6 text-center">
                 <div class="p-3">
-                    <span class="badge bg-primary fs-6 mb-2 d-inline-block">Interview</span>
-                    <h4 class="fw-bold mb-0" id="count-interview">0</h4>
+                    <span class="badge bg-success fs-6 mb-2 d-inline-block">Shortlisted</span>
+                    <h4 class="fw-bold mb-0" id="count-shortlisted">0</h4>
                 </div>
             </div>
             <div class="col-md-3 col-6 text-center">
@@ -166,6 +177,102 @@
         </div>
     </div>
 </div>
+
+{% for app in applications %}
+{% if app.status == 'Interviewed' and app.interview_obj %}
+<!-- Scores Modal -->
+<div class="modal fade" id="scoresModal{{ app.application_id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Interview Results — {{ app.applicant.user.full_name|default:"N/A" }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Job:</strong> {{ app.job.title }}</p>
+                <p><strong>Interview Date:</strong> {{ app.interview_obj.interview_date|date:"Y-m-d"|default:"N/A" }}</p>
+                <p><strong>Interview Mode:</strong> {{ app.interview_obj.interview_mode|default:"N/A" }}</p>
+                <hr>
+                <div class="text-center mb-3">
+                    <span class="display-4 fw-bold {% if app.interview_obj.score >= 70 %}text-success{% elif app.interview_obj.score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ app.interview_obj.score }}
+                    </span>
+                    <span class="text-muted fs-5">/ 100</span>
+                </div>
+                <p><strong>Interviewer Remarks:</strong></p>
+                <div class="bg-light p-3 rounded">
+                    {% if app.interview_obj.remarks %}
+                        <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ app.interview_obj.remarks }}</pre>
+                    {% else %}
+                        <span class="text-muted">No remarks provided.</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Shortlist Confirmation Modal -->
+<div class="modal fade" id="shortlistModal{{ app.application_id }}" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-question-circle text-success" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Shortlist Applicant?</h5>
+                <p class="text-muted mb-0">Shortlist <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>?</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'recruitmentapp:application_shortlist' app.application_id %}" class="btn btn-success">
+                    <i class="bi bi-check2-circle me-1"></i>Confirm &amp; Shortlist
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accept Confirmation Modal -->
+<div class="modal fade" id="acceptModal{{ app.application_id }}" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-award text-primary" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Accept Applicant?</h5>
+                <p class="text-muted mb-0">Accept <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>? This marks the application as successfully hired.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'recruitmentapp:application_accept' app.application_id %}" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Confirm &amp; Accept
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Confirmation Modal -->
+<div class="modal fade" id="rejectModal{{ app.application_id }}" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Reject Applicant?</h5>
+                <p class="text-muted mb-0">Reject <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'recruitmentapp:application_reject' app.application_id %}" class="btn btn-danger">
+                    <i class="bi bi-x-circle me-1"></i>Confirm &amp; Reject
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <script>
 function filterApplications() {
@@ -218,17 +325,17 @@ function filterByStatus(btn, status) {
 }
 
 function updateSummary() {
-    const counts = {pending: 0, shortlisted: 0, interview: 0, rejected: 0};
+    const counts = {pending: 0, interviewed: 0, shortlisted: 0, rejected: 0};
     document.querySelectorAll('#applications-table tbody tr[data-status]').forEach(function(row) {
         const s = (row.getAttribute('data-status') || '').toLowerCase();
         if (s.includes('pending') || s.includes('submitted')) counts.pending++;
+        else if (s.includes('interviewed')) counts.interviewed++;
         else if (s.includes('shortlist')) counts.shortlisted++;
-        else if (s.includes('interview')) counts.interview++;
         else if (s.includes('reject')) counts.rejected++;
     });
     document.getElementById('count-pending').textContent = counts.pending;
+    document.getElementById('count-interviewed').textContent = counts.interviewed;
     document.getElementById('count-shortlisted').textContent = counts.shortlisted;
-    document.getElementById('count-interview').textContent = counts.interview;
     document.getElementById('count-rejected').textContent = counts.rejected;
 }
 
