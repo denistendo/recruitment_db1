@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
-from .models import JobPostings, Departments, Users
+from .models import JobPostings, Departments, Users, Applicants
 
 
 def users_page(request):
@@ -77,7 +77,140 @@ def api_user_create(request):
         }, status=201)
         
     except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+def applicants_page(request):
+    applicants = Applicants.objects.select_related('user').all().order_by('applicant_id')
+    users = Users.objects.all().order_by('full_name')
+
+    context = {
+        'applicants': applicants,
+        'users': users
+    }
+    return render(request, 'applicants/applicants.html', context)
+
+
+def api_applicant_list(request):
+    applicants = Applicants.objects.select_related('user').all().order_by('applicant_id')
+    data = []
+    for a in applicants:
+        data.append({
+            'applicant_id': a.applicant_id,
+            'user_id': a.user.user_id if a.user else None,
+            'full_name': a.user.full_name if a.user else 'N/A',
+            'email': a.user.email if a.user else 'N/A',
+            'date_of_birth': str(a.date_of_birth) if a.date_of_birth else '',
+            'gender': a.gender or '',
+            'phone_number': a.phone_number or '',
+            'address': a.address or ''
+        })
+    return JsonResponse({'status': 'success', 'applicants': data})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_applicant_create(request):
+    try:
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        date_of_birth = data.get('date_of_birth')
+        gender = data.get('gender')
+        phone_number = data.get('phone_number')
+        address = data.get('address')
+
+        if not user_id:
+            return JsonResponse({'status': 'error', 'message': 'User selection is required.'}, status=400)
+
+        try:
+            user = Users.objects.get(pk=user_id)
+        except Users.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid User ID.'}, status=400)
+
+        if Applicants.objects.filter(user=user).exists():
+            return JsonResponse({'status': 'error', 'message': 'An applicant profile for this user already exists.'}, status=400)
+
+        max_id = Applicants.objects.all().order_by('-applicant_id').first()
+        next_id = (max_id.applicant_id + 1) if max_id else 1
+
+        applicant = Applicants.objects.create(
+            applicant_id=next_id,
+            user=user,
+            date_of_birth=date_of_birth if date_of_birth else None,
+            gender=gender or None,
+            phone_number=phone_number or None,
+            address=address or None
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Applicant profile created successfully!',
+            'applicant': {
+                'applicant_id': applicant.applicant_id,
+                'full_name': applicant.user.full_name if applicant.user else 'N/A'
+            }
+        }, status=201)
+
+    except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def api_applicant_update(request, applicant_id):
+    try:
+        try:
+            applicant = Applicants.objects.get(pk=applicant_id)
+        except Applicants.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Applicant not found.'}, status=404)
+
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        date_of_birth = data.get('date_of_birth')
+        gender = data.get('gender')
+        phone_number = data.get('phone_number')
+        address = data.get('address')
+
+        if not user_id:
+            return JsonResponse({'status': 'error', 'message': 'User selection is required.'}, status=400)
+
+        try:
+            user = Users.objects.get(pk=user_id)
+        except Users.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid User ID.'}, status=400)
+
+        if Applicants.objects.filter(user=user).exclude(pk=applicant_id).exists():
+            return JsonResponse({'status': 'error', 'message': 'Another applicant profile already uses this user.'}, status=400)
+
+        applicant.user = user
+        applicant.date_of_birth = date_of_birth if date_of_birth else None
+        applicant.gender = gender or None
+        applicant.phone_number = phone_number or None
+        applicant.address = address or None
+        applicant.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Applicant profile updated successfully!'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def api_applicant_delete(request, applicant_id):
+    try:
+        try:
+            applicant = Applicants.objects.get(pk=applicant_id)
+        except Applicants.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Applicant not found.'}, status=404)
+
+        applicant.delete()
+        return JsonResponse({'status': 'success', 'message': f'Applicant {applicant_id} deleted successfully.'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 

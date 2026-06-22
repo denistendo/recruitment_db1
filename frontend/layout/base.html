@@ -34,6 +34,11 @@
                             <span class="icon">💼</span> Job Postings
                         </a>
                     </li>
+                    <li>
+                        <a href="{% url 'recruitmentapp:applicants' %}" class="menu-item {% if active_tab == 'applicants' %}active{% endif %}" id="nav-applicants">
+                            <span class="icon">👥</span> Applicants
+                        </a>
+                    </li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
