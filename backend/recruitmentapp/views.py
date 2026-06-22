@@ -20,9 +20,9 @@ from .models import JobPostings, Departments, Users
 def dashboard_index(request):
 
     # Fetch all jobs, departments, and users from the database
-    jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
+    jobs = JobPostings.objects.select_related('department').all().order_by('job_id')
     departments = Departments.objects.all().order_by('department_name')
-    users = Users.objects.all().order_by('-user_id')
+    users = Users.objects.all().order_by('user_id')
     
     context = {
         'jobs': jobs,
@@ -38,7 +38,7 @@ def dashboard_index(request):
 
 def api_user_list(request):
 
-    users = Users.objects.all().order_by('-user_id')
+    users = Users.objects.all().order_by('user_id')
     data = []
     for u in users:
         data.append({
@@ -118,7 +118,7 @@ def api_user_delete(request, user_id):
 # ==============================================================================
 
 def api_job_list(request):
-    jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
+    jobs = JobPostings.objects.select_related('department').all().order_by('job_id')
     data = []
     for job in jobs:
         data.append({
