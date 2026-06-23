@@ -76,10 +76,10 @@
                                 {{ pm.full_name }} — {{ pm.role|default:"Panel Member" }}
                             </option>
                             {% empty %}
-                            <option value="" disabled>No panel members available for this department</option>
+                            <option value="" disabled>No panel members available</option>
                             {% endfor %}
                         </select>
-                        <div class="form-text">Choose the interviewer from the panel members assigned to this job's department.</div>
+                        <div class="form-text">Choose an interviewer. Panel members without a department assignment are also listed.</div>
                     </div>
 
                     <div class="mb-4">

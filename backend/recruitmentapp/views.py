@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db.models import Q, Count
 from functools import wraps
 from datetime import date
-from .mailer import send_application_confirmation, send_interview_scheduled, send_shortlisted, send_accepted, send_interviewed, send_rejected
+from .mailer import send_application_confirmation, send_interview_scheduled, send_accepted, send_interviewed, send_rejected
 import json
 from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews, InterviewPanel, JobPanelAssignment
 
@@ -247,6 +247,15 @@ def conduct_interview(request, application_id):
     interview = Interviews.objects.filter(application=app).first()
 
     if request.method == 'POST':
+        action = request.POST.get('action', 'submit')
+
+        if action == 'no_show':
+            if app.status == 'Interview Scheduled':
+                app.status = 'Not Interviewed'
+                app.save()
+            messages.success(request, f'{app.applicant.user.full_name} marked as not interviewed.')
+            return redirect('recruitmentapp:my_interviews')
+
         score = request.POST.get('score')
         remarks = request.POST.get('remarks', '').strip()
 
@@ -686,22 +695,6 @@ def hr_applications_view(request):
 
 
 @role_required(['HumanResourceOfficer'])
-def application_shortlist(request, application_id):
-    try:
-        app = Applications.objects.select_related('applicant__user', 'job').get(pk=application_id)
-        app.status = 'Shortlisted'
-        app.save()
-        try:
-            send_shortlisted(app.applicant.user.email, app.applicant.user.full_name, app.job.title)
-        except Exception:
-            pass
-        messages.success(request, f'Application #{application_id} shortlisted successfully.')
-    except Applications.DoesNotExist:
-        messages.error(request, 'Application not found.')
-    return redirect('recruitmentapp:hr_applications')
-
-
-@role_required(['HumanResourceOfficer'])
 def application_reject(request, application_id):
     try:
         app = Applications.objects.select_related('applicant__user', 'job').get(pk=application_id)
@@ -727,7 +720,7 @@ def application_accept(request, application_id):
             send_accepted(app.applicant.user.email, app.applicant.user.full_name, app.job.title)
         except Exception:
             pass
-        messages.success(request, f'Application #{application_id} accepted successfully.')
+        messages.success(request, f'Application #{application_id} has been accepted.')
     except Applications.DoesNotExist:
         messages.error(request, 'Application not found.')
     return redirect('recruitmentapp:hr_applications')
@@ -743,9 +736,12 @@ def schedule_interview(request, application_id):
 
     registered_names = Users.objects.filter(user_type='InterviewPanelMember').values_list('full_name', flat=True)
     panel_members = InterviewPanel.objects.filter(
-        department=app.job.department,
         full_name__in=registered_names
-    ).order_by('full_name') if app.job.department else []
+    ).filter(
+        Q(department=app.job.department) | Q(department__isnull=True)
+    ).order_by('full_name') if app.job.department else InterviewPanel.objects.filter(
+        full_name__in=registered_names
+    ).order_by('full_name')
 
     interview = Interviews.objects.filter(application=app).first()
 
@@ -770,6 +766,10 @@ def schedule_interview(request, application_id):
             except InterviewPanel.DoesNotExist:
                 pass
 
+        interviewer_prefix = ''
+        if selected_interviewer:
+            interviewer_prefix = f'Interviewer: {selected_interviewer.full_name}'
+
         if interview:
             existing_remarks = interview.remarks or ''
             panel_notes = ''
@@ -777,13 +777,6 @@ def schedule_interview(request, application_id):
                 panel_notes = existing_remarks
             elif existing_remarks and '\n' in existing_remarks:
                 panel_notes = existing_remarks.split('\n', 1)[1]
-
-            if selected_interviewer:
-                interviewer_prefix = f'Interviewer: {selected_interviewer.full_name}'
-            elif existing_remarks and 'Interviewer:' in existing_remarks:
-                interviewer_prefix = existing_remarks.split('\n')[0]
-            else:
-                interviewer_prefix = ''
 
             interview.interview_date = interview_date
             interview.interview_mode = interview_mode
@@ -797,7 +790,7 @@ def schedule_interview(request, application_id):
                 application=app,
                 interview_date=interview_date,
                 interview_mode=interview_mode,
-                remarks=remarks,
+                remarks=interviewer_prefix or None,
             )
 
         app.status = 'Interview Scheduled'

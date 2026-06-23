@@ -129,6 +129,8 @@ function getCSRFToken() {
                         <span class="badge bg-danger">{{ app.status }}</span>
                         {% elif app.status == 'Pending' %}
                         <span class="badge bg-warning text-dark">{{ app.status }}</span>
+                        {% elif app.status == 'Not Interviewed' %}
+                        <span class="badge bg-dark">{{ app.status }}</span>
                         {% elif app.status == 'Interviewed' %}
                         <span class="badge bg-info text-dark">{{ app.status }}</span>
                         {% else %}

@@ -76,3 +76,47 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('signup-form').addEventListener('submit', function(e) {
+    let valid = true;
+    const fields = [
+        { id: 'full_name', msg: 'Full name is required.' },
+        { id: 'email', msg: 'Email is required.' },
+        { id: 'password', msg: 'Password is required.' },
+        { id: 'confirm_password', msg: 'Please confirm your password.' },
+        { id: 'user_type', msg: 'Please select a role.' },
+    ];
+
+    fields.forEach(function(f) {
+        const el = document.getElementById(f.id);
+        const errEl = document.getElementById(f.id + '-error');
+        el.classList.remove('error');
+        errEl.classList.remove('visible');
+        errEl.textContent = '';
+        if (!el.value.trim()) {
+            el.classList.add('error');
+            errEl.textContent = f.msg;
+            errEl.classList.add('visible');
+            valid = false;
+        }
+    });
+
+    const pw = document.getElementById('password');
+    const cpw = document.getElementById('confirm_password');
+    if (pw.value && cpw.value && pw.value !== cpw.value) {
+        const errEl = document.getElementById('confirm_password-error');
+        cpw.classList.add('error');
+        errEl.textContent = 'Passwords do not match.';
+        errEl.classList.add('visible');
+        valid = false;
+    }
+
+    if (!valid) {
+        e.preventDefault();
+        showToast('Please fix the errors highlighted below.', 'error');
+    }
+});
+</script>
+{% endblock %}

@@ -56,10 +56,12 @@
                             {% with s=item.application.status %}
                             {% if s == 'Submitted' or s == 'Pending' %}
                             <span class="badge bg-secondary">{{ s|default:"Submitted" }}</span>
-                            {% elif s == 'Shortlisted' %}
+                            {% elif s == 'Accepted' %}
                             <span class="badge bg-success">{{ s }}</span>
                             {% elif s == 'Rejected' %}
                             <span class="badge bg-danger">{{ s }}</span>
+                            {% elif s == 'Not Interviewed' %}
+                            <span class="badge bg-dark">{{ s }}</span>
                             {% elif s == 'Interview Scheduled' %}
                             <span class="badge bg-primary">{{ s }}</span>
                             {% elif s == 'Interviewed' %}
@@ -70,7 +72,9 @@
                             {% endwith %}
                         </td>
                         <td>
-                            {% if item.interview and item.interview.score is not None %}
+                            {% if item.application.status == 'Not Interviewed' %}
+                            <span class="badge bg-dark">Not Interviewed</span>
+                            {% elif item.interview and item.interview.score is not None %}
                             <span class="badge bg-success">Completed</span>
                             {% else %}
                             <span class="badge bg-warning text-dark">Pending</span>

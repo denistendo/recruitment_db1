@@ -19,7 +19,10 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="col-md-4 text-md-end">
+            <div class="col-md-4 text-md-end d-flex gap-2 justify-content-md-end">
+                <button class="btn btn-outline-secondary" onclick="window.print()" title="Print this page">
+                    <i class="bi bi-printer"></i>
+                </button>
                 <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">{{ applications|length }} Total</span>
             </div>
         </div>
@@ -42,7 +45,10 @@
                 <button class="nav-link {% if current_status == 'Interviewed' %}active{% endif %}" data-status="Interviewed" onclick="filterByStatus(this, 'Interviewed')">Interviewed</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link {% if current_status == 'Shortlisted' %}active{% endif %}" data-status="Shortlisted" onclick="filterByStatus(this, 'Shortlisted')">Shortlisted</button>
+                <button class="nav-link {% if current_status == 'Not Interviewed' %}active{% endif %}" data-status="Not Interviewed" onclick="filterByStatus(this, 'Not Interviewed')">Not Interviewed</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link {% if current_status == 'Accepted' %}active{% endif %}" data-status="Accepted" onclick="filterByStatus(this, 'Accepted')">Accepted</button>
             </li>
             <li class="nav-item">
                 <button class="nav-link {% if current_status == 'Rejected' %}active{% endif %}" data-status="Rejected" onclick="filterByStatus(this, 'Rejected')">Rejected</button>
@@ -81,14 +87,16 @@
                                 <td>
                                     {% if app.status == 'Pending' %}
                                     <span class="badge bg-secondary">Pending</span>
-                                    {% elif app.status == 'Shortlisted' %}
-                                    <span class="badge bg-success">Shortlisted</span>
+                                    {% elif app.status == 'Accepted' %}
+                                    <span class="badge bg-success">Accepted</span>
                                     {% elif app.status == 'Rejected' %}
                                     <span class="badge bg-danger">Rejected</span>
                                     {% elif app.status == 'Interview Scheduled' %}
                                     <span class="badge bg-primary">Interview Scheduled</span>
                                     {% elif app.status == 'Interviewed' %}
                                     <span class="badge bg-info text-dark">Interviewed</span>
+                                    {% elif app.status == 'Not Interviewed' %}
+                                    <span class="badge bg-dark">Not Interviewed</span>
                                     {% else %}
                                     <span class="badge bg-secondary">{{ app.status }}</span>
                                     {% endif %}
@@ -104,14 +112,8 @@
                                             <i class="bi bi-bar-chart"></i>
                                         </button>
                                         {% endif %}
-                                        {% if app.status != 'Shortlisted' and app.status != 'Accepted' %}
-                                        <button type="button" class="btn btn-outline-success" title="Shortlist"
-                                            data-bs-toggle="modal" data-bs-target="#shortlistModal{{ app.application_id }}">
-                                            <i class="bi bi-check2-circle"></i>
-                                        </button>
-                                        {% endif %}
-                                        {% if app.status == 'Shortlisted' and app.status != 'Accepted' %}
-                                        <button type="button" class="btn btn-outline-primary" title="Accept"
+                                        {% if app.status != 'Rejected' and app.status != 'Accepted' %}
+                                        <button type="button" class="btn btn-outline-success" title="Accept"
                                             data-bs-toggle="modal" data-bs-target="#acceptModal{{ app.application_id }}">
                                             <i class="bi bi-award"></i>
                                         </button>
@@ -122,7 +124,7 @@
                                             <i class="bi bi-x-circle"></i>
                                         </button>
                                         {% endif %}
-                                        {% if app.status != 'Interview Scheduled' and app.status != 'Interviewed' and app.status != 'Rejected' %}
+                                        {% if app.status != 'Interview Scheduled' and app.status != 'Interviewed' and app.status != 'Rejected' and app.status != 'Accepted' %}
                                         <a href="{% url 'recruitmentapp:schedule_interview' app.application_id %}" class="btn btn-outline-primary" title="Schedule Interview">
                                             <i class="bi bi-calendar-event"></i>
                                         </a>
@@ -164,8 +166,14 @@
             </div>
             <div class="col-md-3 col-6 text-center">
                 <div class="p-3">
-                    <span class="badge bg-success fs-6 mb-2 d-inline-block">Shortlisted</span>
-                    <h4 class="fw-bold mb-0" id="count-shortlisted">0</h4>
+                    <span class="badge bg-dark fs-6 mb-2 d-inline-block">Not Interviewed</span>
+                    <h4 class="fw-bold mb-0" id="count-not-interviewed">0</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 text-center">
+                <div class="p-3">
+                    <span class="badge bg-success fs-6 mb-2 d-inline-block">Accepted</span>
+                    <h4 class="fw-bold mb-0" id="count-accepted">0</h4>
                 </div>
             </div>
             <div class="col-md-3 col-6 text-center">
@@ -216,37 +224,18 @@
 </div>
 {% endif %}
 
-<!-- Shortlist Confirmation Modal -->
-<div class="modal fade" id="shortlistModal{{ app.application_id }}" tabindex="-1">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center py-4">
-                <i class="bi bi-question-circle text-success" style="font-size: 3rem;"></i>
-                <h5 class="mt-3">Shortlist Applicant?</h5>
-                <p class="text-muted mb-0">Shortlist <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>?</p>
-            </div>
-            <div class="modal-footer justify-content-center border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="{% url 'recruitmentapp:application_shortlist' app.application_id %}" class="btn btn-success">
-                    <i class="bi bi-check2-circle me-1"></i>Confirm &amp; Shortlist
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Accept Confirmation Modal -->
+    <!-- Accept Confirmation Modal -->
 <div class="modal fade" id="acceptModal{{ app.application_id }}" tabindex="-1">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center py-4">
-                <i class="bi bi-award text-primary" style="font-size: 3rem;"></i>
+                <i class="bi bi-award text-success" style="font-size: 3rem;"></i>
                 <h5 class="mt-3">Accept Applicant?</h5>
-                <p class="text-muted mb-0">Accept <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>? This marks the application as successfully hired.</p>
+                <p class="text-muted mb-0">Accept <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>? This will mark the application as accepted and notify the applicant.</p>
             </div>
             <div class="modal-footer justify-content-center border-0 pt-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="{% url 'recruitmentapp:application_accept' app.application_id %}" class="btn btn-primary">
+                <a href="{% url 'recruitmentapp:application_accept' app.application_id %}" class="btn btn-success">
                     <i class="bi bi-check-lg me-1"></i>Confirm &amp; Accept
                 </a>
             </div>
@@ -325,17 +314,19 @@ function filterByStatus(btn, status) {
 }
 
 function updateSummary() {
-    const counts = {pending: 0, interviewed: 0, shortlisted: 0, rejected: 0};
+    const counts = {pending: 0, interviewed: 0, not_interviewed: 0, accepted: 0, rejected: 0};
     document.querySelectorAll('#applications-table tbody tr[data-status]').forEach(function(row) {
         const s = (row.getAttribute('data-status') || '').toLowerCase();
         if (s.includes('pending') || s.includes('submitted')) counts.pending++;
+        else if (s.includes('not interviewed')) counts.not_interviewed++;
         else if (s.includes('interviewed')) counts.interviewed++;
-        else if (s.includes('shortlist')) counts.shortlisted++;
+        else if (s.includes('accepted')) counts.accepted++;
         else if (s.includes('reject')) counts.rejected++;
     });
     document.getElementById('count-pending').textContent = counts.pending;
     document.getElementById('count-interviewed').textContent = counts.interviewed;
-    document.getElementById('count-shortlisted').textContent = counts.shortlisted;
+    document.getElementById('count-not-interviewed').textContent = counts.not_interviewed;
+    document.getElementById('count-accepted').textContent = counts.accepted;
     document.getElementById('count-rejected').textContent = counts.rejected;
 }
 

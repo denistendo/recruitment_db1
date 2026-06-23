@@ -22,20 +22,22 @@
             {% endfor %}
             {% endif %}
 
-            <form action="{% url 'recruitmentapp:signin' %}" method="POST">
+            <form id="signin-form" action="{% url 'recruitmentapp:signin' %}" method="POST" novalidate>
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control form-control-lg" id="email" name="email" required>
+                    <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ form_data.email }}" required>
+                    <div class="field-error" id="email-error"></div>
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
                     <div class="password-wrapper">
-                        <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                        <input type="password" class="form-control form-control-lg" id="password" name="password" value="{{ form_data.password }}" required>
                         <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password', this)">
                             <i class="bi bi-eye-fill"></i>
                         </button>
                     </div>
+                    <div class="field-error" id="password-error"></div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">Sign In</button>
             </form>
@@ -46,4 +48,35 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('signin-form').addEventListener('submit', function(e) {
+    let valid = true;
+    const fields = [
+        { id: 'email', msg: 'Email is required.' },
+        { id: 'password', msg: 'Password is required.' },
+    ];
+
+    fields.forEach(function(f) {
+        const el = document.getElementById(f.id);
+        const errEl = document.getElementById(f.id + '-error');
+        el.classList.remove('error');
+        errEl.classList.remove('visible');
+        errEl.textContent = '';
+        if (!el.value.trim()) {
+            el.classList.add('error');
+            errEl.textContent = f.msg;
+            errEl.classList.add('visible');
+            valid = false;
+        }
+    });
+
+    if (!valid) {
+        e.preventDefault();
+        showToast('Please fill in all fields.', 'error');
+    }
+});
+</script>
 {% endblock %}

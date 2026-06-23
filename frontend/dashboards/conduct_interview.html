@@ -83,14 +83,17 @@
                         <textarea id="remarks" name="remarks" class="form-control" rows="5" placeholder="Enter your feedback, observations, and recommendations...">{{ panel_remarks }}</textarea>
                         <div class="form-text">Optional: Provide detailed feedback about the candidate's interview performance.</div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" name="action" value="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i>
                             {% if interview and interview.score is not None %}
                             Update Results
                             {% else %}
                             Submit Results
                             {% endif %}
+                        </button>
+                        <button type="submit" name="action" value="no_show" class="btn btn-outline-warning" onclick="return confirm('Mark {{ applicant.user.full_name|default:\"this applicant\" }} as not interviewed? This will return the application to HR for review.')">
+                            <i class="bi bi-person-x me-1"></i>Mark as Not Interviewed
                         </button>
                         <a href="{% url 'recruitmentapp:my_interviews' %}" class="btn btn-secondary">
                             <i class="bi bi-x-lg me-1"></i>Cancel

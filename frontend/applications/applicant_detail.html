@@ -5,6 +5,11 @@
 {% block page_header %}Applicant Profile{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-outline-secondary btn-sm" onclick="window.print()" title="Print this page">
+        <i class="bi bi-printer me-1"></i>Print
+    </button>
+</div>
 <div class="row g-4">
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm mb-4">
@@ -133,7 +138,7 @@
                             <td>
                                 {% if app.status == 'Submitted' or app.status == 'Pending' %}
                                 <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>
-                                {% elif app.status == 'Shortlisted' %}
+                                {% elif app.status == 'Accepted' %}
                                 <span class="badge bg-success">{{ app.status }}</span>
                                 {% elif app.status == 'Rejected' %}
                                 <span class="badge bg-danger">{{ app.status }}</span>
@@ -141,6 +146,8 @@
                                 <span class="badge bg-primary">{{ app.status }}</span>
                                 {% elif app.status == 'Interviewed' %}
                                 <span class="badge bg-info text-dark">{{ app.status }}</span>
+                                {% elif app.status == 'Not Interviewed' %}
+                                <span class="badge bg-dark">{{ app.status }}</span>
                                 {% else %}
                                 <span class="badge bg-secondary">{{ app.status }}</span>
                                 {% endif %}
