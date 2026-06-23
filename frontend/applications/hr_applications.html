@@ -199,6 +199,7 @@
             <div class="modal-body">
                 <p><strong>Job:</strong> {{ app.job.title }}</p>
                 <p><strong>Interview Date:</strong> {{ app.interview_obj.interview_date|date:"d/m/Y"|default:"N/A" }}</p>
+                <p><strong>Interview Time:</strong> {{ app.interview_obj.interview_time|date:"H:i"|default:"N/A" }}</p>
                 <p><strong>Interview Mode:</strong> {{ app.interview_obj.interview_mode|default:"N/A" }}</p>
                 <hr>
                 <div class="text-center mb-3">

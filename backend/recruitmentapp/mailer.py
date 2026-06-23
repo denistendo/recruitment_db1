@@ -31,14 +31,16 @@ def send_application_confirmation(user_email, full_name, job_title, phone_number
     )
 
 
-def send_interview_scheduled(user_email, full_name, job_title, interview_date, interview_mode):
+def send_interview_scheduled(user_email, full_name, job_title, interview_date, interview_time, interview_mode):
     subject = 'Interview Scheduled — Recruitment Platform'
+    time_line = f'  - Time: {interview_time}\n' if interview_time else ''
     message = (
         f'Dear {full_name},\n\n'
         f'We are pleased to inform you that an interview has been scheduled for your application for the position:\n'
         f'  "{job_title}"\n\n'
         f'Interview Details:\n'
         f'  - Date: {interview_date}\n'
+        f'{time_line}'
         f'  - Mode: {interview_mode}\n\n'
         f'Please make sure to be available at the scheduled time. '
         f'If you have any questions or need to reschedule, please contact our recruitment team.\n\n'

@@ -62,6 +62,7 @@ class Interviews(models.Model):
     interview_id = models.IntegerField(primary_key=True)
     application = models.ForeignKey(Applications, models.DO_NOTHING, blank=True, null=True)
     interview_date = models.DateField(blank=True, null=True)
+    interview_time = models.TimeField(blank=True, null=True)
     interview_mode = models.CharField(max_length=100, db_collation='SQL_Latin1_General_CP1_CI_AS', blank=True, null=True)
     score = models.IntegerField(blank=True, null=True)
     remarks = models.CharField(max_length=100, db_collation='SQL_Latin1_General_CP1_CI_AS', blank=True, null=True)

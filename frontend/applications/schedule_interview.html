@@ -88,6 +88,12 @@
                     </div>
 
                     <div class="mb-4">
+                        <label for="interview_time" class="form-label fw-semibold">Interview Time</label>
+                        <input type="time" id="interview_time" name="interview_time" class="form-control" value="{{ interview.interview_time|date:'H:i'|default:'' }}">
+                        <div class="form-text">Specify the time of the interview (optional).</div>
+                    </div>
+
+                    <div class="mb-4">
                         <label for="interview_mode" class="form-label fw-semibold">Interview Mode</label>
                         <select id="interview_mode" name="interview_mode" class="form-select">
                             <option value="In-Person" {% if interview.interview_mode == 'In-Person' %}selected{% endif %}>In-Person</option>

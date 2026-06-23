@@ -28,6 +28,7 @@
                         <th>Applicant Name</th>
                         <th>Job Title</th>
                         <th>Interview Date</th>
+                        <th>Interview Time</th>
                         <th>Interview Mode</th>
                         <th>Assigned Interviewer</th>
                         <th>Application Status</th>
@@ -44,6 +45,7 @@
                         </td>
                         <td>{{ item.application.job.title|default:"N/A" }}</td>
                         <td>{{ item.interview_date|date:"d/m/Y"|default:"Not set" }}</td>
+                        <td>{{ item.interview_time|date:"H:i"|default:"Not set" }}</td>
                         <td>{{ item.interview_mode|default:"Not set" }}</td>
                         <td>
                             {% if item.assigned_interviewer %}
@@ -99,7 +101,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-5">
+                        <td colspan="10" class="text-center text-muted py-5">
                             <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
                             <p class="mt-2 mb-0 fw-medium">No interviews assigned</p>
                             <small>You will see applications here once HR assigns you to a job posting.</small>

@@ -223,6 +223,7 @@ def my_interviews(request):
                 'application': app,
                 'interview': interview,
                 'interview_date': interview.interview_date if interview else None,
+                'interview_time': interview.interview_time if interview else None,
                 'interview_mode': interview.interview_mode if interview else None,
                 'assigned_interviewer': assigned_interviewer,
             })
@@ -768,6 +769,7 @@ def schedule_interview(request, application_id):
     if request.method == 'POST':
         interviewer_id = request.POST.get('interviewer')
         interview_date = request.POST.get('interview_date')
+        interview_time = request.POST.get('interview_time')
         interview_mode = request.POST.get('interview_mode', 'In-Person')
 
         if not interview_date:
@@ -799,6 +801,7 @@ def schedule_interview(request, application_id):
                 panel_notes = existing_remarks.split('\n', 1)[1]
 
             interview.interview_date = interview_date
+            interview.interview_time = interview_time
             interview.interview_mode = interview_mode
             interview.remarks = interviewer_prefix + ('\n' + panel_notes if panel_notes else '')
             interview.save()
@@ -809,6 +812,7 @@ def schedule_interview(request, application_id):
                 interview_id=next_id,
                 application=app,
                 interview_date=interview_date,
+                interview_time=interview_time,
                 interview_mode=interview_mode,
                 remarks=interviewer_prefix or None,
             )
@@ -822,6 +826,7 @@ def schedule_interview(request, application_id):
                 app.applicant.user.full_name,
                 app.job.title,
                 interview_date,
+                interview_time,
                 interview_mode,
             )
         except Exception:
