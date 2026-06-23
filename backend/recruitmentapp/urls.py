@@ -43,6 +43,14 @@ urlpatterns = [
     path('departments/delete/<int:department_id>/', views.department_delete, name='department_delete'),
     path('departments/<int:department_id>/jobs/', views.department_jobs, name='department_jobs'),
 
+    # Panel Member Management (HR)
+    path('panel-members/', views.panel_members_view, name='panel_members'),
+    path('panel-members/<int:panel_id>/', views.panel_member_detail, name='panel_member_detail'),
+    path('panel-members/<int:panel_id>/assign-department/', views.panel_member_assign_department, name='panel_member_assign_department'),
+
+    # Interviewer Profile
+    path('interviewer-profile/', views.interviewer_profile, name='interviewer_profile'),
+
     # API endpoints
     path('api/signup/', views.api_signup, name='api_signup'),
     path('api/users/', views.api_user_list, name='api_user_list'),

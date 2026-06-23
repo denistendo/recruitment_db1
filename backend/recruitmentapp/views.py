@@ -1711,3 +1711,118 @@ def department_jobs(request, department_id):
         'jobs': jobs,
     }
     return render(request, 'departments/department_jobs.html', context)
+
+
+# ========== PANEL MEMBER MANAGEMENT (HR) ==========
+
+@role_required(['HumanResourceOfficer'])
+def panel_members_view(request):
+    all_panel_members = InterviewPanel.objects.all().order_by('full_name')
+    departments = Departments.objects.all().order_by('department_name')
+
+    enriched = []
+    for pm in all_panel_members:
+        interviewer_prefix = f'Interviewer: {pm.full_name}'
+        assigned_count = Interviews.objects.filter(remarks__startswith=interviewer_prefix).count()
+        completed_count = Interviews.objects.filter(
+            remarks__startswith=interviewer_prefix, score__isnull=False
+        ).count()
+        enriched.append({
+            'panel': pm,
+            'assigned': assigned_count,
+            'completed': completed_count,
+        })
+
+    context = {
+        'active_tab': 'panel_members',
+        'panel_members': enriched,
+        'departments': departments,
+    }
+    return render(request, 'panel_members/panel_members.html', context)
+
+
+@role_required(['HumanResourceOfficer'])
+def panel_member_assign_department(request, panel_id):
+    if request.method == 'POST':
+        department_id = request.POST.get('department_id')
+        try:
+            pm = InterviewPanel.objects.get(pk=panel_id)
+        except InterviewPanel.DoesNotExist:
+            messages.error(request, 'Panel member not found.')
+            return redirect('recruitmentapp:panel_members')
+
+        if department_id:
+            try:
+                dept = Departments.objects.get(pk=department_id)
+                pm.department = dept
+            except Departments.DoesNotExist:
+                messages.error(request, 'Department not found.')
+                return redirect('recruitmentapp:panel_members')
+        else:
+            pm.department = None
+        pm.save()
+        messages.success(request, f'{pm.full_name}\'s department updated.')
+    return redirect('recruitmentapp:panel_members')
+
+
+# ========== INTERVIEWER PROFILE ==========
+
+def _interviewer_profile_context(panel_member, user=None):
+    departments = Departments.objects.all().order_by('department_name')
+    interviewer_prefix = f'Interviewer: {panel_member.full_name}' if panel_member else ''
+    assigned_interviews = Interviews.objects.filter(remarks__startswith=interviewer_prefix) if panel_member else []
+    total_assigned = assigned_interviews.count()
+    completed_count = assigned_interviews.exclude(score__isnull=True).count()
+    pending_count = total_assigned - completed_count
+    return {
+        'panel_member': panel_member,
+        'user': user or (panel_member and hasattr(panel_member, 'user') and panel_member.user),
+        'departments': departments,
+        'total_assigned': total_assigned,
+        'completed_count': completed_count,
+        'pending_count': pending_count,
+    }
+
+
+@role_required(['InterviewPanelMember'])
+def interviewer_profile(request):
+    user_id = request.session.get('user_id')
+    user = Users.objects.get(pk=user_id)
+    panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
+    departments = Departments.objects.all().order_by('department_name')
+
+    if request.method == 'POST':
+        department_id = request.POST.get('department_id')
+        if panel_member:
+            if department_id:
+                try:
+                    dept = Departments.objects.get(pk=department_id)
+                    panel_member.department = dept
+                except Departments.DoesNotExist:
+                    messages.error(request, 'Department not found.')
+                    return redirect('recruitmentapp:interviewer_profile')
+            else:
+                panel_member.department = None
+            panel_member.save()
+            messages.success(request, 'Your department has been updated.')
+        else:
+            messages.error(request, 'Your account is not linked to an interviewer profile.')
+        return redirect('recruitmentapp:interviewer_profile')
+
+    context = _interviewer_profile_context(panel_member, user)
+    context['active_tab'] = 'interviewer_profile'
+    return render(request, 'dashboards/interviewer_profile.html', context)
+
+
+@role_required(['HumanResourceOfficer'])
+def panel_member_detail(request, panel_id):
+    try:
+        panel_member = InterviewPanel.objects.get(pk=panel_id)
+    except InterviewPanel.DoesNotExist:
+        messages.error(request, 'Panel member not found.')
+        return redirect('recruitmentapp:panel_members')
+
+    context = _interviewer_profile_context(panel_member)
+    context['active_tab'] = 'panel_members'
+    context['is_hr_view'] = True
+    return render(request, 'dashboards/interviewer_profile.html', context)
