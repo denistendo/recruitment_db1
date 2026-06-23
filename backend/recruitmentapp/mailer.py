@@ -20,7 +20,7 @@ def send_application_confirmation(user_email, full_name, job_title, phone_number
         f'You will be contacted via email or telephone with further details regarding the next steps.\n\n'
         f'If you have any questions in the meantime, please do not hesitate to reach out.\n\n'
         f'Best regards,\n'
-        f'Recruitment Team'
+        f'Human Resource Team'
     )
     send_mail(
         subject=subject,
@@ -43,7 +43,7 @@ def send_interview_scheduled(user_email, full_name, job_title, interview_date, i
         f'Please make sure to be available at the scheduled time. '
         f'If you have any questions or need to reschedule, please contact our recruitment team.\n\n'
         f'Best regards,\n'
-        f'Recruitment Team'
+        f'Human Resource Team'
     )
     send_mail(
         subject=subject,

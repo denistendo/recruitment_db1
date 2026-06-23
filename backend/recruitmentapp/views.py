@@ -50,6 +50,7 @@ def role_required(allowed_roles):
 # ========== AUTHENTICATION VIEWS ==========
 
 def signup_view(request):
+    form_data = {}
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
         email = request.POST.get('email', '').strip()
@@ -57,17 +58,25 @@ def signup_view(request):
         confirm_password = request.POST.get('confirm_password', '')[:15]
         user_type = request.POST.get('user_type', '').strip()
 
+        form_data = {
+            'full_name': full_name,
+            'email': email,
+            'password': password,
+            'confirm_password': confirm_password,
+            'user_type': user_type,
+        }
+
         if not all([full_name, email, password, confirm_password, user_type]):
             messages.error(request, 'All fields are required.')
-            return render(request, 'authentication/signup.html')
+            return render(request, 'authentication/signup.html', {'form_data': form_data})
 
         if password != confirm_password:
             messages.error(request, 'Passwords do not match.')
-            return render(request, 'authentication/signup.html')
+            return render(request, 'authentication/signup.html', {'form_data': form_data})
 
         if Users.objects.filter(email=email).exists():
             messages.error(request, 'A user with this email already exists.')
-            return render(request, 'authentication/signup.html')
+            return render(request, 'authentication/signup.html', {'form_data': form_data})
 
         max_id = Users.objects.order_by('-user_id').first()
         next_id = (max_id.user_id + 1) if max_id else 1
@@ -87,18 +96,24 @@ def signup_view(request):
 
 
 def signin_view(request):
+    form_data = {}
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')[:15]
 
+        form_data = {
+            'email': email,
+            'password': password,
+        }
+
         if not all([email, password]):
             messages.error(request, 'All fields are required.')
-            return render(request, 'authentication/signin.html')
+            return render(request, 'authentication/signin.html', {'form_data': form_data})
 
         user = Users.objects.filter(email=email).first()
         if not user or user.password != password:
             messages.error(request, 'Invalid credentials.')
-            return render(request, 'authentication/signin.html')
+            return render(request, 'authentication/signin.html', {'form_data': form_data})
 
         request.session['user_id'] = user.user_id
         request.session['user_type'] = user.user_type
