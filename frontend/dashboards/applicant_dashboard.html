@@ -121,7 +121,7 @@ function getCSRFToken() {
                 <tr>
                     <td>{{ app.job.title|default:"N/A" }}</td>
                     <td>{{ app.job.department.department_name|default:"N/A" }}</td>
-                    <td>{{ app.application_date|default:"-" }}</td>
+                    <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
                     <td>
                         {% if app.status == 'Accepted' %}
                         <span class="badge bg-success">{{ app.status }}</span>
@@ -168,8 +168,8 @@ function getCSRFToken() {
                 <tr>
                     <td class="fw-bold">{{ job.title }}</td>
                     <td>{{ job.department.department_name|default:"N/A" }}</td>
-                    <td>{{ job.posted_date|default:"-" }}</td>
-                    <td>{{ job.closing_date|default:"-" }}</td>
+                    <td>{{ job.posted_date|date:"d/m/Y"|default:"-" }}</td>
+                    <td>{{ job.closing_date|date:"d/m/Y"|default:"-" }}</td>
                     {% if applicant %}
                     <td style="text-align: center;">
                         {% if job.job_id in applied_job_ids %}

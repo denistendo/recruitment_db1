@@ -24,11 +24,11 @@
                 </div>
                 <div class="mb-3">
                     <small class="text-muted d-block">Applied Date</small>
-                    <strong>{{ application.application_date|date:"Y-m-d"|default:"-" }}</strong>
+                    <strong>{{ application.application_date|date:"d/m/Y"|default:"-" }}</strong>
                 </div>
                 <div class="mb-3">
                     <small class="text-muted d-block">Interview Date</small>
-                    <strong>{{ interview.interview_date|date:"Y-m-d"|default:"Not set" }}</strong>
+                    <strong>{{ interview.interview_date|date:"d/m/Y"|default:"Not set" }}</strong>
                 </div>
                 <div class="mb-3">
                     <small class="text-muted d-block">Interview Mode</small>
@@ -92,7 +92,7 @@
                             Submit Results
                             {% endif %}
                         </button>
-                        <button type="submit" name="action" value="no_show" class="btn btn-outline-warning" onclick="return confirm('Mark {{ applicant.user.full_name|default:\"this applicant\" }} as not interviewed? This will return the application to HR for review.')">
+                        <button type="submit" name="action" value="no_show" class="btn btn-outline-warning" onclick="return confirm('Mark {{ applicant.user.full_name|default:'this applicant' }} as not interviewed? This will return the application to HR for review.')">
                             <i class="bi bi-person-x me-1"></i>Mark as Not Interviewed
                         </button>
                         <a href="{% url 'recruitmentapp:my_interviews' %}" class="btn btn-secondary">

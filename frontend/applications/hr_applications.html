@@ -83,7 +83,7 @@
                                     </a>
                                 </td>
                                 <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
-                                <td>{{ app.application_date|default:"-" }}</td>
+                                <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
                                 <td>
                                     {% if app.status == 'Pending' %}
                                     <span class="badge bg-secondary">Pending</span>
@@ -198,7 +198,7 @@
             </div>
             <div class="modal-body">
                 <p><strong>Job:</strong> {{ app.job.title }}</p>
-                <p><strong>Interview Date:</strong> {{ app.interview_obj.interview_date|date:"Y-m-d"|default:"N/A" }}</p>
+                <p><strong>Interview Date:</strong> {{ app.interview_obj.interview_date|date:"d/m/Y"|default:"N/A" }}</p>
                 <p><strong>Interview Mode:</strong> {{ app.interview_obj.interview_mode|default:"N/A" }}</p>
                 <hr>
                 <div class="text-center mb-3">

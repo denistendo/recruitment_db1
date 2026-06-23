@@ -104,6 +104,13 @@ async function deleteApplicant(applicantId) {
     }
 }
 
+function formatDate(dateStr) {
+    if (!dateStr || dateStr === 'None') return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
 async function refreshApplicantsTable() {
     try {
         const response = await fetch('/api/applicants/');
@@ -137,7 +144,7 @@ async function refreshApplicantsTable() {
                     <td class="fw-semibold">${a.applicant_id}</td>
                     <td class="applicant-name-cell">${a.full_name}</td>
                     <td>${a.email}</td>
-                    <td>${dob || '-'}</td>
+                    <td>${formatDate(dob) || '-'}</td>
                     <td>${genderBadge(a.gender)}</td>
                     <td>${a.phone_number || '-'}</td>
                     <td class="text-center">

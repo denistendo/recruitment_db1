@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+from django.conf.global_settings import DEFAULT_FROM_EMAIL
 from pathlib import Path
 from dotenv import load_dotenv
 import os
@@ -150,3 +151,4 @@ EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'denistendo795@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'ljsxpznrdnginzdo')
+DEFAULT_FROM_EMAIL = 'Cyitec hub <denistendo795@gmail.com>'

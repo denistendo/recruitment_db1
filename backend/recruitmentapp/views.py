@@ -11,6 +11,17 @@ import json
 from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews, InterviewPanel, JobPanelAssignment
 
 
+def _create_interview_panel_if_needed(full_name):
+    if full_name and not InterviewPanel.objects.filter(full_name=full_name).exists():
+        max_id = InterviewPanel.objects.order_by('-panel_id').first()
+        next_id = (max_id.panel_id + 1) if max_id else 1
+        InterviewPanel.objects.create(
+            panel_id=next_id,
+            full_name=full_name,
+            role='Interview Panel Member'
+        )
+
+
 ROLE_DASHBOARD_MAP = {
     'SystemAdministrator': 'recruitmentapp:admin_dashboard',
     'HumanResourceOfficer': 'recruitmentapp:hr_dashboard',
@@ -89,6 +100,9 @@ def signup_view(request):
             user_type=user_type
         )
 
+        if user_type == 'InterviewPanelMember':
+            _create_interview_panel_if_needed(full_name)
+
         messages.success(request, 'Account created successfully! Please log in.')
         return redirect('recruitmentapp:signin')
 
@@ -162,6 +176,9 @@ def panel_dashboard(request):
     user = Users.objects.get(pk=user_id)
 
     panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
+    if not panel_member and user.user_type == 'InterviewPanelMember':
+        _create_interview_panel_if_needed(user.full_name)
+        panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
 
     total_interviews = 0
     pending_interviews = 0
@@ -189,6 +206,9 @@ def my_interviews(request):
     user_id = request.session.get('user_id')
     user = Users.objects.get(pk=user_id)
     panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
+    if not panel_member and user.user_type == 'InterviewPanelMember':
+        _create_interview_panel_if_needed(user.full_name)
+        panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
 
     interviews_list = []
     if panel_member:
@@ -840,13 +860,16 @@ def api_signup(request):
         max_id = Users.objects.order_by('-user_id').first()
         next_id = (max_id.user_id + 1) if max_id else 1
 
-        Users.objects.create(
+        user = Users.objects.create(
             user_id=next_id,
             full_name=full_name,
             email=email,
             password=password,
             user_type=user_type
         )
+
+        if user_type == 'InterviewPanelMember':
+            _create_interview_panel_if_needed(full_name)
 
         return JsonResponse({'status': 'success', 'message': 'Account created successfully!'}, status=201)
     except json.JSONDecodeError:
@@ -894,6 +917,9 @@ def api_user_create(request):
             password=password,
             user_type=user_type
         )
+
+        if user_type == 'InterviewPanelMember':
+            _create_interview_panel_if_needed(full_name)
 
         return JsonResponse({
             'status': 'success',
@@ -1770,7 +1796,7 @@ def panel_member_assign_department(request, panel_id):
 def _interviewer_profile_context(panel_member, user=None):
     departments = Departments.objects.all().order_by('department_name')
     interviewer_prefix = f'Interviewer: {panel_member.full_name}' if panel_member else ''
-    assigned_interviews = Interviews.objects.filter(remarks__startswith=interviewer_prefix) if panel_member else []
+    assigned_interviews = Interviews.objects.filter(remarks__startswith=interviewer_prefix) if panel_member else Interviews.objects.none()
     total_assigned = assigned_interviews.count()
     completed_count = assigned_interviews.exclude(score__isnull=True).count()
     pending_count = total_assigned - completed_count
@@ -1789,6 +1815,9 @@ def interviewer_profile(request):
     user_id = request.session.get('user_id')
     user = Users.objects.get(pk=user_id)
     panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
+    if not panel_member and user.user_type == 'InterviewPanelMember':
+        _create_interview_panel_if_needed(user.full_name)
+        panel_member = InterviewPanel.objects.filter(full_name=user.full_name).first()
     departments = Departments.objects.all().order_by('department_name')
 
     if request.method == 'POST':

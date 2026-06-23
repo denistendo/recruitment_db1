@@ -1,14 +1,24 @@
+let applicationModalInstance = null;
+
+function getApplicationModal() {
+    const el = document.getElementById('application-modal');
+    if (!applicationModalInstance) {
+        applicationModalInstance = new bootstrap.Modal(el);
+    }
+    return applicationModalInstance;
+}
+
 function openCreateApplicationModal() {
     const form = document.getElementById('create-application-form');
     form.reset();
     delete form.dataset.editId;
 
-    document.querySelector('#application-modal h3').textContent = 'Add New Application';
+    document.querySelector('#application-modal .modal-title').textContent = 'Add New Application';
     document.querySelector('#application-modal .btn-success').textContent = 'Save Application';
 
     document.getElementById('application-date').value = new Date().toISOString().split('T')[0];
 
-    openModal('application-modal');
+    getApplicationModal().show();
 }
 
 function openEditApplicationModal(applicationId, applicantId, jobId, applicationDate, status) {
@@ -16,7 +26,7 @@ function openEditApplicationModal(applicationId, applicantId, jobId, application
     form.reset();
     form.dataset.editId = applicationId;
 
-    document.querySelector('#application-modal h3').textContent = 'Edit Application';
+    document.querySelector('#application-modal .modal-title').textContent = 'Edit Application';
     document.querySelector('#application-modal .btn-success').textContent = 'Update Application';
 
     document.getElementById('application-applicant').value = applicantId;
@@ -24,7 +34,7 @@ function openEditApplicationModal(applicationId, applicantId, jobId, application
     document.getElementById('application-date').value = applicationDate && applicationDate !== 'None' ? applicationDate : '';
     document.getElementById('application-status').value = status;
 
-    openModal('application-modal');
+    getApplicationModal().show();
 }
 
 async function submitApplicationForm(event) {
@@ -60,7 +70,7 @@ async function submitApplicationForm(event) {
 
         if (response.ok) {
             showToast(result.message, 'success');
-            closeModal('application-modal');
+            getApplicationModal().hide();
             form.reset();
             delete form.dataset.editId;
             refreshApplicationsTable();
@@ -97,6 +107,13 @@ async function deleteApplication(applicationId) {
     }
 }
 
+function formatDate(dateStr) {
+    if (!dateStr || dateStr === 'None') return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
 async function refreshApplicationsTable() {
     try {
         const response = await fetch('/api/applications/');
@@ -109,8 +126,10 @@ async function refreshApplicationsTable() {
             if (result.applications.length === 0) {
                 tbody.innerHTML = `
                     <tr id="applications-empty-row">
-                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                            No applications found in the database.
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2 mb-0 fw-medium">No applications found</p>
+                            <small>Applications submitted by applicants will appear here.</small>
                         </td>
                     </tr>`;
                 return;
@@ -127,16 +146,24 @@ async function refreshApplicationsTable() {
                 if (statusLower === 'accepted') badgeClass = 'bg-success';
                 else if (statusLower === 'rejected') badgeClass = 'bg-danger';
                 else if (statusLower === 'pending') badgeClass = 'bg-warning text-dark';
+                else if (statusLower === 'interviewed') badgeClass = 'bg-info text-dark';
+                else if (statusLower === 'not interviewed') badgeClass = 'bg-dark';
 
                 tr.innerHTML = `
-                    <td>${app.application_id}</td>
-                    <td class="applicant-name-cell">${app.applicant_name}</td>
+                    <td class="fw-semibold">${app.application_id}</td>
+                    <td class="applicant-name-cell"><strong>${app.applicant_name}</strong></td>
                     <td>${app.job_title}</td>
-                    <td>${app.application_date || '-'}</td>
+                    <td>${formatDate(app.application_date) || '-'}</td>
                     <td><span class="badge ${badgeClass}">${app.status}</span></td>
-                    <td style="text-align: center;">
-                        <button class="btn-edit" onclick="openEditApplicationModal(${app.application_id}, ${app.applicant_id}, ${app.job_id}, '${app.application_date}', '${app.status}')">Edit</button>
-                        <button class="btn-danger" onclick="deleteApplication(${app.application_id})">Delete</button>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-primary" onclick="openEditApplicationModal(${app.application_id}, ${app.applicant_id}, ${app.job_id}, '${app.application_date}', '${app.status}')" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteApplication(${app.application_id})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);

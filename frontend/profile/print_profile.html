@@ -27,7 +27,7 @@
     <div class="print-header">
         <h1>Applicant Profile</h1>
         <p>{{ user.full_name }} &mdash; {{ user.email }}</p>
-        <p>Generated on {% now "j F Y" %}</p>
+        <p>Generated on {% now "d/m/Y" %}</p>
     </div>
 
     <div class="section-title">Personal Information</div>
@@ -42,7 +42,7 @@
         </div>
         <div class="info-item">
             <span class="info-label">Date of Birth</span>
-            <span class="info-value">{{ applicant.date_of_birth|date:"j F Y"|default:"—" }}</span>
+            <span class="info-value">{{ applicant.date_of_birth|date:"d/m/Y"|default:"—" }}</span>
         </div>
         <div class="info-item">
             <span class="info-label">Gender</span>
@@ -120,7 +120,7 @@
             <tr>
                 <td>{{ app.job.title|default:"—" }}</td>
                 <td>{{ app.job.department.department_name|default:"—" }}</td>
-                <td>{{ app.application_date|date:"j F Y"|default:"—" }}</td>
+                <td>{{ app.application_date|date:"d/m/Y"|default:"—" }}</td>
                 <td>{{ app.status|default:"Submitted" }}</td>
             </tr>
             {% endfor %}

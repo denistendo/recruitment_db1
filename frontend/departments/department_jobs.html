@@ -63,8 +63,8 @@
                         <td class="fw-semibold">{{ job.job_id }}</td>
                         <td><strong>{{ job.title }}</strong></td>
                         <td>{{ job.description|default:"—"|truncatechars:60 }}</td>
-                        <td>{{ job.posted_date|default:"—" }}</td>
-                        <td>{{ job.closing_date|default:"—" }}</td>
+                        <td>{{ job.posted_date|date:"d/m/Y"|default:"—" }}</td>
+                        <td>{{ job.closing_date|date:"d/m/Y"|default:"—" }}</td>
                     </tr>
                     {% empty %}
                     <tr>

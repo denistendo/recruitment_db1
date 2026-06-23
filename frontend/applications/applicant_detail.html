@@ -47,7 +47,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <small class="text-muted d-block">Date of Birth</small>
-                        <strong>{{ applicant.date_of_birth|date:"Y-m-d"|default:"Not set" }}</strong>
+                        <strong>{{ applicant.date_of_birth|date:"d/m/Y"|default:"Not set" }}</strong>
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted d-block">Gender</small>
@@ -134,7 +134,7 @@
                         <tr>
                             <td class="fw-semibold">{{ app.application_id }}</td>
                             <td>{{ app.job.title|default:"N/A" }}</td>
-                            <td>{{ app.application_date|default:"-" }}</td>
+                            <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
                             <td>
                                 {% if app.status == 'Submitted' or app.status == 'Pending' %}
                                 <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>

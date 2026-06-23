@@ -58,7 +58,7 @@
                         <td class="fw-semibold">{{ a.applicant_id }}</td>
                         <td class="applicant-name-cell">{{ a.user.full_name|default:"N/A" }}</td>
                         <td>{{ a.user.email|default:"N/A" }}</td>
-                        <td>{{ a.date_of_birth|date:"Y-m-d"|default:"-" }}</td>
+                        <td>{{ a.date_of_birth|date:"d/m/Y"|default:"-" }}</td>
                         <td>
                             {% if a.gender == 'Male' %}
                             <span class="badge bg-primary bg-opacity-10 text-primary">{{ a.gender }}</span>
