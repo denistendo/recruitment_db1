@@ -6,6 +6,20 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'applicants/applicants.css' %}">
+<style>
+    .print-only { display: none; }
+    @media print {
+        .no-print, .navbar, .sidebar, footer { display: none !important; }
+        .print-only { display: block !important; }
+        .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+        .table { font-size: 11px; }
+        .table th, .table td { border: 1px solid #ccc; padding: 5px 7px; }
+        .table th { background: #f5f5f5 !important; }
+        body { background: #fff; font-size: 12px; }
+        .print-header { display: block !important; }
+        .print-section { page-break-inside: avoid; }
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -13,7 +27,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <div></div>
+    <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i>Print Applicants List
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4 no-print">
     <div class="card-body">
         <div class="row g-3">
             <div class="col-md-8">
@@ -31,7 +52,7 @@
     </div>
 </div>
 
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm no-print">
     <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">
             <i class="bi bi-person-badge me-2"></i>Applicant Profiles
@@ -73,7 +94,7 @@
                         <td>{{ a.phone_number|default:"-" }}</td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm" role="group">
-                                <button class="btn btn-outline-primary" title="Edit" onclick="openEditApplicantModal({{ a.applicant_id }}, '{{ a.user.user_id|default:"" }}', '{{ a.date_of_birth|date:"Y-m-d"|default:"" }}', '{{ a.gender|default:""|escapejs }}', '{{ a.phone_number|default:""|escapejs }}', '{{ a.address|default:""|escapejs }}')">
+                                <button class="btn btn-outline-primary" title="Edit" onclick="openEditApplicantModal({{ a.applicant_id }}, '{{ a.user.user_id|default:""|escapejs }}', '{{ a.date_of_birth|date:"Y-m-d"|default:""|escapejs }}', '{{ a.gender|default:""|escapejs }}', '{{ a.phone_number|default:""|escapejs }}', '{{ a.address|default:""|escapejs }}')">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button class="btn btn-outline-danger" title="Delete" onclick="deleteApplicant({{ a.applicant_id }})">
@@ -122,7 +143,7 @@
                     <div class="mb-3">
                         <label for="applicant-gender" class="form-label fw-semibold">Gender</label>
                         <select id="applicant-gender" class="form-select">
-                            <option value="">-- Select Gender --</option>
+                            <option value="">Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
@@ -143,6 +164,73 @@
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
+<div class="print-only">
+    <div class="print-header text-center mb-4">
+        <h3 class="text-primary">Applicants Directory Report</h3>
+        <p>Generated on {% now "d/m/Y H:i" %}</p>
+        <hr>
+    </div>
+
+    <div class="print-section mb-4">
+        <h5 class="fw-bold text-primary" style="border-bottom: 2px solid #1a73e8; padding-bottom: 4px;">
+            All Applicants <span class="badge bg-secondary ms-2">{{ applicants|length }}</span>
+        </h5>
+        <table class="table table-bordered mt-2">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Applied Position</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in applicants %}
+                <tr>
+                    <td>{{ a.user.full_name|default:"—" }}</td>
+                    <td>{{ a.user.email|default:"—" }}</td>
+                    <td>{{ a.phone_number|default:"—" }}</td>
+                    <td>
+                        {% with apps=a.applications_set.all %}
+                            {% if apps %}
+                                {% for app in apps %}
+                                    <div>{{ app.job.title|default:"—" }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        {% with apps=a.applications_set.all %}
+                            {% if apps %}
+                                {% for app in apps %}
+                                    <span class="badge {% if app.status == 'Accepted' %}bg-success{% elif app.status == 'Rejected' %}bg-danger{% elif app.status == 'Interview Scheduled' %}bg-warning text-dark{% elif app.status == 'Interviewed' %}bg-primary{% elif app.status == 'Pending' %}bg-secondary{% else %}bg-info{% endif %}">
+                                        {{ app.status|default:"Submitted" }}
+                                    </span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">No applicants found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center text-muted small mt-4">
+        <hr>
+        Recruitment Management System — Applicants Directory Report
     </div>
 </div>
 {% endblock %}

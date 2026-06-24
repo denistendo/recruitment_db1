@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Prefetch
 from functools import wraps
 from datetime import date
 from .mailer import send_application_confirmation, send_interview_scheduled, send_accepted, send_interviewed, send_rejected
@@ -634,7 +634,9 @@ def jobs_page(request):
 
 @role_required(['SystemAdministrator', 'HumanResourceOfficer'])
 def applicants_page(request):
-    applicants_list = Applicants.objects.select_related('user').all().order_by('applicant_id')
+    applicants_list = Applicants.objects.select_related('user').prefetch_related(
+        Prefetch('applications_set', queryset=Applications.objects.select_related('job')),
+    ).all().order_by('applicant_id')
     users = Users.objects.all().order_by('full_name')
     context = {
         'applicants': applicants_list,
