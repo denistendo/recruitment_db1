@@ -227,10 +227,26 @@ def my_interviews(request):
                 'assigned_interviewer': assigned_interviewer,
             })
 
+    pending = []
+    completed = []
+    not_interviewed = []
+    for item in interviews_list:
+        app = item['application']
+        interview = item['interview']
+        if app.status == 'Not Interviewed':
+            not_interviewed.append(item)
+        elif interview and interview.score is not None:
+            completed.append(item)
+        else:
+            pending.append(item)
+
     context = {
         'active_tab': 'my_interviews',
         'interviews_list': interviews_list,
         'panel_member': panel_member,
+        'pending': pending,
+        'completed': completed,
+        'not_interviewed': not_interviewed,
     }
     return render(request, 'dashboards/my_interviews.html', context)
 
@@ -366,6 +382,10 @@ def applicant_dashboard(request):
     open_jobs = JobPostings.objects.select_related('department').all()
     if applied_job_ids:
         open_jobs = open_jobs.exclude(job_id__in=applied_job_ids)
+    user = Users.objects.get(pk=user_id)
+    qualifications = Qualifications.objects.filter(applicant=applicant).order_by('-year_completed') if applicant else []
+    skills_list = ApplicantSkills.objects.filter(applicant=applicant).select_related('skill') if applicant else []
+
     context = {
         'active_tab': 'dashboard',
         'applicant': applicant,
@@ -374,6 +394,9 @@ def applicant_dashboard(request):
         'total_open_positions': open_jobs.count(),
         'open_jobs': open_jobs,
         'applied_job_ids': applied_job_ids,
+        'user': user,
+        'qualifications': qualifications,
+        'skills_list': skills_list,
     }
     return render(request, 'dashboards/applicant_dashboard.html', context)
 
@@ -1804,9 +1827,12 @@ def _interviewer_profile_context(panel_member, user=None):
     total_assigned = assigned_interviews.count()
     completed_count = assigned_interviews.exclude(score__isnull=True).count()
     pending_count = total_assigned - completed_count
+
+    if not user and panel_member:
+        user = getattr(panel_member, 'user', None)
     return {
         'panel_member': panel_member,
-        'user': user or (panel_member and hasattr(panel_member, 'user') and panel_member.user),
+        'user': user,
         'departments': departments,
         'total_assigned': total_assigned,
         'completed_count': completed_count,
@@ -1848,14 +1874,20 @@ def interviewer_profile(request):
 
 
 @role_required(['HumanResourceOfficer'])
-def panel_member_detail(request, panel_id):
+def panel_member_detail(request, panel_id): 
     try:
         panel_member = InterviewPanel.objects.get(pk=panel_id)
     except InterviewPanel.DoesNotExist:
         messages.error(request, 'Panel member not found.')
         return redirect('recruitmentapp:panel_members')
+    associated_user = getattr(panel_member, 'user', None)
+    if not associated_user:
+        associated_user = Users.objects.filter(full_name=panel_member.full_name, user_type='InterviewPanelMember').first()
 
-    context = _interviewer_profile_context(panel_member)
+    context = _interviewer_profile_context(panel_member, associated_user)
     context['active_tab'] = 'panel_members'
     context['is_hr_view'] = True
     return render(request, 'dashboards/interviewer_profile.html', context)
+
+
+

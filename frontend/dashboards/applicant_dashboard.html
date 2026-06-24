@@ -50,10 +50,10 @@ function getCSRFToken() {
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-end mb-3">
-    <a href="{% url 'recruitmentapp:print_profile' %}" target="_blank" class="btn btn-sm btn-outline-secondary">
+<div class="d-flex justify-content-end mb-3 no-print">
+    <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
         <i class="bi bi-printer me-1"></i>Print Profile
-    </a>
+    </button>
 </div>
 <div class="row g-4 mb-4">
     <div class="col-md-6">
@@ -193,6 +193,85 @@ function getCSRFToken() {
 </div>
 {% endif %}
 
+<div class="print-only">
+    <div class="print-header text-center mb-4">
+        <h3 class="text-primary">Applicant Profile</h3>
+        <p>{{ user.full_name|default:"—" }} — {{ user.email|default:"—" }}</p>
+        <p>Generated on {% now "d/m/Y" %}</p>
+        <hr>
+    </div>
+
+    <div class="print-section mb-4">
+        <h5 class="fw-bold text-primary" style="border-bottom: 2px solid #1a73e8; padding-bottom: 4px;">Personal Information</h5>
+        <table class="table table-bordered mt-2">
+            <tr><th style="width:30%">Full Name</th><td>{{ user.full_name|default:"—" }}</td></tr>
+            <tr><th>Email</th><td>{{ user.email|default:"—" }}</td></tr>
+            <tr><th>Date of Birth</th><td>{{ applicant.date_of_birth|date:"d/m/Y"|default:"—" }}</td></tr>
+            <tr><th>Gender</th><td>{{ applicant.gender|default:"—" }}</td></tr>
+            <tr><th>Phone Number</th><td>{{ applicant.phone_number|default:"—" }}</td></tr>
+            <tr><th>Address</th><td>{{ applicant.address|default:"—" }}</td></tr>
+        </table>
+    </div>
+
+    <div class="print-section mb-4">
+        <h5 class="fw-bold text-primary" style="border-bottom: 2px solid #1a73e8; padding-bottom: 4px;">Qualifications</h5>
+        {% if qualifications %}
+        <table class="table table-bordered mt-2">
+            <thead><tr><th>Institution</th><th>Award</th><th>Year Completed</th></tr></thead>
+            <tbody>
+                {% for q in qualifications %}
+                <tr><td>{{ q.institution }}</td><td>{{ q.award }}</td><td>{{ q.year_completed|default:"—" }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted fst-italic">No qualifications recorded.</p>
+        {% endif %}
+    </div>
+
+    <div class="print-section mb-4">
+        <h5 class="fw-bold text-primary" style="border-bottom: 2px solid #1a73e8; padding-bottom: 4px;">Skills</h5>
+        {% if skills_list %}
+        <table class="table table-bordered mt-2">
+            <thead><tr><th>Skill</th><th>Proficiency</th></tr></thead>
+            <tbody>
+                {% for s in skills_list %}
+                <tr><td>{{ s.skill.skill_name }}</td><td>{{ s.proficiency_level }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted fst-italic">No skills recorded.</p>
+        {% endif %}
+    </div>
+
+    <div class="print-section mb-4">
+        <h5 class="fw-bold text-primary" style="border-bottom: 2px solid #1a73e8; padding-bottom: 4px;">Applications</h5>
+        {% if applications %}
+        <table class="table table-bordered mt-2">
+            <thead><tr><th>Job Title</th><th>Department</th><th>Date Applied</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ app.job.title|default:"—" }}</td>
+                    <td>{{ app.job.department.department_name|default:"—" }}</td>
+                    <td>{{ app.application_date|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ app.status|default:"Submitted" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted fst-italic">No applications submitted yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="text-center text-muted small mt-4">
+        <hr>
+        Recruitment Management System — Applicant Profile Report
+    </div>
+</div>
+
 <div class="modal-overlay" id="apply-confirm-modal">
     <div class="modal-card" style="max-width: 440px;">
         <div class="modal-header">
@@ -213,4 +292,21 @@ function getCSRFToken() {
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .print-only { display: none; }
+    @media print {
+        .no-print, .navbar, .sidebar, footer { display: none !important; }
+        .print-only { display: block !important; }
+        .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+        .table { font-size: 11px; }
+        .table th, .table td { border: 1px solid #ccc; padding: 5px 7px; }
+        .table th { background: #f5f5f5 !important; }
+        body { background: #fff; font-size: 12px; }
+        .print-header { display: block !important; }
+        .print-section { page-break-inside: avoid; }
+    }
+</style>
 {% endblock %}

@@ -19,7 +19,7 @@
                 <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
                     <i class="bi bi-person-fill text-primary fs-1"></i>
                 </div>
-                <h5 class="fw-bold">{{ panel_member.full_name|default:user.full_name }}</h5>
+                <h5 class="fw-bold">{{ panel_member.full_name|default:"—" }}</h5>
                 {% if user.email %}<p class="text-muted small mb-0">{{ user.email }}</p>{% endif %}
                 <span class="badge bg-secondary mt-2">{{ panel_member.role|default:"Interview Panel Member" }}</span>
                 {% if panel_member.department %}

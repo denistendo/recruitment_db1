@@ -203,33 +203,35 @@
                 </button>
             </div>
             <div class="card-body p-0">
-                <table class="table table-hover mb-0" id="qualifications-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Institution</th>
-                            <th>Award</th>
-                            <th>Year Completed</th>
-                            <th style="text-align: center;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for q in qualifications %}
-                        <tr id="qual-row-{{ q.qualification_id }}">
-                            <td>{{ q.institution }}</td>
-                            <td>{{ q.award }}</td>
-                            <td>{{ q.year_completed|default:"-" }}</td>
-                            <td style="text-align: center;">
-                                <button class="btn-edit btn-sm" onclick="openEditQualificationModal({{ q.qualification_id }}, '{{ q.institution|escapejs }}', '{{ q.award|escapejs }}', '{{ q.year_completed|default:'' }}')">Edit</button>
-                                <button class="btn-danger btn-sm" onclick="deleteQualification({{ q.qualification_id }})">Delete</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr id="quals-empty-row">
-                            <td colspan="4" class="text-center text-muted py-4">No qualifications added yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="qualifications-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Institution</th>
+                                <th>Award</th>
+                                <th>Year Completed</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for q in qualifications %}
+                            <tr id="qual-row-{{ q.qualification_id }}">
+                                <td>{{ q.institution }}</td>
+                                <td>{{ q.award }}</td>
+                                <td>{{ q.year_completed|default:"-" }}</td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <button class="btn-edit btn-sm" onclick="openEditQualificationModal({{ q.qualification_id }}, '{{ q.institution|escapejs }}', '{{ q.award|escapejs }}', '{{ q.year_completed|default:'' }}')">Edit</button>
+                                    <button class="btn-danger btn-sm" onclick="deleteQualification({{ q.qualification_id }})">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr id="quals-empty-row">
+                                <td colspan="4" class="text-center text-muted py-4">No qualifications added yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -241,31 +243,33 @@
                 </button>
             </div>
             <div class="card-body p-0">
-                <table class="table table-hover mb-0" id="skills-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Skill</th>
-                            <th>Proficiency</th>
-                            <th style="text-align: center;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for s in skills_list %}
-                        <tr id="skill-row-{{ s.applicant_skill_id }}">
-                            <td>{{ s.skill.skill_name }}</td>
-                            <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ s.proficiency_level }}</span></td>
-                            <td style="text-align: center;">
-                                <button class="btn-edit btn-sm" onclick="openEditSkillModal({{ s.applicant_skill_id }}, {{ s.skill.skill_id }}, '{{ s.skill.skill_name|escapejs }}', '{{ s.proficiency_level|escapejs }}')">Edit</button>
-                                <button class="btn-danger btn-sm" onclick="deleteSkill({{ s.applicant_skill_id }})">Delete</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr id="skills-empty-row">
-                            <td colspan="3" class="text-center text-muted py-4">No skills added yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="skills-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Skill</th>
+                                <th>Proficiency</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in skills_list %}
+                            <tr id="skill-row-{{ s.applicant_skill_id }}">
+                                <td>{{ s.skill.skill_name }}</td>
+                                <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ s.proficiency_level }}</span></td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <button class="btn-edit btn-sm" onclick="openEditSkillModal({{ s.applicant_skill_id }}, {{ s.skill.skill_id }}, '{{ s.skill.skill_name|escapejs }}', '{{ s.proficiency_level|escapejs }}')">Edit</button>
+                                    <button class="btn-danger btn-sm" onclick="deleteSkill({{ s.applicant_skill_id }})">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr id="skills-empty-row">
+                                <td colspan="3" class="text-center text-muted py-4">No skills added yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
