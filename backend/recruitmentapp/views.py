@@ -223,7 +223,6 @@ def my_interviews(request):
                 'application': app,
                 'interview': interview,
                 'interview_date': interview.interview_date if interview else None,
-                'interview_time': interview.interview_time if interview else None,
                 'interview_mode': interview.interview_mode if interview else None,
                 'assigned_interviewer': assigned_interviewer,
             })

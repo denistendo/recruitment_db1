@@ -28,7 +28,6 @@
                         <th>Applicant Name</th>
                         <th>Job Title</th>
                         <th>Interview Date</th>
-                        <th>Interview Time</th>
                         <th>Interview Mode</th>
                         <th>Assigned Interviewer</th>
                         <th>Application Status</th>
@@ -45,7 +44,6 @@
                         </td>
                         <td>{{ item.application.job.title|default:"N/A" }}</td>
                         <td>{{ item.interview_date|date:"d/m/Y"|default:"Not set" }}</td>
-                        <td>{{ item.interview_time|date:"H:i"|default:"Not set" }}</td>
                         <td>{{ item.interview_mode|default:"Not set" }}</td>
                         <td>
                             {% if item.assigned_interviewer %}
