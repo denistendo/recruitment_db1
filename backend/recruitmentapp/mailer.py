@@ -96,6 +96,27 @@ def send_rejected(user_email, full_name, job_title):
     )
 
 
+def send_password_reset_code(user_email, full_name, reset_code):
+    subject = 'Password Reset Code — Recruitment Platform'
+    message = (
+        f'Dear {full_name},\n\n'
+        f'You have requested to reset your password for the Recruitment Platform.\n\n'
+        f'Your password reset code is:\n\n'
+        f'  {reset_code}\n\n'
+        f'This code will expire in 10 minutes.\n\n'
+        f'If you did not request this, please ignore this email.\n\n'
+        f'Best regards,\n'
+        f'Recruitment Team'
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
+        fail_silently=False,
+    )
+
+
 def send_accepted(user_email, full_name, job_title):
     subject = 'Congratulations! Application Accepted — Recruitment Platform'
     message = (

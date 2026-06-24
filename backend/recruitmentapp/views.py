@@ -4,11 +4,27 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.db.models import Q, Count, Prefetch
+from django.db import connection
+from django.utils import timezone
 from functools import wraps
 from datetime import date
-from .mailer import send_application_confirmation, send_interview_scheduled, send_accepted, send_interviewed, send_rejected
+import random
 import json
-from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews, InterviewPanel, JobPanelAssignment
+import re
+from .mailer import send_application_confirmation, send_interview_scheduled, send_accepted, send_interviewed, send_rejected, send_password_reset_code
+from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews, InterviewPanel, JobPanelAssignment, PasswordResetTokens
+
+
+def _validate_password(password):
+    if len(password) < 8:
+        return 'Password must be at least 8 characters long.'
+    if not re.search(r'[A-Za-z]', password):
+        return 'Password must contain at least one letter.'
+    if not re.search(r'[0-9]', password):
+        return 'Password must contain at least one number.'
+    if not re.search(r'[!@#$%^&*(),.?\":{}|<>_\-]', password):
+        return 'Password must contain at least one symbol (!@#$%^&* etc.).'
+    return None
 
 
 def _create_interview_panel_if_needed(full_name):
@@ -85,6 +101,11 @@ def signup_view(request):
             messages.error(request, 'Passwords do not match.')
             return render(request, 'authentication/signup.html', {'form_data': form_data})
 
+        pw_error = _validate_password(password)
+        if pw_error:
+            messages.error(request, pw_error)
+            return render(request, 'authentication/signup.html', {'form_data': form_data})
+
         if Users.objects.filter(email=email).exists():
             messages.error(request, 'A user with this email already exists.')
             return render(request, 'authentication/signup.html', {'form_data': form_data})
@@ -143,6 +164,137 @@ def logout_view(request):
     request.session.flush()
     messages.success(request, 'You have been logged out.')
     return redirect('recruitmentapp:signin')
+
+
+# ========== FORGOT PASSWORD VIEWS ==========
+
+def _ensure_password_reset_table():
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='PasswordResetTokens' AND xtype='U')
+            CREATE TABLE PasswordResetTokens (
+                id INT IDENTITY(1,1) PRIMARY KEY,
+                email NVARCHAR(50),
+                token NVARCHAR(6),
+                created_at DATETIME,
+                is_used BIT DEFAULT 0
+            )
+        """)
+
+
+def forgot_password_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+
+        if not email:
+            messages.error(request, 'Please enter your email address.')
+            return render(request, 'authentication/forgot_password.html')
+
+        user = Users.objects.filter(email=email).first()
+        if not user:
+            messages.error(request, 'No account found with this email address.')
+            return render(request, 'authentication/forgot_password.html')
+
+        _ensure_password_reset_table()
+
+        reset_code = str(random.randint(100000, 999999))
+
+        PasswordResetTokens.objects.create(
+            email=email,
+            token=reset_code,
+            created_at=timezone.now(),
+            is_used=False
+        )
+
+        try:
+            send_password_reset_code(email, user.full_name, reset_code)
+            messages.success(request, 'A password reset code has been sent to your email.')
+            request.session['reset_email'] = email
+            return redirect('recruitmentapp:verify_reset_code')
+        except Exception:
+            messages.error(request, 'Failed to send email. Please try again later.')
+            return render(request, 'authentication/forgot_password.html')
+
+    return render(request, 'authentication/forgot_password.html')
+
+
+def verify_reset_code_view(request):
+    email = request.session.get('reset_email')
+    if not email:
+        messages.error(request, 'Session expired. Please start again.')
+        return redirect('recruitmentapp:forgot_password')
+
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+
+        if not code:
+            messages.error(request, 'Please enter the reset code.')
+            return render(request, 'authentication/verify_reset_code.html')
+
+        token = PasswordResetTokens.objects.filter(
+            email=email,
+            token=code,
+            is_used=False
+        ).order_by('-created_at').first()
+
+        if not token:
+            messages.error(request, 'Invalid reset code.')
+            return render(request, 'authentication/verify_reset_code.html')
+
+        expiry_time = token.created_at + timezone.timedelta(minutes=10)
+        if timezone.now() > expiry_time:
+            messages.error(request, 'Reset code has expired. Please request a new one.')
+            return redirect('recruitmentapp:forgot_password')
+
+        token.is_used = True
+        token.save()
+
+        request.session['reset_token_id'] = token.id
+        return redirect('recruitmentapp:reset_password')
+
+    return render(request, 'authentication/verify_reset_code.html')
+
+
+def reset_password_view(request):
+    token_id = request.session.get('reset_token_id')
+    email = request.session.get('reset_email')
+
+    if not token_id or not email:
+        messages.error(request, 'Session expired. Please start again.')
+        return redirect('recruitmentapp:forgot_password')
+
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password', '')[:15]
+        confirm_password = request.POST.get('confirm_password', '')[:15]
+
+        if not new_password or not confirm_password:
+            messages.error(request, 'Both fields are required.')
+            return render(request, 'authentication/reset_password.html')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'authentication/reset_password.html')
+
+        pw_error = _validate_password(new_password)
+        if pw_error:
+            messages.error(request, pw_error)
+            return render(request, 'authentication/reset_password.html')
+
+        user = Users.objects.filter(email=email).first()
+        if not user:
+            messages.error(request, 'User not found.')
+            return redirect('recruitmentapp:forgot_password')
+
+        user.password = new_password
+        user.save()
+
+        del request.session['reset_email']
+        del request.session['reset_token_id']
+
+        messages.success(request, 'Password reset successfully! Please sign in with your new password.')
+        return redirect('recruitmentapp:signin')
+
+    return render(request, 'authentication/reset_password.html')
 
 
 # ========== DASHBOARD VIEWS ==========

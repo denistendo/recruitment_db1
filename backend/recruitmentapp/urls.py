@@ -8,6 +8,9 @@ urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
     path('signin/', views.signin_view, name='signin'),
     path('logout/', views.logout_view, name='logout'),
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),
+    path('verify-reset-code/', views.verify_reset_code_view, name='verify_reset_code'),
+    path('reset-password/', views.reset_password_view, name='reset_password'),
 
     # Dashboards
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),

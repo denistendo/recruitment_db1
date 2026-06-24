@@ -3,17 +3,6 @@ function getApplicantModal() {
     return bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
 }
 
-function openCreateApplicantModal() {
-    const form = document.getElementById('create-applicant-form');
-    form.reset();
-    delete form.dataset.editId;
-
-    document.getElementById('applicant-modal-title').textContent = 'Add New Applicant';
-    document.getElementById('applicant-submit-btn').textContent = 'Save Applicant';
-
-    getApplicantModal().show();
-}
-
 function openEditApplicantModal(applicantId, userId, dateOfBirth, gender, phoneNumber, address) {
     const form = document.getElementById('create-applicant-form');
     form.reset();
@@ -126,7 +115,7 @@ async function refreshApplicantsTable() {
                         <td colspan="7" class="text-center text-muted py-5">
                             <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
                             <p class="mt-2 mb-0 fw-medium">No applicant records found</p>
-                            <small>Click "Add Applicant" to create the first profile.</small>
+                            <small>No applicant profiles found.</small>
                         </td>
                     </tr>`;
                 return;
