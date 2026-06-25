@@ -139,3 +139,10 @@ body {
     text-decoration: underline;
 }
 
+.create-text {
+    color: #4C88D3;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
