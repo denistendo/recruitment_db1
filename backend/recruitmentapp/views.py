@@ -8,6 +8,7 @@ from django.db import connection
 from django.utils import timezone
 from functools import wraps
 from datetime import date
+from django.contrib.auth.hashers import make_password
 import random
 import json
 import re
@@ -85,6 +86,7 @@ def signup_view(request):
         confirm_password = request.POST.get('confirm_password', '')[:15]
         user_type = request.POST.get('user_type', '').strip()
 
+
         form_data = {
             'full_name': full_name,
             'email': email,
@@ -109,6 +111,8 @@ def signup_view(request):
         if Users.objects.filter(email=email).exists():
             messages.error(request, 'A user with this email already exists.')
             return render(request, 'authentication/signup.html', {'form_data': form_data})
+        
+        hashed_password = make_password(password) 
 
         max_id = Users.objects.order_by('-user_id').first()
         next_id = (max_id.user_id + 1) if max_id else 1
@@ -117,7 +121,7 @@ def signup_view(request):
             user_id=next_id,
             full_name=full_name,
             email=email,
-            password=password,
+            password=hashed_password,
             user_type=user_type
         )
 
