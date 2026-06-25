@@ -24,7 +24,7 @@ body {
 }
 
 .signup-container h2 {
-    color: #1e293b;
+    color: #F8FAFD;
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
@@ -69,7 +69,7 @@ body {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
-    color: #1e293b;
+    color: #1e293b;                            
     font-size: 0.95rem;
     font-family: 'Outfit', sans-serif;
     margin-bottom: 1rem;
