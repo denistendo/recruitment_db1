@@ -8,7 +8,7 @@ from django.db import connection
 from django.utils import timezone
 from functools import wraps
 from datetime import date
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 import random
 import json
 import re
@@ -87,11 +87,10 @@ def signup_view(request):
         user_type = request.POST.get('user_type', '').strip()
 
 
+        # Keep passwords out of form_data to prevent leaking back into forms on error
         form_data = {
             'full_name': full_name,
             'email': email,
-            'password': password,
-            'confirm_password': confirm_password,
             'user_type': user_type,
         }
 
@@ -135,31 +134,24 @@ def signup_view(request):
 
 
 def signin_view(request):
-    form_data = {}
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '')[:15]
+        password = request.POST.get('password', '')
 
-        form_data = {
-            'email': email,
-            'password': password,
-        }
+        try:
+            user = Users.objects.get(email=email)
 
-        if not all([email, password]):
-            messages.error(request, 'All fields are required.')
-            return render(request, 'authentication/signin.html', {'form_data': form_data})
+            if check_password(password, user.password):
+                request.session['user_id'] = user.user_id
+                request.session['user_type'] = user.user_type
+                request.session.set_expiry(86400)
 
-        user = Users.objects.filter(email=email).first()
-        if not user or user.password != password:
-            messages.error(request, 'Invalid credentials.')
-            return render(request, 'authentication/signin.html', {'form_data': form_data})
-
-        request.session['user_id'] = user.user_id
-        request.session['user_type'] = user.user_type
-        request.session.set_expiry(86400)
-
-        redirect_url = ROLE_DASHBOARD_MAP.get(user.user_type, 'recruitmentapp:users')
-        return redirect(redirect_url)
+                redirect_url = ROLE_DASHBOARD_MAP.get(user.user_type, 'recruitmentapp:users')
+                return redirect(redirect_url)
+            else:
+                messages.error(request, 'Invalid email or password.')
+        except Users.DoesNotExist:
+            messages.error(request, 'Invalid email or password.')
 
     return render(request, 'authentication/signin.html')
 
@@ -289,7 +281,7 @@ def reset_password_view(request):
             messages.error(request, 'User not found.')
             return redirect('recruitmentapp:forgot_password')
 
-        user.password = new_password
+        user.password = make_password(new_password)
         user.save()
 
         del request.session['reset_email']
