@@ -1,29 +1,221 @@
-#profile-edit .form-control,
-#profile-edit .form-select {
-    font-size: 0.875rem;
+/* ========================================
+   APPLICANT - PROFILE PAGE STYLES
+   ======================================== */
+
+.profile-banner {
+    height: 140px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    position: relative;
 }
-#profile-edit label {
-    font-weight: 500;
-    color: var(--text-secondary);
+
+.profile-hero-body {
+    margin-top: -70px;
+    padding-top: 0;
+    z-index: 5;
 }
-.card .table th {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+
+.profile-avatar-container {
+    width: 130px;
+    height: 130px;
+    position: relative;
 }
-.card .table td {
-    vertical-align: middle;
+
+.profile-avatar-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 5px solid #ffffff;
+    background-color: #f8fafc;
+    transition: transform 0.2s ease;
 }
+
+.profile-avatar-circle:hover {
+    transform: scale(1.02);
+}
+
+.profile-avatar-text {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.bg-dark-navy {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+}
+
+.text-slate-900 {
+    color: #0f172a !important;
+}
+
+.text-slate-700 {
+    color: #334155 !important;
+}
+
+.border-light-gray {
+    border-color: #f1f5f9 !important;
+}
+
+/* Modals Custom Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    padding: 1rem;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+    transform: translateY(10px);
+    animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+    to {
+        transform: translateY(0);
+    }
+}
+
+.modal-header-custom {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.25rem;
+    transition: color 0.15s;
+}
+
+.modal-close:hover {
+    color: #0f172a;
+}
+
+.modal-body-custom {
+    padding: 1.5rem;
+}
+
+.modal-footer-custom {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    background-color: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Edit and Delete Buttons in Tables */
+.btn-group .btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.85rem;
+}
+
+/* Progress bar customization */
 .progress-bar {
-    background-color: var(--primary);
-    border-radius: 10px;
-    transition: width 0.6s ease;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.progress {
-    background-color: var(--bg-surface-elevated);
+
+/* Certifications Card */
+.certifications-display {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
+    padding: 1.25rem;
+    line-height: 1.8;
 }
-.btn-edit, .btn-danger {
-    padding: 0.25rem 0.6rem;
+
+.certifications-display pre {
+    margin-bottom: 0;
+    font-family: inherit;
+    white-space: pre-wrap;
+    color: #334155;
+}
+
+/* Premium Card Hover Effect */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Gradients & Premium Touches */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.profile-badge-premium {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #ffffff;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
     font-size: 0.8rem;
+}
+
+/* Stat Cards Premium */
+.stat-card-premium {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.stat-card-premium:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Contact Info Icons Premium */
+.contact-info-item {
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: background-color 0.15s ease;
+}
+
+.contact-info-item:hover {
+    background-color: #f8fafc;
+}
+
+/* Table row subtle animation */
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+/* Badge refinements */
+.badge.rounded-pill {
+    letter-spacing: 0.01em;
 }

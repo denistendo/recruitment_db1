@@ -561,10 +561,15 @@ def applicant_profile(request):
     user = Users.objects.get(pk=user_id)
 
     if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
         date_of_birth = request.POST.get('date_of_birth')
         gender = request.POST.get('gender')
         phone_number = request.POST.get('phone_number')
         address = request.POST.get('address')
+
+        if full_name:
+            user.full_name = full_name
+            user.save()
 
         if applicant:
             applicant.date_of_birth = date_of_birth if date_of_birth else None
@@ -595,21 +600,30 @@ def applicant_profile(request):
     total_applications = 0
     total_interviews = 0
     latest_application = None
+    certifications = ''
     if applicant:
         apps = Applications.objects.filter(applicant=applicant)
         total_applications = apps.count()
         latest_application = apps.order_by('-application_id').first()
         total_interviews = Interviews.objects.filter(application__applicant=applicant).count()
+        if latest_application and latest_application.cover_letter and '[Certifications]' in latest_application.cover_letter:
+            parts = latest_application.cover_letter.split('[Certifications]\n', 1)
+            if len(parts) > 1:
+                certifications = parts[1].strip()
 
     completion = 0
     if applicant:
         completion += 25
         if applicant.date_of_birth:
-            completion += 25
+            completion += 15
+        if applicant.phone_number:
+            completion += 10
     if qualifications:
-        completion += 25
+        completion += 20
     if skills_list:
-        completion += 25
+        completion += 15
+    if certifications:
+        completion += 15
 
     context = {
         'active_tab': 'profile',
@@ -622,6 +636,7 @@ def applicant_profile(request):
         'total_interviews': total_interviews,
         'latest_application': latest_application,
         'completion': completion,
+        'certifications': certifications,
     }
     return render(request, 'applicant/profile.html', context)
 
@@ -840,15 +855,23 @@ def apply_job_view(request, job_id):
     user = Users.objects.get(pk=user_id)
     applicant = Applicants.objects.filter(user_id=user_id).first()
 
-    if not applicant:
-        messages.error(request, 'Please complete your profile before applying.')
-        return redirect('recruitmentapp:applicant_profile')
+    already_applied = False
+    if applicant:
+        already_applied = Applications.objects.filter(applicant=applicant, job=job).exists()
 
-    if Applications.objects.filter(applicant=applicant, job=job).exists():
+    if already_applied:
         messages.error(request, 'You have already applied for this job.')
         return redirect('recruitmentapp:job_detail', job_id=job_id)
 
     if request.method == 'POST':
+        # 1. Extract Personal Information
+        full_name = request.POST.get('full_name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        date_of_birth = request.POST.get('date_of_birth', '').strip()
+        gender = request.POST.get('gender', '').strip()
+        address = request.POST.get('address', '').strip()
+
+        # 2. Extract Application Details
         cover_letter = request.POST.get('cover_letter', '').strip()
         motivation = request.POST.get('motivation', '').strip()
         years_experience = request.POST.get('years_experience', '').strip()
@@ -856,13 +879,47 @@ def apply_job_view(request, job_id):
         available_start_date = request.POST.get('available_start_date', '').strip()
         employment_type_preference = request.POST.get('employment_type_preference', '').strip()
         declaration_accepted = request.POST.get('declaration_accepted')
+        certifications = request.POST.get('certifications', '').strip()
+
+        # 3. Extract JSON Qualifications & Skills
+        import json
+        qualifications_data = []
+        skills_data = []
+
+        qualifications_json = request.POST.get('qualifications_json')
+        if qualifications_json:
+            try:
+                qualifications_data = json.loads(qualifications_json)
+            except json.JSONDecodeError:
+                pass
+
+        skills_json = request.POST.get('skills_json')
+        if skills_json:
+            try:
+                skills_data = json.loads(skills_json)
+            except json.JSONDecodeError:
+                pass
 
         errors = []
 
+        # Validations
+        if not full_name:
+            errors.append('Full name is required.')
+        if not phone_number:
+            errors.append('Phone number is required.')
+        if not date_of_birth:
+            errors.append('Date of birth is required.')
+        if not gender:
+            errors.append('Gender is required.')
+        if not address:
+            errors.append('Address is required.')
         if not cover_letter:
             errors.append('Cover letter is required.')
         if not motivation:
             errors.append('Please explain why you are interested in this position.')
+        if not declaration_accepted:
+            errors.append('You must accept the declaration to proceed.')
+
         if years_experience:
             try:
                 years_experience = int(years_experience)
@@ -883,30 +940,94 @@ def apply_job_view(request, job_id):
         else:
             expected_salary = None
 
-        if not declaration_accepted:
-            errors.append('You must accept the declaration to proceed.')
-
         if errors:
             for err in errors:
                 messages.error(request, err)
             return render(request, 'applicant/application_form.html', {
-                'active_tab': 'dashboard',
+                'active_tab': 'jobs',
                 'job': job,
                 'user': user,
                 'applicant': applicant,
                 'form_data': request.POST,
             })
 
-        max_id = Applications.objects.order_by('-application_id').first()
-        next_id = (max_id.application_id + 1) if max_id else 1
+        # Save Personal Information (Create or Update Applicant)
+        user.full_name = full_name
+        user.save()
+
+        if not applicant:
+            max_id = Applicants.objects.order_by('-applicant_id').first()
+            next_id = (max_id.applicant_id + 1) if max_id else 1
+            applicant = Applicants.objects.create(
+                applicant_id=next_id,
+                user_id=user_id,
+                date_of_birth=date_of_birth if date_of_birth else None,
+                gender=gender or None,
+                phone_number=phone_number or None,
+                address=address or None
+            )
+        else:
+            applicant.date_of_birth = date_of_birth if date_of_birth else None
+            applicant.gender = gender or None
+            applicant.phone_number = phone_number or None
+            applicant.address = address or None
+            applicant.save()
+
+        # Save Qualifications
+        for qual in qualifications_data:
+            inst = qual.get('institution', '').strip()
+            awd = qual.get('award', '').strip()
+            yr = qual.get('year_completed')
+            if inst and awd:
+                if not Qualifications.objects.filter(applicant=applicant, institution=inst, award=awd).exists():
+                    max_q_id = Qualifications.objects.order_by('-qualification_id').first()
+                    next_q_id = (max_q_id.qualification_id + 1) if max_q_id else 1
+                    Qualifications.objects.create(
+                        qualification_id=next_q_id,
+                        applicant=applicant,
+                        institution=inst,
+                        award=awd,
+                        year_completed=int(yr) if yr else None
+                    )
+
+        # Save Skills
+        for sk in skills_data:
+            s_name = sk.get('skill_name', '').strip()
+            prof = sk.get('proficiency_level', 'Intermediate').strip()
+            if s_name:
+                max_s_id = Skills.objects.order_by('-skill_id').first()
+                next_s_id = (max_s_id.skill_id + 1) if max_s_id else 1
+                skill_obj, _ = Skills.objects.get_or_create(
+                    skill_name=s_name,
+                    defaults={'skill_id': next_s_id}
+                )
+
+                if not ApplicantSkills.objects.filter(applicant=applicant, skill=skill_obj).exists():
+                    max_as_id = ApplicantSkills.objects.order_by('-applicant_skill_id').first()
+                    next_as_id = (max_as_id.applicant_skill_id + 1) if max_as_id else 1
+                    ApplicantSkills.objects.create(
+                        applicant_skill_id=next_as_id,
+                        applicant=applicant,
+                        skill=skill_obj,
+                        proficiency_level=prof
+                    )
+
+        # Append Certifications to Cover Letter if provided
+        final_cover_letter = cover_letter
+        if certifications:
+            final_cover_letter = f"{cover_letter}\n\n[Certifications]\n{certifications}"
+
+        # Create Application
+        max_app_id = Applications.objects.order_by('-application_id').first()
+        next_app_id = (max_app_id.application_id + 1) if max_app_id else 1
 
         Applications.objects.create(
-            application_id=next_id,
+            application_id=next_app_id,
             applicant=applicant,
             job=job,
             application_date=date.today(),
             status='Submitted',
-            cover_letter=cover_letter,
+            cover_letter=final_cover_letter,
             motivation=motivation,
             years_experience=years_experience,
             expected_salary=expected_salary,

@@ -5,72 +5,157 @@
 {% block page_header %}Job Application{% endblock %}
 
 {% block content %}
-<!-- ============================================================ -->
-<!-- SECTION: Back Navigation                                     -->
-<!-- ============================================================ -->
-<div class="mb-3">
+<div class="mb-3 no-print">
     <a href="{% url 'recruitmentapp:job_detail' job.job_id %}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left me-1"></i>Back to Job Details
     </a>
 </div>
 
-<!-- ============================================================ -->
-<!-- SECTION: Job Info Header                                     -->
-<!-- ============================================================ -->
+<!-- Job Header Card -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0">
-        <h5 class="mb-0 fw-bold">
-            <i class="bi bi-briefcase me-2"></i>Applying for: {{ job.title }}
-        </h5>
-        <small class="text-muted">{{ job.department.department_name|default:"No Department" }}</small>
-    </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- SECTION: Applicant Information Card                          -->
-<!-- ============================================================ -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0">
-        <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2"></i>Your Information</h5>
-    </div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label text-muted small">Full Name</label>
-                <div class="fw-semibold">{{ user.full_name|default:"&#8212;" }}</div>
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center">
+            <div class="stat-icon-circle stat-icon-primary me-3">
+                <i class="bi bi-briefcase" style="font-size: 1.5rem;"></i>
             </div>
-            <div class="col-md-4">
-                <label class="form-label text-muted small">Email</label>
-                <div class="fw-semibold">{{ user.email|default:"&#8212;" }}</div>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label text-muted small">Phone Number</label>
-                <div class="fw-semibold">{{ applicant.phone_number|default:"&#8212;" }}</div>
+            <div>
+                <h4 class="fw-bold mb-1">Applying for: {{ job.title }}</h4>
+                <p class="text-muted mb-0"><i class="bi bi-building me-1"></i>{{ job.department.department_name|default:"No Department" }}</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SECTION: Application Form                                    -->
-<!-- ============================================================ -->
-<form method="POST" action="{% url 'recruitmentapp:apply_job' job.job_id %}" novalidate>
+<form method="POST" action="{% url 'recruitmentapp:apply_job' job.job_id %}" id="application-form" novalidate>
     {% csrf_token %}
+    
+    <!-- Hidden fields for dynamic data -->
+    <input type="hidden" name="qualifications_json" id="qualifications-json" value="[]">
+    <input type="hidden" name="skills_json" id="skills-json" value="[]">
+
+    <!-- SECTION 1: Personal Data -->
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-0">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Application Details</h5>
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2 text-primary"></i>1. Personal Data</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ form_data.full_name|default:user.full_name|default:"" }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="email" class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control bg-light" id="email" value="{{ user.email }}" readonly>
+                </div>
+                <div class="col-md-4">
+                    <label for="phone_number" class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ form_data.phone_number|default:applicant.phone_number|default:"" }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="date_of_birth" class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ form_data.date_of_birth|default:applicant.date_of_birth|date:'Y-m-d'|default:"" }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="gender" class="form-label fw-semibold">Gender <span class="text-danger">*</span></label>
+                    <select class="form-select" id="gender" name="gender" required>
+                        <option value="">-- Select Gender --</option>
+                        <option value="Male" {% if form_data.gender == 'Male' or applicant.gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if form_data.gender == 'Female' or applicant.gender == 'Female' %}selected{% endif %}>Female</option>
+                        <option value="Other" {% if form_data.gender == 'Other' or applicant.gender == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label for="address" class="form-label fw-semibold">Physical Address <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="address" name="address" value="{{ form_data.address|default:applicant.address|default:"" }}" required placeholder="e.g. 123 Main St, City">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: Skills -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-person-workspace me-2 text-primary"></i>2. Skills</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSkillRow()">
+                <i class="bi bi-plus-lg me-1"></i>Add Skill
+            </button>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">Add skills that are relevant to this job posting. These will be automatically saved to your profile.</p>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="form-skills-table" style="display: none;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Skill Name</th>
+                            <th style="width: 200px;">Proficiency Level</th>
+                            <th style="width: 80px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="form-skills-body"></tbody>
+                </table>
+            </div>
+            <div id="no-skills-prompt" class="text-center py-3 border rounded border-dashed bg-light">
+                <span class="text-muted small">No skills added in this form. Click "Add Skill" if you'd like to add new ones.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: Qualifications -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-mortarboard me-2 text-primary"></i>3. Qualifications</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addQualificationRow()">
+                <i class="bi bi-plus-lg me-1"></i>Add Qualification
+            </button>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">List your academic qualifications. These will be automatically saved to your profile.</p>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="form-quals-table" style="display: none;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Institution</th>
+                            <th>Award / Degree</th>
+                            <th style="width: 150px;">Year Completed</th>
+                            <th style="width: 80px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="form-quals-body"></tbody>
+                </table>
+            </div>
+            <div id="no-quals-prompt" class="text-center py-3 border rounded border-dashed bg-light">
+                <span class="text-muted small">No qualifications added in this form. Click "Add Qualification" if you'd like to add new ones.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: Certifications -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-patch-check me-2 text-primary"></i>4. Certifications</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">List any professional certifications you hold. These will be included with your application.</p>
+            <div class="mb-3">
+                <label for="certifications" class="form-label fw-semibold">Professional Certifications</label>
+                <textarea class="form-control" id="certifications" name="certifications" rows="4" placeholder="e.g. AWS Certified Solutions Architect&#10;Project Management Professional (PMP)&#10;Certified Scrum Master (CSM)&#10;— one per line">{{ form_data.certifications|default:"" }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 5: Application Details -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2 text-primary"></i>5. Application Details</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <label for="cover_letter" class="form-label fw-semibold">
-                    Cover Letter <span class="text-danger">*</span>
-                </label>
+                <label for="cover_letter" class="form-label fw-semibold">Cover Letter <span class="text-danger">*</span></label>
                 <textarea class="form-control" id="cover_letter" name="cover_letter" rows="6" placeholder="Introduce yourself and explain why you are a great fit for this role...">{{ form_data.cover_letter|default:"" }}</textarea>
             </div>
             <div class="mb-3">
-                <label for="motivation" class="form-label fw-semibold">
-                    Why are you interested in this position? <span class="text-danger">*</span>
-                </label>
+                <label for="motivation" class="form-label fw-semibold">Why are you interested in this position? <span class="text-danger">*</span></label>
                 <textarea class="form-control" id="motivation" name="motivation" rows="4" placeholder="Describe what excites you about this role and how it aligns with your career goals...">{{ form_data.motivation|default:"" }}</textarea>
             </div>
             <div class="row g-3">
@@ -89,23 +174,21 @@
                         <input type="number" class="form-control" id="expected_salary" name="expected_salary" min="0" step="0.01" value="{{ form_data.expected_salary|default:"" }}" placeholder="e.g. 75000">
                     </div>
                 </div>
-            </div>
-            <div class="mt-3">
-                <label for="employment_type_preference" class="form-label fw-semibold">Employment Type Preference</label>
-                <select class="form-select" id="employment_type_preference" name="employment_type_preference">
-                    <option value="">-- Select Preference --</option>
-                    <option value="Full Time" {% if form_data.employment_type_preference == 'Full Time' %}selected{% endif %}>Full Time</option>
-                    <option value="Part Time" {% if form_data.employment_type_preference == 'Part Time' %}selected{% endif %}>Part Time</option>
-                    <option value="Internship" {% if form_data.employment_type_preference == 'Internship' %}selected{% endif %}>Internship</option>
-                    <option value="Contract" {% if form_data.employment_type_preference == 'Contract' %}selected{% endif %}>Contract</option>
-                </select>
+                <div class="col-12 mt-3">
+                    <label for="employment_type_preference" class="form-label fw-semibold">Employment Type Preference</label>
+                    <select class="form-select" id="employment_type_preference" name="employment_type_preference">
+                        <option value="">-- Select Preference --</option>
+                        <option value="Full Time" {% if form_data.employment_type_preference == 'Full Time' %}selected{% endif %}>Full Time</option>
+                        <option value="Part Time" {% if form_data.employment_type_preference == 'Part Time' %}selected{% endif %}>Part Time</option>
+                        <option value="Internship" {% if form_data.employment_type_preference == 'Internship' %}selected{% endif %}>Internship</option>
+                        <option value="Contract" {% if form_data.employment_type_preference == 'Contract' %}selected{% endif %}>Contract</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- SECTION: Declaration Checkbox                                -->
-    <!-- ============================================================ -->
+    <!-- SECTION 6: Declaration -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <div class="form-check">
@@ -117,16 +200,135 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- SECTION: Form Actions                                        -->
-    <!-- ============================================================ -->
-    <div class="d-flex gap-3">
-        <a href="{% url 'recruitmentapp:job_detail' job.job_id %}" class="btn btn-secondary btn-lg">
+    <!-- Form Actions -->
+    <div class="d-flex gap-3 mb-5">
+        <a href="{% url 'recruitmentapp:job_detail' job.job_id %}" class="btn btn-outline-secondary btn-lg px-4">
             <i class="bi bi-x-circle me-1"></i>Cancel
         </a>
-        <button type="submit" class="btn btn-primary btn-lg">
+        <button type="submit" class="btn btn-primary btn-lg px-5">
             <i class="bi bi-send-check me-1"></i>Submit Application
         </button>
     </div>
 </form>
+
+<style>
+.border-dashed {
+    border-style: dashed !important;
+    border-width: 2px !important;
+}
+</style>
+
+<script>
+// JavaScript to handle dynamic Qualifications and Skills lists
+let qualifications = [];
+let skills = [];
+
+function addQualificationRow() {
+    document.getElementById('form-quals-table').style.display = 'table';
+    document.getElementById('no-quals-prompt').style.display = 'none';
+    
+    const tbody = document.getElementById('form-quals-body');
+    const index = qualifications.length;
+    
+    const tr = document.createElement('tr');
+    tr.id = `qual-row-${index}`;
+    tr.innerHTML = `
+        <td><input type="text" class="form-control form-control-sm" placeholder="University / Institution" onchange="updateQual(${index}, 'institution', this.value)" required></td>
+        <td><input type="text" class="form-control form-control-sm" placeholder="Degree / Award" onchange="updateQual(${index}, 'award', this.value)" required></td>
+        <td><input type="number" class="form-control form-control-sm" placeholder="2024" onchange="updateQual(${index}, 'year_completed', this.value)"></td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeQualRow(${index})">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+    qualifications.push({ institution: '', award: '', year_completed: '' });
+    updateHiddenInputs();
+}
+
+function updateQual(index, field, value) {
+    qualifications[index][field] = value;
+    updateHiddenInputs();
+}
+
+function removeQualRow(index) {
+    const tr = document.getElementById(`qual-row-${index}`);
+    if (tr) {
+        tr.remove();
+    }
+    qualifications[index] = null; // Mark as removed
+    updateHiddenInputs();
+    
+    // Check if any left
+    const activeQuals = qualifications.filter(q => q !== null);
+    if (activeQuals.length === 0) {
+        document.getElementById('form-quals-table').style.display = 'none';
+        document.getElementById('no-quals-prompt').style.display = 'block';
+    }
+}
+
+function addSkillRow() {
+    document.getElementById('form-skills-table').style.display = 'table';
+    document.getElementById('no-skills-prompt').style.display = 'none';
+    
+    const tbody = document.getElementById('form-skills-body');
+    const index = skills.length;
+    
+    const tr = document.createElement('tr');
+    tr.id = `skill-row-${index}`;
+    tr.innerHTML = `
+        <td><input type="text" class="form-control form-control-sm" placeholder="e.g. Python, SQL" onchange="updateSkill(${index}, 'skill_name', this.value)" required></td>
+        <td>
+            <select class="form-select form-select-sm" onchange="updateSkill(${index}, 'proficiency_level', this.value)">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate" selected>Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Expert">Expert</option>
+            </select>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSkillRow(${index})">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+    skills.push({ skill_name: '', proficiency_level: 'Intermediate' });
+    updateHiddenInputs();
+}
+
+function updateSkill(index, field, value) {
+    skills[index][field] = value;
+    updateHiddenInputs();
+}
+
+function removeSkillRow(index) {
+    const tr = document.getElementById(`skill-row-${index}`);
+    if (tr) {
+        tr.remove();
+    }
+    skills[index] = null;
+    updateHiddenInputs();
+    
+    const activeSkills = skills.filter(s => s !== null);
+    if (activeSkills.length === 0) {
+        document.getElementById('form-skills-table').style.display = 'none';
+        document.getElementById('no-skills-prompt').style.display = 'block';
+    }
+}
+
+function updateHiddenInputs() {
+    const activeQuals = qualifications.filter(q => q !== null && q.institution.trim() !== '' && q.award.trim() !== '');
+    const activeSkills = skills.filter(s => s !== null && s.skill_name.trim() !== '');
+    
+    document.getElementById('qualifications-json').value = JSON.stringify(activeQuals);
+    document.getElementById('skills-json').value = JSON.stringify(activeSkills);
+}
+
+// Add validation on form submit
+document.getElementById('application-form').addEventListener('submit', function(e) {
+    updateHiddenInputs();
+});
+</script>
 {% endblock %}
