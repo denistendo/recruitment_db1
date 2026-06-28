@@ -9,10 +9,36 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <!-- Shared stylesheets -->
-    <link rel="stylesheet" href="{% static 'shared/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/layout.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'shared/components.css' %}">
     <link rel="stylesheet" href="{% static 'shared/common.css' %}">
     {% block extra_css %}{% endblock %}
+    {% if session_user.user_type == 'JobApplicant' %}
+    <style>
+        .text-primary { color: #0f172a !important; }
+        .bg-primary { background-color: #0f172a !important; }
+        .btn-primary {
+            background-color: #0f172a !important;
+            border-color: #0f172a !important;
+            color: #ffffff !important;
+        }
+        .btn-primary:hover {
+            background-color: #1e293b !important;
+            border-color: #1e293b !important;
+            color: #ffffff !important;
+        }
+        .btn-outline-primary {
+            color: #0f172a !important;
+            border-color: #0f172a !important;
+        }
+        .btn-outline-primary:hover {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+        }
+        a { color: #0f172a; }
+        .progress-bar { background-color: #0f172a !important; }
+    </style>
+    {% endif %}
 </head>
 <body>
     {% block layout %}
@@ -114,12 +140,6 @@
                     <li class="sidebar-nav-item">
                         <a href="{% url 'recruitmentapp:jobs' %}" class="sidebar-link {% if active_tab == 'jobs' %}active{% endif %}">
                             <i class="bi bi-briefcase"></i>Job Postings
-                        </a>
-                    </li>
-                    <!-- Applicant: My Applications -->
-                    <li class="sidebar-nav-item">
-                        <a href="{% url 'recruitmentapp:applications' %}" class="sidebar-link {% if active_tab == 'applications' %}active{% endif %}">
-                            <i class="bi bi-file-text"></i>My Applications
                         </a>
                     </li>
                     <!-- Applicant: My Profile -->

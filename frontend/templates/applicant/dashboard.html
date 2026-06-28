@@ -14,7 +14,7 @@
     <div class="col-md-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center gap-3 py-3">
-                <div class="stat-icon stat-icon-warning d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; flex-shrink: 0;">
+                <div class="stat-icon stat-icon-navy d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; flex-shrink: 0;">
                     <i class="bi bi-briefcase"></i>
                 </div>
                 <div>
@@ -63,110 +63,57 @@
     </div>
 </div>
 
-{% if not applicant %}
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body text-center py-5">
-        <i class="bi bi-person-plus text-primary" style="font-size: 3rem;"></i>
-        <h5 class="mt-3 fw-bold">Complete Your Profile</h5>
-        <p class="text-muted">Set up your applicant profile to start applying for jobs.</p>
-        <a href="{% url 'recruitmentapp:applicant_profile' %}" class="btn btn-primary mt-2">
-            <i class="bi bi-arrow-right me-1"></i>Create Profile
-        </a>
-    </div>
-</div>
-{% endif %}
-
-{% if applications %}
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0">
-        <h5 class="mb-0 fw-bold">My Applications</h5>
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-file-text me-2 text-primary"></i>My Applications</h5>
+        <span class="badge bg-primary rounded-pill">{{ applications|length }} Total</span>
     </div>
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Job Title</th>
-                    <th>Department</th>
-                    <th>Applied Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for app in applications %}
-                <tr>
-                    <td>{{ app.job.title|default:"N/A" }}</td>
-                    <td>{{ app.job.department.department_name|default:"N/A" }}</td>
-                    <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
-                    <td>
-                        {% if app.status == 'Accepted' %}
-                        <span class="badge bg-success">{{ app.status }}</span>
-                        {% elif app.status == 'Rejected' %}
-                        <span class="badge bg-danger">{{ app.status }}</span>
-                        {% elif app.status == 'Pending' %}
-                        <span class="badge bg-warning text-dark">{{ app.status }}</span>
-                        {% elif app.status == 'Not Interviewed' %}
-                        <span class="badge bg-dark">{{ app.status }}</span>
-                        {% elif app.status == 'Interviewed' %}
-                        <span class="badge bg-info text-dark">{{ app.status }}</span>
-                        {% else %}
-                        <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% if applications %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Department</th>
+                        <th>Applied Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td class="fw-bold" style="color: #000;">{{ app.job.title|default:"N/A" }}</td>
+                        <td>{{ app.job.department.department_name|default:"N/A" }}</td>
+                        <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
+                        <td>
+                            {% if app.status == 'Accepted' %}
+                            <span class="badge bg-success px-3 py-1.5 rounded-pill">{{ app.status }}</span>
+                            {% elif app.status == 'Rejected' %}
+                            <span class="badge bg-danger px-3 py-1.5 rounded-pill">{{ app.status }}</span>
+                            {% elif app.status == 'Pending' %}
+                            <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill">{{ app.status }}</span>
+                            {% elif app.status == 'Not Interviewed' %}
+                            <span class="badge bg-dark px-3 py-1.5 rounded-pill">{{ app.status }}</span>
+                            {% elif app.status == 'Interviewed' %}
+                            <span class="badge bg-info text-dark px-3 py-1.5 rounded-pill">{{ app.status }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary px-3 py-1.5 rounded-pill">{{ app.status|default:"Submitted" }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 2.5rem; color: #94a3b8;"></i>
+            <p class="mt-2 text-muted">No applications submitted yet.</p>
+        </div>
+        {% endif %}
     </div>
 </div>
-{% endif %}
-
-{% if open_jobs %}
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0">
-        <h5 class="mb-0 fw-bold">Open Job Postings</h5>
-    </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Job Title</th>
-                    <th>Department</th>
-                    <th>Posted Date</th>
-                    <th>Closing Date</th>
-                    {% if applicant %}
-                    <th class="text-center">Action</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for job in open_jobs %}
-                <tr>
-                    <td class="fw-bold">{{ job.title }}</td>
-                    <td>{{ job.department.department_name|default:"N/A" }}</td>
-                    <td>{{ job.posted_date|date:"d/m/Y"|default:"-" }}</td>
-                    <td>{{ job.closing_date|date:"d/m/Y"|default:"-" }}</td>
-                    {% if applicant %}
-                    <td class="text-center">
-                        {% if job.job_id in applied_job_ids %}
-                        <span class="badge bg-secondary">Applied</span>
-                        {% else %}
-                        <a href="{% url 'recruitmentapp:job_detail' job.job_id %}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye me-1"></i>View Details
-                        </a>
-                        {% endif %}
-                    </td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-3">No open job postings available</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% endif %}
 
 <div class="print-only">
     <div class="print-header text-center mb-4">
@@ -255,6 +202,25 @@
     .stat-icon-success {
         background: rgba(25, 135, 84, 0.1);
         color: #198754;
+    }
+    .apply-btn {
+        background-color: #0f172a;
+        color: #ffffff;
+        border: 1px solid #0f172a;
+        border-radius: 8px;
+        transition: all 0.15s ease-in-out;
+    }
+    .apply-btn:hover {
+        background-color: #1e293b;
+        border-color: #1e293b;
+        color: #ffffff;
+    }
+    .stat-icon-navy {
+        background-color: rgba(15, 23, 42, 0.1);
+        color: #0f172a;
+    }
+    .card-header .text-primary {
+        color: #0f172a !important;
     }
     @media print {
         .no-print, .navbar, .sidebar, footer { display: none !important; }
