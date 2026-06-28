@@ -1,5 +1,9 @@
+import logging
+
 from django.core.mail import send_mail
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def send_application_confirmation(user_email, full_name, job_title, phone_number=None):
@@ -25,7 +29,7 @@ def send_application_confirmation(user_email, full_name, job_title, phone_number
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user_email],
         fail_silently=False,
     )
@@ -50,7 +54,7 @@ def send_interview_scheduled(user_email, full_name, job_title, interview_date, i
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user_email],
         fail_silently=False,
     )
@@ -70,7 +74,7 @@ def send_interviewed(user_email, full_name, job_title):
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user_email],
         fail_silently=False,
     )
@@ -90,7 +94,7 @@ def send_rejected(user_email, full_name, job_title):
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user_email],
         fail_silently=False,
     )
@@ -111,7 +115,7 @@ def send_password_reset_code(user_email, full_name, reset_code):
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user_email],
         fail_silently=False,
     )
@@ -136,7 +140,7 @@ def send_accepted(user_email, full_name, job_title):
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user_email],
         fail_silently=False,
     )

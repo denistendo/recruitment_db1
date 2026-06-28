@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +16,8 @@ import json
 import re
 from .mailer import send_application_confirmation, send_interview_scheduled, send_accepted, send_interviewed, send_rejected, send_password_reset_code
 from .models import JobPostings, Departments, Users, Applicants, Applications, Qualifications, ApplicantSkills, Skills, Interviews, InterviewPanel, JobPanelAssignment, PasswordResetTokens
+
+logger = logging.getLogger(__name__)
 
 
 def _validate_password(password):
@@ -207,8 +211,9 @@ def forgot_password_view(request):
             messages.success(request, 'A password reset code has been sent to your email.')
             request.session['reset_email'] = email
             return redirect('recruitmentapp:verify_reset_code')
-        except Exception:
-            messages.error(request, 'Failed to send email. Please try again later.')
+        except Exception as e:
+            logger.exception('Failed to send password reset email to %s: %s', email, e)
+            messages.error(request, f'Failed to send email: {e}')
             return render(request, 'authentication/forgot_password.html')
 
     return render(request, 'authentication/forgot_password.html')
