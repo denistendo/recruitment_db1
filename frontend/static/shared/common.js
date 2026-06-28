@@ -1,0 +1,50 @@
+function openModal(modalId) {
+    var modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('open');
+    }
+}
+
+function closeModal(modalId) {
+    var modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('open');
+    }
+}
+
+function showToast(message, type) {
+    if (type === undefined) { type = 'success'; }
+    var container = document.getElementById('toast-container');
+    var toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    var icon = type === 'success' ? '\u2713' : '\u2717';
+    toast.innerHTML = '<span class="toast-icon">' + icon + '</span> ' + message;
+    container.appendChild(toast);
+
+    setTimeout(function () {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(function () { toast.remove(); }, 300);
+    }, 4000);
+}
+
+function togglePasswordVisibility(inputId, toggleButton) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    var isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    var icon = toggleButton.querySelector('i');
+    if (icon) {
+        icon.className = isPassword ? 'bi bi-eye-slash-fill' : 'bi bi-eye-fill';
+    }
+}
+
+function copyToClipboard(text, friendlyName) {
+    navigator.clipboard.writeText(text).then(function () {
+        showToast('Copied ' + friendlyName + ' path to clipboard!', 'success');
+    }).catch(function (err) {
+        console.error('Failed to copy path: ', err);
+        showToast('Failed to copy path to clipboard.', 'error');
+    });
+}

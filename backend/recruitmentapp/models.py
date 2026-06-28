@@ -31,6 +31,13 @@ class Applications(models.Model):
     job = models.ForeignKey('JobPostings', models.DO_NOTHING, blank=True, null=True)
     application_date = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, db_collation='SQL_Latin1_General_CP1_CI_AS', blank=True, null=True)
+    cover_letter = models.TextField(db_collation='SQL_Latin1_General_CP1_CI_AS', blank=True, null=True)
+    motivation = models.TextField(db_collation='SQL_Latin1_General_CP1_CI_AS', blank=True, null=True)
+    years_experience = models.IntegerField(blank=True, null=True)
+    expected_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    available_start_date = models.DateField(blank=True, null=True)
+    employment_type_preference = models.CharField(max_length=20, db_collation='SQL_Latin1_General_CP1_CI_AS', blank=True, null=True)
+    declaration_accepted = models.BooleanField(blank=True, null=True)
 
     class Meta:
         managed = False

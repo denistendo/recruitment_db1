@@ -1,0 +1,132 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Apply - {{ job.title }}{% endblock %}
+{% block page_header %}Job Application{% endblock %}
+
+{% block content %}
+<!-- ============================================================ -->
+<!-- SECTION: Back Navigation                                     -->
+<!-- ============================================================ -->
+<div class="mb-3">
+    <a href="{% url 'recruitmentapp:job_detail' job.job_id %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Job Details
+    </a>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Job Info Header                                     -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-briefcase me-2"></i>Applying for: {{ job.title }}
+        </h5>
+        <small class="text-muted">{{ job.department.department_name|default:"No Department" }}</small>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Applicant Information Card                          -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2"></i>Your Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label text-muted small">Full Name</label>
+                <div class="fw-semibold">{{ user.full_name|default:"&#8212;" }}</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-muted small">Email</label>
+                <div class="fw-semibold">{{ user.email|default:"&#8212;" }}</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-muted small">Phone Number</label>
+                <div class="fw-semibold">{{ applicant.phone_number|default:"&#8212;" }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Application Form                                    -->
+<!-- ============================================================ -->
+<form method="POST" action="{% url 'recruitmentapp:apply_job' job.job_id %}" novalidate>
+    {% csrf_token %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Application Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="cover_letter" class="form-label fw-semibold">
+                    Cover Letter <span class="text-danger">*</span>
+                </label>
+                <textarea class="form-control" id="cover_letter" name="cover_letter" rows="6" placeholder="Introduce yourself and explain why you are a great fit for this role...">{{ form_data.cover_letter|default:"" }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="motivation" class="form-label fw-semibold">
+                    Why are you interested in this position? <span class="text-danger">*</span>
+                </label>
+                <textarea class="form-control" id="motivation" name="motivation" rows="4" placeholder="Describe what excites you about this role and how it aligns with your career goals...">{{ form_data.motivation|default:"" }}</textarea>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="years_experience" class="form-label fw-semibold">Years of Experience</label>
+                    <input type="number" class="form-control" id="years_experience" name="years_experience" min="0" step="1" value="{{ form_data.years_experience|default:"" }}" placeholder="e.g. 5">
+                </div>
+                <div class="col-md-4">
+                    <label for="available_start_date" class="form-label fw-semibold">Earliest Available Start Date</label>
+                    <input type="date" class="form-control" id="available_start_date" name="available_start_date" value="{{ form_data.available_start_date|default:"" }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="expected_salary" class="form-label fw-semibold">Expected Salary <small class="text-muted">(Optional)</small></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="expected_salary" name="expected_salary" min="0" step="0.01" value="{{ form_data.expected_salary|default:"" }}" placeholder="e.g. 75000">
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <label for="employment_type_preference" class="form-label fw-semibold">Employment Type Preference</label>
+                <select class="form-select" id="employment_type_preference" name="employment_type_preference">
+                    <option value="">-- Select Preference --</option>
+                    <option value="Full Time" {% if form_data.employment_type_preference == 'Full Time' %}selected{% endif %}>Full Time</option>
+                    <option value="Part Time" {% if form_data.employment_type_preference == 'Part Time' %}selected{% endif %}>Part Time</option>
+                    <option value="Internship" {% if form_data.employment_type_preference == 'Internship' %}selected{% endif %}>Internship</option>
+                    <option value="Contract" {% if form_data.employment_type_preference == 'Contract' %}selected{% endif %}>Contract</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION: Declaration Checkbox                                -->
+    <!-- ============================================================ -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="declaration_accepted" name="declaration_accepted" value="1" {% if form_data.declaration_accepted %}checked{% endif %}>
+                <label class="form-check-label fw-semibold" for="declaration_accepted">
+                    I certify that the information provided is true and accurate. <span class="text-danger">*</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION: Form Actions                                        -->
+    <!-- ============================================================ -->
+    <div class="d-flex gap-3">
+        <a href="{% url 'recruitmentapp:job_detail' job.job_id %}" class="btn btn-secondary btn-lg">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+        </a>
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-send-check me-1"></i>Submit Application
+        </button>
+    </div>
+</form>
+{% endblock %}

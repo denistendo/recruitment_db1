@@ -1,0 +1,206 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Applications - RecruitDB{% endblock %}
+{% block page_header %}Applications{% endblock %}
+
+{% block extra_css %}
+{% if session_user.user_type != 'JobApplicant' %}
+<link rel="stylesheet" href="{% static 'hr/applications.css' %}">
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if session_user.user_type != 'JobApplicant' %}
+<script src="{% static 'hr/applications.js' %}" defer></script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if session_user.user_type == 'JobApplicant' %}
+<!-- ============================================================ -->
+<!-- SECTION: Applicant View - My Applications                    -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-file-text me-2"></i>My Applications</h5>
+        <span class="badge bg-primary rounded-pill">{{ applications|length }} Total</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Job Title</th>
+                        <th>Applied Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td class="fw-semibold">{{ app.application_id }}</td>
+                        <td><strong>{{ app.job.title|default:"N/A" }}</strong></td>
+                        <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
+                        <td>
+                            {% if app.status == 'Accepted' %}
+                            <span class="badge bg-success">{{ app.status }}</span>
+                            {% elif app.status == 'Rejected' %}
+                            <span class="badge bg-danger">{{ app.status }}</span>
+                            {% elif app.status == 'Pending' %}
+                            <span class="badge bg-warning text-dark">{{ app.status }}</span>
+                            {% elif app.status == 'Not Interviewed' %}
+                            <span class="badge bg-dark">{{ app.status }}</span>
+                            {% elif app.status == 'Interviewed' %}
+                            <span class="badge bg-info text-dark">{{ app.status }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ app.status|default:"Submitted" }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2 mb-0 fw-medium">No applications found</p>
+                            <small>Applications you submit will appear here.</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- ============================================================ -->
+<!-- SECTION: Admin/HR View - Search & Add Controls               -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" id="search-applications" class="form-control" placeholder="Search by applicant, job or status..." onkeyup="filterApplications()">
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-primary" onclick="openCreateApplicationModal()"><i class="bi bi-plus-lg me-1"></i>Add Application</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Admin/HR View - Applications Table                  -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-file-text me-2"></i>Applications</h5>
+        <span class="badge bg-primary rounded-pill">{{ applications|length }} Total</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" id="applications-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Applicant</th>
+                        <th>Job Title</th>
+                        <th>Applied Date</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="applications-table-body">
+                    {% for app in applications %}
+                    <tr id="application-row-{{ app.application_id }}">
+                        <td class="fw-semibold">{{ app.application_id }}</td>
+                        <td class="applicant-name-cell"><strong>{{ app.applicant.user.full_name|default:"N/A" }}</strong></td>
+                        <td>{{ app.job.title|default:"N/A" }}</td>
+                        <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
+                        <td>
+                            <span class="badge bg-{% if app.status == 'Accepted' %}success{% elif app.status == 'Rejected' %}danger{% elif app.status == 'Pending' %}warning text-dark{% elif app.status == 'Interviewed' %}info text-dark{% elif app.status == 'Not Interviewed' %}dark{% else %}secondary{% endif %}">{{ app.status|default:"Pending" }}</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-outline-primary" onclick="openEditApplicationModal({{ app.application_id }}, {{ app.applicant.applicant_id|default:'null' }}, {{ app.job.job_id|default:'null' }}, '{{ app.application_date|default:'' }}', '{{ app.status|default:'Pending'|escapejs }}')" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteApplication({{ app.application_id }})" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="applications-empty-row">
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2 mb-0 fw-medium">No applications found</p>
+                            <small>Applications submitted by applicants will appear here.</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Bootstrap Modal - Create/Edit Application           -->
+<!-- ============================================================ -->
+<div class="modal fade" id="application-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Application</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="create-application-form" onsubmit="submitApplicationForm(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="application-applicant" class="form-label">Applicant</label>
+                        <select id="application-applicant" class="form-select" required>
+                            <option value="">-- Select Applicant --</option>
+                            {% for a in applicants_list %}
+                            <option value="{{ a.applicant_id }}">{{ a.user.full_name|default:"N/A" }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="application-job" class="form-label">Job Vacancy</label>
+                        <select id="application-job" class="form-select" required>
+                            <option value="">-- Select Job --</option>
+                            {% for j in jobs_list %}
+                            <option value="{{ j.job_id }}">{{ j.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="application-date" class="form-label">Application Date</label>
+                        <input type="date" id="application-date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="application-status" class="form-label">Status</label>
+                        <select id="application-status" class="form-select">
+                            <option value="Pending">Pending</option>
+                            <option value="Accepted">Accepted</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Withdrawn">Withdrawn</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

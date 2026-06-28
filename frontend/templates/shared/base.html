@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Recruitment Management System{% endblock %}</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Shared stylesheets -->
+    <link rel="stylesheet" href="{% static 'shared/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/components.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/common.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block layout %}
+    <!-- Application Shell -->
+    <div class="app-shell">
+
+        <!-- Sidebar -->
+        {% block sidebar %}
+        <aside class="sidebar sidebar-dark">
+            <!-- Brand -->
+            <div class="sidebar-brand">
+                <h4 class="sidebar-brand-title">
+                    <i class="bi bi-people-fill"></i>RecruitDB
+                </h4>
+                <small class="sidebar-brand-subtitle">Recruitment System</small>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                <ul class="sidebar-nav-list">
+                    {% if session_user %}
+                    <li class="sidebar-nav-item">
+                        <a href="{% if session_user.user_type == 'SystemAdministrator' %}{% url 'recruitmentapp:admin_dashboard' %}{% elif session_user.user_type == 'HumanResourceOfficer' %}{% url 'recruitmentapp:hr_dashboard' %}{% elif session_user.user_type == 'InterviewPanelMember' %}{% url 'recruitmentapp:panel_dashboard' %}{% elif session_user.user_type == 'JobApplicant' %}{% url 'recruitmentapp:applicant_dashboard' %}{% elif session_user.user_type == 'DepartmentManager' %}{% url 'recruitmentapp:department_dashboard' %}{% endif %}"
+                           class="sidebar-link {% if active_tab == 'dashboard' %}active{% endif %}">
+                            <i class="bi bi-speedometer2"></i>Dashboard
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if session_user.user_type == 'SystemAdministrator' %}
+                    <!-- Admin: User Management -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:users' %}" class="sidebar-link {% if active_tab == 'users' %}active{% endif %}">
+                            <i class="bi bi-people"></i>Users
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if session_user.user_type == 'SystemAdministrator' or session_user.user_type == 'HumanResourceOfficer' %}
+                    <!-- Admin / HR: Job Postings -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:jobs' %}" class="sidebar-link {% if active_tab == 'jobs' %}active{% endif %}">
+                            <i class="bi bi-briefcase"></i>Job Postings
+                        </a>
+                    </li>
+                    {% if session_user.user_type == 'HumanResourceOfficer' %}
+                    <!-- HR: Application Management -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:hr_applications' %}" class="sidebar-link {% if active_tab == 'hr_applications' %}active{% endif %}">
+                            <i class="bi bi-clipboard-check"></i>Applications
+                        </a>
+                    </li>
+                    <!-- HR: Panel Members -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:panel_members' %}" class="sidebar-link {% if active_tab == 'panel_members' %}active{% endif %}">
+                            <i class="bi bi-people"></i>Panel Members
+                        </a>
+                    </li>
+                    <!-- HR: Departments -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:departments' %}" class="sidebar-link {% if active_tab == 'departments' %}active{% endif %}">
+                            <i class="bi bi-building"></i>Departments
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if session_user.user_type == 'SystemAdministrator' %}
+                    <!-- Admin: Applications -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:applications' %}" class="sidebar-link {% if active_tab == 'applications' %}active{% endif %}">
+                            <i class="bi bi-file-text"></i>Applications
+                        </a>
+                    </li>
+                    {% endif %}
+                    <!-- Admin / HR: Applicants -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:applicants' %}" class="sidebar-link {% if active_tab == 'applicants' %}active{% endif %}">
+                            <i class="bi bi-person-badge"></i>Applicants
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if session_user.user_type == 'InterviewPanelMember' %}
+                    <!-- Interviewer: My Interviews -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:my_interviews' %}" class="sidebar-link {% if active_tab == 'my_interviews' %}active{% endif %}">
+                            <i class="bi bi-clipboard-data"></i>My Interviews
+                        </a>
+                    </li>
+                    <!-- Interviewer: My Profile -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:interviewer_profile' %}" class="sidebar-link {% if active_tab == 'interviewer_profile' %}active{% endif %}">
+                            <i class="bi bi-person-gear"></i>My Profile
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if session_user.user_type == 'JobApplicant' %}
+                    <!-- Applicant: My Applications -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:applications' %}" class="sidebar-link {% if active_tab == 'applications' %}active{% endif %}">
+                            <i class="bi bi-file-text"></i>My Applications
+                        </a>
+                    </li>
+                    <!-- Applicant: My Profile -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:applicant_profile' %}" class="sidebar-link {% if active_tab == 'profile' %}active{% endif %}">
+                            <i class="bi bi-person-gear"></i>My Profile
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <!-- User Info -->
+            {% if session_user %}
+            <div class="sidebar-footer">
+                <div class="sidebar-user-info">
+                    <i class="bi bi-person-circle sidebar-user-avatar"></i>
+                    <div class="sidebar-user-details">
+                        <div class="sidebar-user-name">{{ session_user.full_name }}</div>
+                        <div class="sidebar-user-role">{{ session_user.user_type }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+        {% endblock %}
+
+        <!-- Main Content Area -->
+        <div class="main-area">
+
+            <!-- Top Navigation Bar -->
+            {% block topnav %}
+            <nav class="top-navbar">
+                <div class="top-navbar-inner">
+                    <h5 class="top-navbar-title">{% block page_header %}Dashboard{% endblock %}</h5>
+                    <div class="top-navbar-actions">
+                        {% if session_user %}
+                        <span class="role-badge role-badge-{{ session_user.user_type|lower }}">
+                            <i class="bi bi-shield-check"></i>{{ session_user.user_type }}
+                        </span>
+                        <a href="{% url 'recruitmentapp:logout' %}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-box-arrow-right"></i>Logout
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </nav>
+            {% endblock %}
+
+            <!-- Page Content -->
+            <main class="page-content">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-info-circle"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'shared/common.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

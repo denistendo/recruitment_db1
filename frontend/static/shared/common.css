@@ -1,0 +1,73 @@
+/* ========================================
+   COMMON UTILITIES
+   ======================================== */
+
+/* Name cell styling */
+.name-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.applicant-name-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.job-title-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.user-name-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Print utilities */
+.print-only {
+    display: none;
+}
+
+.print-header {
+    display: none;
+}
+
+.print-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 4px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.section-title-print {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 4px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.print-section {
+    page-break-inside: avoid;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+    .print-header {
+        display: block !important;
+    }
+}

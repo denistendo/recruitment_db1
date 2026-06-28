@@ -1,0 +1,73 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Verify Reset Code - Recruitment System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'authentication/signin.css' %}">
+{% endblock %}
+
+{% block layout %}
+<div class="auth-page auth-page-gradient">
+    <div class="auth-card">
+        <div class="auth-card-body">
+            <div class="auth-header">
+                <i class="bi bi-shield-check auth-icon"></i>
+                <h3 class="auth-title">Verify Code</h3>
+                <p class="auth-subtitle">Enter the 6-digit code sent to your email</p>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form id="verify-form" action="{% url 'recruitmentapp:verify_reset_code' %}" method="POST" novalidate>
+                {% csrf_token %}
+                <div class="auth-field">
+                    <label for="code" class="auth-label">Reset Code</label>
+                    <input type="text" class="form-control form-control-lg text-center" id="code" name="code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="000000" required>
+                    <div class="field-error" id="code-error"></div>
+                </div>
+                <button type="submit" class="auth-submit-btn">Verify Code</button>
+            </form>
+
+            <p class="auth-footer-text">
+                Didn't receive the code? <a href="{% url 'recruitmentapp:forgot_password' %}">Resend</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('verify-form').addEventListener('submit', function(e) {
+    var valid = true;
+    var el = document.getElementById('code');
+    var errEl = document.getElementById('code-error');
+    el.classList.remove('error');
+    errEl.classList.remove('visible');
+    errEl.textContent = '';
+    if (!el.value.trim()) {
+        el.classList.add('error');
+        errEl.textContent = 'Reset code is required.';
+        errEl.classList.add('visible');
+        valid = false;
+    } else if (el.value.length !== 6) {
+        el.classList.add('error');
+        errEl.textContent = 'Code must be 6 digits.';
+        errEl.classList.add('visible');
+        valid = false;
+    }
+    if (!valid) {
+        e.preventDefault();
+        showToast('Please enter a valid reset code.', 'error');
+    }
+});
+</script>
+{% endblock %}

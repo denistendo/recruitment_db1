@@ -1,0 +1,128 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - Recruitment System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'authentication/signup.css' %}">
+{% endblock %}
+
+{% block layout %}
+<div class="auth-page">
+    <div class="auth-card auth-card-wide">
+        <div class="auth-card-body">
+            <!-- Header -->
+            <div class="auth-header">
+                <i class="bi bi-people-fill auth-icon"></i>
+                <h3 class="auth-title">Recruitment Management System</h3>
+                <p class="auth-subtitle">Create Account</p>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form id="signup-form" action="{% url 'recruitmentapp:signup' %}" method="POST" novalidate>
+                {% csrf_token %}
+                <div class="auth-field">
+                    <label for="full_name" class="auth-label">Full Name</label>
+                    <input type="text" class="form-control form-control-lg" id="full_name" name="full_name" value="{{ form_data.full_name }}" required>
+                    <div class="field-error" id="full_name-error"></div>
+                </div>
+                <div class="auth-field">
+                    <label for="email" class="auth-label">Email</label>
+                    <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ form_data.email }}" required>
+                    <div class="field-error" id="email-error"></div>
+                </div>
+                <div class="auth-password-hint"><i class="bi bi-info-circle"></i> Password must be at least 8 characters, contain letters, numbers and symbols</div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="password" class="auth-label">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" value="{{ form_data.password }}" required>
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password', this)">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                        </div>
+                        <div class="field-error" id="password-error"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="confirm_password" class="auth-label">Confirm Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" class="form-control form-control-lg" id="confirm_password" name="confirm_password" value="{{ form_data.confirm_password }}" required>
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirm_password', this)">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                        </div>
+                        <div class="field-error" id="confirm_password-error"></div>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label for="user_type" class="auth-label">Role</label>
+                    <select class="form-select form-select-lg" id="user_type" name="user_type" required>
+                        <option value="">Select Role</option>
+                        <option value="HumanResourceOfficer" {% if form_data.user_type == 'HumanResourceOfficer' %}selected{% endif %}>Human Resource Officer</option>
+                        <option value="InterviewPanelMember" {% if form_data.user_type == 'InterviewPanelMember' %}selected{% endif %}>Interview Panel Member</option>
+                        <option value="JobApplicant" {% if form_data.user_type == 'JobApplicant' %}selected{% endif %}>Job Applicant</option>
+                    </select>
+                    <div class="field-error" id="user_type-error"></div>
+                </div>
+                <button type="submit" class="auth-submit-btn">Create Account</button>
+            </form>
+
+            <p class="auth-footer-text">
+                Already have an account? <a href="{% url 'recruitmentapp:signin' %}">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('signup-form').addEventListener('submit', function(e) {
+    var valid = true;
+    var fields = [
+        { id: 'full_name', msg: 'Full name is required.' },
+        { id: 'email', msg: 'Email is required.' },
+        { id: 'password', msg: 'Password is required.' },
+        { id: 'confirm_password', msg: 'Please confirm your password.' },
+        { id: 'user_type', msg: 'Please select a role.' },
+    ];
+
+    fields.forEach(function(f) {
+        var el = document.getElementById(f.id);
+        var errEl = document.getElementById(f.id + '-error');
+        el.classList.remove('error');
+        errEl.classList.remove('visible');
+        errEl.textContent = '';
+        if (!el.value.trim()) {
+            el.classList.add('error');
+            errEl.textContent = f.msg;
+            errEl.classList.add('visible');
+            valid = false;
+        }
+    });
+
+    var pw = document.getElementById('password');
+    var cpw = document.getElementById('confirm_password');
+    if (pw.value && cpw.value && pw.value !== cpw.value) {
+        var errEl = document.getElementById('confirm_password-error');
+        cpw.classList.add('error');
+        errEl.textContent = 'Passwords do not match.';
+        errEl.classList.add('visible');
+        valid = false;
+    }
+
+    if (!valid) {
+        e.preventDefault();
+        showToast('Please fix the errors highlighted below.', 'error');
+    }
+});
+</script>
+{% endblock %}

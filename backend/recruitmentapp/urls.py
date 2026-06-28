@@ -24,6 +24,10 @@ urlpatterns = [
     path('candidate-profile/<int:applicant_id>/', views.candidate_profile, name='candidate_profile'),
     path('conduct-interview/<int:application_id>/', views.conduct_interview, name='conduct_interview'),
 
+    # Job detail & apply (applicant)
+    path('jobs/<int:job_id>/', views.job_detail_view, name='job_detail'),
+    path('jobs/<int:job_id>/apply/', views.apply_job_view, name='apply_job'),
+
     # Functional pages
     path('users/', views.users_page, name='users'),
     path('jobs/', views.jobs_page, name='jobs'),

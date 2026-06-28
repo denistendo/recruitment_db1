@@ -304,7 +304,7 @@ def admin_dashboard(request):
         'total_applications': Applications.objects.count(),
         'recent_users': Users.objects.all().order_by('-user_id')[:5],
     }
-    return render(request, 'dashboards/admin_dashboard.html', context)
+    return render(request, 'hr/admin_dashboard.html', context)
 
 
 @role_required(['HumanResourceOfficer'])
@@ -315,7 +315,7 @@ def hr_dashboard(request):
         'total_applications': Applications.objects.count(),
         'recent_jobs': JobPostings.objects.select_related('department').all().order_by('-job_id')[:5],
     }
-    return render(request, 'dashboards/hr_dashboard.html', context)
+    return render(request, 'hr/dashboard.html', context)
 
 
 @role_required(['InterviewPanelMember'])
@@ -346,7 +346,7 @@ def panel_dashboard(request):
         'pending_interviews': pending_interviews,
         'completed_interviews': completed_interviews,
     }
-    return render(request, 'dashboards/panel_dashboard.html', context)
+    return render(request, 'interviewer/dashboard.html', context)
 
 
 @role_required(['InterviewPanelMember'])
@@ -396,7 +396,7 @@ def my_interviews(request):
         'completed': completed,
         'not_interviewed': not_interviewed,
     }
-    return render(request, 'dashboards/my_interviews.html', context)
+    return render(request, 'interviewer/my_interviews.html', context)
 
 
 @role_required(['InterviewPanelMember'])
@@ -417,7 +417,7 @@ def candidate_profile(request, applicant_id):
         'qualifications': qualifications,
         'skills_list': skills_list,
     }
-    return render(request, 'dashboards/candidate_profile.html', context)
+    return render(request, 'interviewer/candidate_profile.html', context)
 
 
 @role_required(['InterviewPanelMember'])
@@ -445,7 +445,7 @@ def conduct_interview(request, application_id):
 
         if not score:
             messages.error(request, 'Score is required.')
-            return render(request, 'dashboards/conduct_interview.html', {
+            return render(request, 'interviewer/conduct_interview.html', {
                 'active_tab': 'my_interviews',
                 'application': app,
                 'interview': interview,
@@ -456,7 +456,7 @@ def conduct_interview(request, application_id):
             score = int(score)
         except (ValueError, TypeError):
             messages.error(request, 'Score must be a number.')
-            return render(request, 'dashboards/conduct_interview.html', {
+            return render(request, 'interviewer/conduct_interview.html', {
                 'active_tab': 'my_interviews',
                 'application': app,
                 'interview': interview,
@@ -515,7 +515,7 @@ def conduct_interview(request, application_id):
         'applicant': app.applicant,
         'panel_remarks': panel_remarks,
     }
-    return render(request, 'dashboards/conduct_interview.html', context)
+    return render(request, 'interviewer/conduct_interview.html', context)
 
 
 @role_required(['JobApplicant'])
@@ -546,7 +546,7 @@ def applicant_dashboard(request):
         'qualifications': qualifications,
         'skills_list': skills_list,
     }
-    return render(request, 'dashboards/applicant_dashboard.html', context)
+    return render(request, 'applicant/dashboard.html', context)
 
 
 @role_required(['JobApplicant'])
@@ -618,7 +618,7 @@ def applicant_profile(request):
         'latest_application': latest_application,
         'completion': completion,
     }
-    return render(request, 'profile/profile.html', context)
+    return render(request, 'applicant/profile.html', context)
 
 
 # ========== APPLICANT APIS ==========
@@ -753,7 +753,7 @@ def department_dashboard(request):
     context = {
         'active_tab': 'dashboard',
     }
-    return render(request, 'dashboards/department_dashboard.html', context)
+    return render(request, 'hr/department_dashboard.html', context)
 
 
 # ========== FUNCTIONAL PAGES ==========
@@ -765,7 +765,7 @@ def users_page(request):
         'users': users,
         'active_tab': 'users',
     }
-    return render(request, 'users/users.html', context)
+    return render(request, 'hr/users.html', context)
 
 
 @role_required(['SystemAdministrator', 'HumanResourceOfficer'])
@@ -777,7 +777,134 @@ def jobs_page(request):
         'departments': departments,
         'active_tab': 'jobs',
     }
-    return render(request, 'jobs/jobs.html', context)
+    return render(request, 'hr/jobs.html', context)
+
+
+@role_required(['JobApplicant'])
+def job_detail_view(request, job_id):
+    try:
+        job = JobPostings.objects.select_related('department').get(pk=job_id)
+    except JobPostings.DoesNotExist:
+        messages.error(request, 'Job not found.')
+        return redirect('recruitmentapp:applicant_dashboard')
+
+    user_id = request.session.get('user_id')
+    applicant = Applicants.objects.filter(user_id=user_id).first()
+    already_applied = False
+    if applicant:
+        already_applied = Applications.objects.filter(applicant=applicant, job=job).exists()
+
+    context = {
+        'active_tab': 'dashboard',
+        'job': job,
+        'already_applied': already_applied,
+        'today': date.today(),
+    }
+    return render(request, 'applicant/job_detail.html', context)
+
+
+@role_required(['JobApplicant'])
+def apply_job_view(request, job_id):
+    try:
+        job = JobPostings.objects.select_related('department').get(pk=job_id)
+    except JobPostings.DoesNotExist:
+        messages.error(request, 'Job not found.')
+        return redirect('recruitmentapp:applicant_dashboard')
+
+    user_id = request.session.get('user_id')
+    user = Users.objects.get(pk=user_id)
+    applicant = Applicants.objects.filter(user_id=user_id).first()
+
+    if not applicant:
+        messages.error(request, 'Please complete your profile before applying.')
+        return redirect('recruitmentapp:applicant_profile')
+
+    if Applications.objects.filter(applicant=applicant, job=job).exists():
+        messages.error(request, 'You have already applied for this job.')
+        return redirect('recruitmentapp:job_detail', job_id=job_id)
+
+    if request.method == 'POST':
+        cover_letter = request.POST.get('cover_letter', '').strip()
+        motivation = request.POST.get('motivation', '').strip()
+        years_experience = request.POST.get('years_experience', '').strip()
+        expected_salary = request.POST.get('expected_salary', '').strip()
+        available_start_date = request.POST.get('available_start_date', '').strip()
+        employment_type_preference = request.POST.get('employment_type_preference', '').strip()
+        declaration_accepted = request.POST.get('declaration_accepted')
+
+        errors = []
+
+        if not cover_letter:
+            errors.append('Cover letter is required.')
+        if not motivation:
+            errors.append('Please explain why you are interested in this position.')
+        if years_experience:
+            try:
+                years_experience = int(years_experience)
+                if years_experience < 0:
+                    errors.append('Years of experience cannot be negative.')
+            except ValueError:
+                errors.append('Years of experience must be a number.')
+        else:
+            years_experience = None
+
+        if expected_salary:
+            try:
+                expected_salary = float(expected_salary)
+                if expected_salary < 0:
+                    errors.append('Expected salary cannot be negative.')
+            except ValueError:
+                errors.append('Expected salary must be a number.')
+        else:
+            expected_salary = None
+
+        if not declaration_accepted:
+            errors.append('You must accept the declaration to proceed.')
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return render(request, 'applicant/application_form.html', {
+                'active_tab': 'dashboard',
+                'job': job,
+                'user': user,
+                'applicant': applicant,
+                'form_data': request.POST,
+            })
+
+        max_id = Applications.objects.order_by('-application_id').first()
+        next_id = (max_id.application_id + 1) if max_id else 1
+
+        Applications.objects.create(
+            application_id=next_id,
+            applicant=applicant,
+            job=job,
+            application_date=date.today(),
+            status='Submitted',
+            cover_letter=cover_letter,
+            motivation=motivation,
+            years_experience=years_experience,
+            expected_salary=expected_salary,
+            available_start_date=available_start_date or None,
+            employment_type_preference=employment_type_preference or None,
+            declaration_accepted=True,
+        )
+
+        try:
+            send_application_confirmation(user.email, user.full_name, job.title, applicant.phone_number)
+        except Exception:
+            pass
+
+        messages.success(request, f'Your application for "{job.title}" has been submitted successfully!')
+        return redirect('recruitmentapp:applications')
+
+    context = {
+        'active_tab': 'dashboard',
+        'job': job,
+        'user': user,
+        'applicant': applicant,
+    }
+    return render(request, 'applicant/application_form.html', context)
 
 
 @role_required(['SystemAdministrator', 'HumanResourceOfficer'])
@@ -791,7 +918,7 @@ def applicants_page(request):
         'users': users,
         'active_tab': 'applicants',
     }
-    return render(request, 'applicants/applicants.html', context)
+    return render(request, 'hr/applicants.html', context)
 
 
 @role_required(['SystemAdministrator', 'HumanResourceOfficer', 'JobApplicant'])
@@ -817,7 +944,7 @@ def applications_page(request):
         'jobs_list': jobs_list,
         'active_tab': 'applications',
     }
-    return render(request, 'applications/applications.html', context)
+    return render(request, 'applicant/my_applications.html', context)
 
 
 # ========== HR APPLICANT DETAIL VIEW ==========
@@ -842,7 +969,7 @@ def applicant_detail(request, applicant_id):
         'skills_list': skills_list,
         'applications': applications,
     }
-    return render(request, 'applications/applicant_detail.html', context)
+    return render(request, 'hr/applicant_detail.html', context)
 
 
 # ========== HR APPLICATIONS MANAGEMENT ==========
@@ -884,7 +1011,7 @@ def hr_applications_view(request):
         'current_status': status_filter,
         'active_tab': 'hr_applications',
     }
-    return render(request, 'applications/hr_applications.html', context)
+    return render(request, 'hr/applications.html', context)
 
 
 @role_required(['HumanResourceOfficer'])
@@ -946,7 +1073,7 @@ def schedule_interview(request, application_id):
 
         if not interview_date:
             messages.error(request, 'Interview date is required.')
-            return render(request, 'applications/schedule_interview.html', {
+            return render(request, 'hr/schedule_interview.html', {
                 'active_tab': 'hr_applications',
                 'application': app,
                 'interview': interview,
@@ -1013,7 +1140,7 @@ def schedule_interview(request, application_id):
         'interview': interview,
         'panel_members': panel_members,
     }
-    return render(request, 'applications/schedule_interview.html', context)
+    return render(request, 'hr/schedule_interview.html', context)
 
 
 # ========== API ENDPOINTS (unchanged) ==========
@@ -1810,7 +1937,7 @@ def print_profile(request):
         'skills_list': skills_list,
         'applications': applications,
     }
-    return render(request, 'profile/print_profile.html', context)
+    return render(request, 'applicant/print_profile.html', context)
 
 
 # ========== DEPARTMENT MANAGEMENT (HR) ==========
@@ -1822,7 +1949,7 @@ def departments_view(request):
         'active_tab': 'departments',
         'departments': departments_list,
     }
-    return render(request, 'departments/departments.html', context)
+    return render(request, 'hr/departments.html', context)
 
 
 @role_required(['HumanResourceOfficer'])
@@ -1833,7 +1960,7 @@ def department_add(request):
 
         if not dept_name:
             messages.error(request, 'Department name is required.')
-            return render(request, 'departments/add_department.html', {'active_tab': 'departments'})
+            return render(request, 'hr/department_add.html', {'active_tab': 'departments'})
 
         max_id = Departments.objects.order_by('-department_id').first()
         next_id = (max_id.department_id + 1) if max_id else 1
@@ -1846,7 +1973,7 @@ def department_add(request):
         messages.success(request, f'Department "{dept_name}" created successfully.')
         return redirect('recruitmentapp:departments')
 
-    return render(request, 'departments/add_department.html', {'active_tab': 'departments'})
+    return render(request, 'hr/department_add.html', {'active_tab': 'departments'})
 
 
 @role_required(['HumanResourceOfficer'])
@@ -1863,7 +1990,7 @@ def department_edit(request, department_id):
 
         if not dept_name:
             messages.error(request, 'Department name is required.')
-            return render(request, 'departments/edit_department.html', {
+            return render(request, 'hr/department_edit.html', {
                 'active_tab': 'departments',
                 'department': dept,
             })
@@ -1874,7 +2001,7 @@ def department_edit(request, department_id):
         messages.success(request, f'Department "{dept_name}" updated successfully.')
         return redirect('recruitmentapp:departments')
 
-    return render(request, 'departments/edit_department.html', {
+    return render(request, 'hr/department_edit.html', {
         'active_tab': 'departments',
         'department': dept,
     })
@@ -1913,7 +2040,7 @@ def department_jobs(request, department_id):
         'department': dept,
         'jobs': jobs,
     }
-    return render(request, 'departments/department_jobs.html', context)
+    return render(request, 'hr/department_jobs.html', context)
 
 
 # ========== PANEL MEMBER MANAGEMENT (HR) ==========
@@ -1941,7 +2068,7 @@ def panel_members_view(request):
         'panel_members': enriched,
         'departments': departments,
     }
-    return render(request, 'panel_members/panel_members.html', context)
+    return render(request, 'hr/panel_members.html', context)
 
 
 @role_required(['HumanResourceOfficer'])
@@ -2020,7 +2147,7 @@ def interviewer_profile(request):
 
     context = _interviewer_profile_context(panel_member, user)
     context['active_tab'] = 'interviewer_profile'
-    return render(request, 'dashboards/interviewer_profile.html', context)
+    return render(request, 'interviewer/profile.html', context)
 
 
 @role_required(['HumanResourceOfficer'])
@@ -2037,7 +2164,7 @@ def panel_member_detail(request, panel_id):
     context = _interviewer_profile_context(panel_member, associated_user)
     context['active_tab'] = 'panel_members'
     context['is_hr_view'] = True
-    return render(request, 'dashboards/interviewer_profile.html', context)
+    return render(request, 'interviewer/profile.html', context)
 
 
 

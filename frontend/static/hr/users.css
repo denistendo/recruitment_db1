@@ -1,0 +1,29 @@
+.user-name-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.role-recruiter {
+    background-color: white;
+    color: hsl(245, 75%, 45%);
+}
+
+.role-manager {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: hsl(35, 90%, 35%);
+}
+
+.role-applicant {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: hsl(142, 70%, 30%);
+}

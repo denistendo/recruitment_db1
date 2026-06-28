@@ -64,7 +64,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR.parent / 'frontend',
+            BASE_DIR.parent / 'frontend' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -137,7 +137,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR.parent / 'frontend',
+    BASE_DIR.parent / 'frontend' / 'static',
 ]
 
 # CORS Configuration

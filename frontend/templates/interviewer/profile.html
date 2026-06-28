@@ -1,0 +1,109 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_hr_view %}Panel Member Profile{% else %}My Profile{% endif %} - RecruitDB{% endblock %}
+{% block page_header %}{% if is_hr_view %}Panel Member Profile{% else %}My Profile{% endif %}{% endblock %}
+
+{% block content %}
+<!-- ============================================================ -->
+<!-- SECTION: Alert Warning                                       -->
+<!-- ============================================================ -->
+{% if not panel_member %}
+<div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {% if is_hr_view %}This panel member profile was not found.{% else %}Your account is not linked to any interviewer profile in the system. Please contact HR.{% endif %}
+</div>
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- SECTION: Profile Layout                                      -->
+<!-- ============================================================ -->
+<div class="row g-4">
+    <div class="col-lg-4">
+        <!-- ============================================================ -->
+        <!-- SECTION: Avatar & Info Card                                 -->
+        <!-- ============================================================ -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body text-center py-4">
+                <div class="avatar-circle-lg">
+                    <i class="bi bi-person-fill text-primary"></i>
+                </div>
+                <h5 class="fw-bold">{{ panel_member.full_name|default:"—" }}</h5>
+                {% if user.email %}<p class="text-muted small mb-0">{{ user.email }}</p>{% endif %}
+                <span class="badge bg-secondary mt-2">{{ panel_member.role|default:"Interview Panel Member" }}</span>
+                {% if panel_member.department %}
+                <div class="mt-2">
+                    <span class="badge bg-info text-dark">{{ panel_member.department.department_name }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SECTION: Statistics Card                                    -->
+        <!-- ============================================================ -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Statistics</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Total Assigned</span>
+                    <strong>{{ total_assigned }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Completed</span>
+                    <strong class="text-success">{{ completed_count }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Pending</span>
+                    <strong class="text-warning">{{ pending_count }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- ============================================================ -->
+        <!-- SECTION: Department Assignment Card                          -->
+        <!-- ============================================================ -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i>Department Assignment</h5>
+            </div>
+            <div class="card-body">
+                {% if is_hr_view %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Current Department</label>
+                    <p class="form-control-plaintext">
+                        {% if panel_member.department %}
+                        <strong>{{ panel_member.department.department_name }}</strong>
+                        {% else %}
+                        <span class="text-muted">Not assigned</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'recruitmentapp:panel_members' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Panel Members
+                </a>
+                {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="department_id" class="form-label fw-semibold">Select Your Department</label>
+                        <select id="department_id" name="department_id" class="form-select">
+                            <option value="">— No Department —</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.department_id }}" {% if panel_member.department_id == dept.department_id %}selected{% endif %}>{{ dept.department_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Choose the department you belong to from the list created by HR.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Update Department
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
