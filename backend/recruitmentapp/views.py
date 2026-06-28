@@ -529,9 +529,11 @@ def applicant_dashboard(request):
     applicant = Applicants.objects.filter(user_id=user_id).first()
     applications = []
     applied_job_ids = []
+    total_interviews = 0
     if applicant:
         applications = Applications.objects.filter(applicant=applicant).select_related('job').all()
         applied_job_ids = [app.job_id for app in applications if app.job_id]
+        total_interviews = Interviews.objects.filter(application__applicant=applicant).count()
     open_jobs = JobPostings.objects.select_related('department').all()
     if applied_job_ids:
         open_jobs = open_jobs.exclude(job_id__in=applied_job_ids)
@@ -544,6 +546,7 @@ def applicant_dashboard(request):
         'applicant': applicant,
         'applications': applications,
         'total_applications': len(applications),
+        'total_interviews': total_interviews,
         'total_open_positions': open_jobs.count(),
         'open_jobs': open_jobs,
         'applied_job_ids': applied_job_ids,

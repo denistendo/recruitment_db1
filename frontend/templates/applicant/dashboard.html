@@ -2,57 +2,67 @@
 {% load static %}
 
 {% block title %}My Dashboard - RecruitDB{% endblock %}
-{% block page_header %}My Dashboard{% endblock %}
+{% block page_header %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- ============================================================ -->
-<!-- SECTION: Print Button                                        -->
-<!-- ============================================================ -->
-<div class="d-flex justify-content-end mb-3 no-print">
-    <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
-        <i class="bi bi-printer me-1"></i>Print Profile
-    </button>
+<div class="mb-4">
+    <h1 class="fw-bold" style="font-size: 2rem; color: #000;">Applicant Dashboard</h1>
+    <p class="text-muted" style="font-size: 0.9rem;">Overview of your job search progress</p>
 </div>
 
-<!-- ============================================================ -->
-<!-- SECTION: Statistics Cards                                    -->
-<!-- ============================================================ -->
-<div class="row g-4 mb-4">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon stat-icon-warning">
-                        <i class="bi bi-file-text"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">My Applications</h6>
-                        <h2 class="card-title mb-0 fw-bold">{{ total_applications }}</h2>
-                    </div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon stat-icon-warning d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; flex-shrink: 0;">
+                    <i class="bi bi-briefcase"></i>
+                </div>
+                <div>
+                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Available Jobs</p>
+                    <h3 class="fw-bold mb-0">{{ total_open_positions }}</h3>
+                    <small class="text-success">Open for applications</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon stat-icon-primary">
-                        <i class="bi bi-briefcase"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Open Positions</h6>
-                        <h2 class="card-title mb-0 fw-bold">{{ total_open_positions }}</h2>
-                    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon stat-icon-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; flex-shrink: 0;">
+                    <i class="bi bi-file-text"></i>
+                </div>
+                <div>
+                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Applications Submitted</p>
+                    <h3 class="fw-bold mb-0">{{ total_applications }}</h3>
+                    <small class="text-muted">
+                        {% if total_applications > 0 %}
+                        <span class="text-info">{{ applications.0.status|default:"Submitted" }}</span>
+                        {% else %}
+                        No applications yet
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon stat-icon-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; flex-shrink: 0;">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div>
+                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Interviews Scheduled</p>
+                    <h3 class="fw-bold mb-0">{{ total_interviews }}</h3>
+                    <small class="text-muted">
+                        {% if total_interviews > 0 %}Upcoming{% else %}None scheduled{% endif %}
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SECTION: Profile Completion Prompt                           -->
-<!-- ============================================================ -->
 {% if not applicant %}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body text-center py-5">
@@ -66,9 +76,6 @@
 </div>
 {% endif %}
 
-<!-- ============================================================ -->
-<!-- SECTION: My Applications Table                               -->
-<!-- ============================================================ -->
 {% if applications %}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-0">
@@ -113,9 +120,6 @@
 </div>
 {% endif %}
 
-<!-- ============================================================ -->
-<!-- SECTION: Open Jobs Table                                     -->
-<!-- ============================================================ -->
 {% if open_jobs %}
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-0">
@@ -164,9 +168,6 @@
 </div>
 {% endif %}
 
-<!-- ============================================================ -->
-<!-- SECTION: Print Profile Section                               -->
-<!-- ============================================================ -->
 <div class="print-only">
     <div class="print-header text-center mb-4">
         <h3 class="text-primary">Applicant Profile</h3>
@@ -251,6 +252,10 @@
 <style>
     .print-only { display: none; }
     .section-title-print { font-weight: 700; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; }
+    .stat-icon-success {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
     @media print {
         .no-print, .navbar, .sidebar, footer { display: none !important; }
         .print-only { display: block !important; }
