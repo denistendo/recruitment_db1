@@ -1,0 +1,117 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Job Vacancies - RMS{% endblock %}
+{% block page_header %}Job Vacancies{% endblock %}
+
+{% block content %}
+<!-- ======== SECTION: Search Controls ======== -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="search-jobs" class="form-control border-start-0 ps-0" placeholder="Search jobs by title or department..." onkeyup="filterJobs()">
+        </div>
+    </div>
+</div>
+
+<!-- ======== SECTION: Jobs Table ======== -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-briefcase me-2 text-primary"></i>Open Job Postings</h5>
+        <span class="badge bg-primary rounded-pill" id="jobs-count">{{ open_jobs|length }} Available</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" id="jobs-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Department</th>
+                        <th>Posted Date</th>
+                        <th>Closing Date</th>
+                        {% if applicant %}
+                        <th class="text-center">Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody id="jobs-table-body">
+                    {% for job in open_jobs %}
+                    <tr class="job-row">
+                        <td class="fw-bold job-title-cell">{{ job.title }}</td>
+                        <td class="job-dept-cell">{{ job.department.department_name|default:"N/A" }}</td>
+                        <td>{{ job.posted_date|date:"d/m/Y"|default:"-" }}</td>
+                        <td>{{ job.closing_date|date:"d/m/Y"|default:"-" }}</td>
+                        {% if applicant %}
+                        <td class="text-center">
+                            {% if job.job_id in applied_job_ids %}
+                            <span class="badge bg-secondary">Applied</span>
+                            {% else %}
+                            <a href="{% url 'recruitmentapp:job_detail' job.job_id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>View Details
+                            </a>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr id="no-jobs-row">
+                        <td colspan="{% if applicant %}5{% else %}4{% endif %}" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox empty-state-icon" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2 mb-0 fw-medium">No open job postings available</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterJobs() {
+    var input = document.getElementById("search-jobs");
+    var filter = input.value.toLowerCase();
+    var rows = document.getElementsByClassName("job-row");
+    var visibleCount = 0;
+
+    for (var i = 0; i < rows.length; i++) {
+        var titleCell = rows[i].getElementsByClassName("job-title-cell")[0];
+        var deptCell = rows[i].getElementsByClassName("job-dept-cell")[0];
+        if (titleCell || deptCell) {
+            var titleText = titleCell.textContent || titleCell.innerText;
+            var deptText = deptCell.textContent || deptCell.innerText;
+            if (titleText.toLowerCase().indexOf(filter) > -1 || deptText.toLowerCase().indexOf(filter) > -1) {
+                rows[i].style.display = "";
+                visibleCount++;
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+
+    var countBadge = document.getElementById("jobs-count");
+    countBadge.textContent = visibleCount + " Available";
+    
+    // Show no jobs row if none visible
+    var noJobsRow = document.getElementById("no-jobs-row");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noJobsRow) {
+            var tbody = document.getElementById("jobs-table-body");
+            var tr = document.createElement("tr");
+            tr.id = "no-jobs-row";
+            var td = document.createElement("td");
+            td.colSpan = {% if applicant %}5{% else %}4{% endif %};
+            td.className = "text-center text-muted py-5";
+            td.innerHTML = '<i class="bi bi-search empty-state-icon" style="font-size: 2.5rem;"></i><p class="mt-2 mb-0 fw-medium">No matching jobs found</p>';
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+        } else {
+            noJobsRow.style.display = "";
+        }
+    } else if (noJobsRow) {
+        noJobsRow.style.display = "none";
+    }
+}
+</script>
+{% endblock %}

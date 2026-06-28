@@ -773,8 +773,28 @@ def users_page(request):
     return render(request, 'hr/users.html', context)
 
 
-@role_required(['SystemAdministrator', 'HumanResourceOfficer'])
+@role_required(['SystemAdministrator', 'HumanResourceOfficer', 'JobApplicant'])
 def jobs_page(request):
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if user_type == 'JobApplicant':
+        applicant = Applicants.objects.filter(user_id=user_id).first()
+        applications = Applications.objects.filter(applicant=applicant) if applicant else []
+        applied_job_ids = [app.job_id for app in applications if app.job_id]
+
+        open_jobs = JobPostings.objects.select_related('department').all().order_by('-job_id')
+        if applied_job_ids:
+            open_jobs = open_jobs.exclude(job_id__in=applied_job_ids)
+
+        context = {
+            'active_tab': 'jobs',
+            'open_jobs': open_jobs,
+            'applied_job_ids': applied_job_ids,
+            'applicant': applicant,
+        }
+        return render(request, 'applicant/jobs.html', context)
+
     jobs = JobPostings.objects.select_related('department').all().order_by('job_id')
     departments = Departments.objects.all().order_by('department_name')
     context = {

@@ -25,7 +25,7 @@
             <!-- Brand -->
             <div class="sidebar-brand">
                 <h4 class="sidebar-brand-title">
-                    <i class="bi bi-people-fill"></i>RecruitDB
+                    <i class="bi bi-people-fill"></i>RMS
                 </h4>
                 <small class="sidebar-brand-subtitle">Recruitment System</small>
             </div>
@@ -110,6 +110,12 @@
                     {% endif %}
 
                     {% if session_user.user_type == 'JobApplicant' %}
+                    <!-- Applicant: Job Postings -->
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'recruitmentapp:jobs' %}" class="sidebar-link {% if active_tab == 'jobs' %}active{% endif %}">
+                            <i class="bi bi-briefcase"></i>Job Postings
+                        </a>
+                    </li>
                     <!-- Applicant: My Applications -->
                     <li class="sidebar-nav-item">
                         <a href="{% url 'recruitmentapp:applications' %}" class="sidebar-link {% if active_tab == 'applications' %}active{% endif %}">
