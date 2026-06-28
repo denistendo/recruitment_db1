@@ -30,12 +30,12 @@
                 {% csrf_token %}
                 <div class="auth-field">
                     <label for="full_name" class="auth-label">Full Name</label>
-                    <input type="text" class="form-control form-control-lg" id="full_name" name="full_name" placeholder="John Doe" value="{{ form_data.full_name }}" required>
+                    <input type="text" class="form-control form-control-lg" id="full_name" name="full_name" value="{{ form_data.full_name }}" required>
                     <div class="field-error" id="full_name-error"></div>
                 </div>
                 <div class="auth-field">
                     <label for="email" class="auth-label">Email</label>
-                    <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="name@example.com" value="{{ form_data.email }}" required>
+                    <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ form_data.email }}" required>
                     <div class="field-error" id="email-error"></div>
                 </div>
                 <div class="auth-password-hint"><i class="bi bi-info-circle"></i> Password must be at least 8 characters, contain letters, numbers and symbols</div>
