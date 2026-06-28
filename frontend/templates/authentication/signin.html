@@ -13,9 +13,8 @@
         <div class="auth-card-body">
             <!-- Header -->
             <div class="auth-header">
-                <i class="bi bi-people-fill auth-icon"></i>
-                <h3 class="auth-title">Recruitment Management System</h3>
-                <p class="auth-subtitle">Sign in to your account</p>
+                <h1 class="auth-title">Sign In</h1>
+                <p class="auth-subtitle">Sign in to the RMS Platform</p>
             </div>
 
             <!-- Messages -->
@@ -33,7 +32,7 @@
                 {% csrf_token %}
                 <div class="auth-field">
                     <label for="email" class="auth-label">Email</label>
-                    <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ form_data.email }}" required>
+                    <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="name@example.com" value="{{ form_data.email }}" required>
                     <div class="field-error" id="email-error"></div>
                 </div>
                 <div class="auth-field">

@@ -2,9 +2,12 @@
    AUTHENTICATION - SIGN UP SPECIFIC
    ======================================== */
 
+@import "signin.css";
+
 /* Signup inherits auth styles from signin.css */
 /* This file contains any signup-specific overrides */
 
 .auth-password-hint i {
     margin-right: 0.25rem;
 }
+

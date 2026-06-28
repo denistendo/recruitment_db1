@@ -13,9 +13,8 @@
         <div class="auth-card-body">
             <!-- Header -->
             <div class="auth-header">
-                <i class="bi bi-people-fill auth-icon"></i>
-                <h3 class="auth-title">Recruitment Management System</h3>
-                <p class="auth-subtitle">Create Account</p>
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Join the RMS Platform</p>
             </div>
 
             {% if messages %}
@@ -31,12 +30,12 @@
                 {% csrf_token %}
                 <div class="auth-field">
                     <label for="full_name" class="auth-label">Full Name</label>
-                    <input type="text" class="form-control form-control-lg" id="full_name" name="full_name" value="{{ form_data.full_name }}" required>
+                    <input type="text" class="form-control form-control-lg" id="full_name" name="full_name" placeholder="John Doe" value="{{ form_data.full_name }}" required>
                     <div class="field-error" id="full_name-error"></div>
                 </div>
                 <div class="auth-field">
                     <label for="email" class="auth-label">Email</label>
-                    <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ form_data.email }}" required>
+                    <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="name@example.com" value="{{ form_data.email }}" required>
                     <div class="field-error" id="email-error"></div>
                 </div>
                 <div class="auth-password-hint"><i class="bi bi-info-circle"></i> Password must be at least 8 characters, contain letters, numbers and symbols</div>
@@ -63,16 +62,16 @@
                     </div>
                 </div>
                 <div class="auth-field">
-                    <label for="user_type" class="auth-label">Role</label>
+                    <label for="user_type" class="auth-label">Account Type</label>
                     <select class="form-select form-select-lg" id="user_type" name="user_type" required>
-                        <option value="">Select Role</option>
+                        <option value="" {% if not form_data.user_type %}selected{% endif %} disabled hidden>Select Account Type</option>
                         <option value="HumanResourceOfficer" {% if form_data.user_type == 'HumanResourceOfficer' %}selected{% endif %}>Human Resource Officer</option>
                         <option value="InterviewPanelMember" {% if form_data.user_type == 'InterviewPanelMember' %}selected{% endif %}>Interview Panel Member</option>
                         <option value="JobApplicant" {% if form_data.user_type == 'JobApplicant' %}selected{% endif %}>Job Applicant</option>
                     </select>
                     <div class="field-error" id="user_type-error"></div>
                 </div>
-                <button type="submit" class="auth-submit-btn">Create Account</button>
+                <button type="submit" class="auth-submit-btn">Sign Up</button>
             </form>
 
             <p class="auth-footer-text">
