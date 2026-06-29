@@ -564,6 +564,13 @@ def applicant_profile(request):
     user = Users.objects.get(pk=user_id)
 
     if request.method == 'POST':
+        has_apps = False
+        if applicant:
+            has_apps = Applications.objects.filter(applicant=applicant).exists()
+        if has_apps:
+            messages.error(request, 'Your profile can no longer be edited after submitting an application.')
+            return redirect('recruitmentapp:applicant_profile')
+
         full_name = request.POST.get('full_name', '').strip()
         date_of_birth = request.POST.get('date_of_birth')
         gender = request.POST.get('gender')
@@ -603,16 +610,13 @@ def applicant_profile(request):
     total_applications = 0
     total_interviews = 0
     latest_application = None
-    certifications = ''
+    can_edit = True
     if applicant:
         apps = Applications.objects.filter(applicant=applicant)
         total_applications = apps.count()
+        can_edit = total_applications == 0
         latest_application = apps.order_by('-application_id').first()
         total_interviews = Interviews.objects.filter(application__applicant=applicant).count()
-        if latest_application and latest_application.cover_letter and '[Certifications]' in latest_application.cover_letter:
-            parts = latest_application.cover_letter.split('[Certifications]\n', 1)
-            if len(parts) > 1:
-                certifications = parts[1].strip()
 
     completion = 0
     if applicant:
@@ -624,8 +628,6 @@ def applicant_profile(request):
     if qualifications:
         completion += 20
     if skills_list:
-        completion += 15
-    if certifications:
         completion += 15
 
     context = {
@@ -639,7 +641,7 @@ def applicant_profile(request):
         'total_interviews': total_interviews,
         'latest_application': latest_application,
         'completion': completion,
-        'certifications': certifications,
+        'can_edit': can_edit,
     }
     return render(request, 'applicant/profile.html', context)
 
@@ -877,13 +879,8 @@ def apply_job_view(request, job_id):
         # 2. Extract Application Details
         cover_letter = request.POST.get('cover_letter', '').strip()
         motivation = request.POST.get('motivation', '').strip()
-        years_experience = request.POST.get('years_experience', '').strip()
         expected_salary = request.POST.get('expected_salary', '').strip()
         available_start_date = request.POST.get('available_start_date', '').strip()
-        employment_type_preference = request.POST.get('employment_type_preference', '').strip()
-        declaration_accepted = request.POST.get('declaration_accepted')
-        certifications = request.POST.get('certifications', '').strip()
-
         # 3. Extract JSON Qualifications & Skills
         import json
         qualifications_data = []
@@ -920,19 +917,6 @@ def apply_job_view(request, job_id):
             errors.append('Cover letter is required.')
         if not motivation:
             errors.append('Please explain why you are interested in this position.')
-        if not declaration_accepted:
-            errors.append('You must accept the declaration to proceed.')
-
-        if years_experience:
-            try:
-                years_experience = int(years_experience)
-                if years_experience < 0:
-                    errors.append('Years of experience cannot be negative.')
-            except ValueError:
-                errors.append('Years of experience must be a number.')
-        else:
-            years_experience = None
-
         if expected_salary:
             try:
                 expected_salary = float(expected_salary)
@@ -1015,11 +999,6 @@ def apply_job_view(request, job_id):
                         proficiency_level=prof
                     )
 
-        # Append Certifications to Cover Letter if provided
-        final_cover_letter = cover_letter
-        if certifications:
-            final_cover_letter = f"{cover_letter}\n\n[Certifications]\n{certifications}"
-
         # Create Application
         max_app_id = Applications.objects.order_by('-application_id').first()
         next_app_id = (max_app_id.application_id + 1) if max_app_id else 1
@@ -1030,13 +1009,10 @@ def apply_job_view(request, job_id):
             job=job,
             application_date=date.today(),
             status='Submitted',
-            cover_letter=final_cover_letter,
+            cover_letter=cover_letter,
             motivation=motivation,
-            years_experience=years_experience,
             expected_salary=expected_salary,
             available_start_date=available_start_date or None,
-            employment_type_preference=employment_type_preference or None,
-            declaration_accepted=True,
         )
 
         try:

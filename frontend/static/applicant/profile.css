@@ -144,22 +144,6 @@
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Certifications Card */
-.certifications-display {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 1.25rem;
-    line-height: 1.8;
-}
-
-.certifications-display pre {
-    margin-bottom: 0;
-    font-family: inherit;
-    white-space: pre-wrap;
-    color: #334155;
-}
-
 /* Premium Card Hover Effect */
 .card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;

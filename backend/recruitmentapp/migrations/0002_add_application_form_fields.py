@@ -14,16 +14,10 @@ class Migration(migrations.Migration):
                     ALTER TABLE Applications ADD cover_letter NVARCHAR(MAX) NULL;
                 IF NOT EXISTS (SELECT * FROM syscolumns WHERE id=OBJECT_ID('Applications') AND name='motivation')
                     ALTER TABLE Applications ADD motivation NVARCHAR(MAX) NULL;
-                IF NOT EXISTS (SELECT * FROM syscolumns WHERE id=OBJECT_ID('Applications') AND name='years_experience')
-                    ALTER TABLE Applications ADD years_experience INT NULL;
                 IF NOT EXISTS (SELECT * FROM syscolumns WHERE id=OBJECT_ID('Applications') AND name='expected_salary')
                     ALTER TABLE Applications ADD expected_salary DECIMAL(10,2) NULL;
                 IF NOT EXISTS (SELECT * FROM syscolumns WHERE id=OBJECT_ID('Applications') AND name='available_start_date')
                     ALTER TABLE Applications ADD available_start_date DATE NULL;
-                IF NOT EXISTS (SELECT * FROM syscolumns WHERE id=OBJECT_ID('Applications') AND name='employment_type_preference')
-                    ALTER TABLE Applications ADD employment_type_preference NVARCHAR(20) NULL;
-                IF NOT EXISTS (SELECT * FROM syscolumns WHERE id=OBJECT_ID('Applications') AND name='declaration_accepted')
-                    ALTER TABLE Applications ADD declaration_accepted BIT NULL;
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),

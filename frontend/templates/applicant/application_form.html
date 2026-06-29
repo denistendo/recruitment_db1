@@ -62,12 +62,12 @@
                         <option value="">-- Select Gender --</option>
                         <option value="Male" {% if form_data.gender == 'Male' or applicant.gender == 'Male' %}selected{% endif %}>Male</option>
                         <option value="Female" {% if form_data.gender == 'Female' or applicant.gender == 'Female' %}selected{% endif %}>Female</option>
-                        <option value="Other" {% if form_data.gender == 'Other' or applicant.gender == 'Other' %}selected{% endif %}>Other</option>
+                        <option value="Other" {% if form_data.gender == 'Other' %}selected{% endif %}>Other</option>
                     </select>
                 </div>
                 <div class="col-12">
                     <label for="address" class="form-label fw-semibold">Physical Address <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="address" name="address" value="{{ form_data.address|default:applicant.address|default:"" }}" required placeholder="e.g. 123 Main St, City">
+                    <input type="text" class="form-control" id="address" name="address" value="{{ form_data.address|default:applicant.address|default:"" }}" required>
                 </div>
             </div>
         </div>
@@ -130,39 +130,21 @@
         </div>
     </div>
 
-    <!-- SECTION 4: Certifications -->
+    <!-- SECTION 4: Application Details -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 py-3">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-patch-check me-2 text-primary"></i>4. Certifications</h5>
-        </div>
-        <div class="card-body">
-            <p class="text-muted small mb-3">List any professional certifications you hold. These will be included with your application.</p>
-            <div class="mb-3">
-                <label for="certifications" class="form-label fw-semibold">Professional Certifications</label>
-                <textarea class="form-control" id="certifications" name="certifications" rows="4" placeholder="e.g. AWS Certified Solutions Architect&#10;Project Management Professional (PMP)&#10;Certified Scrum Master (CSM)&#10;— one per line">{{ form_data.certifications|default:"" }}</textarea>
-            </div>
-        </div>
-    </div>
-
-    <!-- SECTION 5: Application Details -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-0 py-3">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2 text-primary"></i>5. Application Details</h5>
+            <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2 text-primary"></i>4. Application Details</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
                 <label for="cover_letter" class="form-label fw-semibold">Cover Letter <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="cover_letter" name="cover_letter" rows="6" placeholder="Introduce yourself and explain why you are a great fit for this role...">{{ form_data.cover_letter|default:"" }}</textarea>
+                <textarea class="form-control" id="cover_letter" name="cover_letter" rows="6">{{ form_data.cover_letter|default:"" }}</textarea>
             </div>
             <div class="mb-3">
                 <label for="motivation" class="form-label fw-semibold">Why are you interested in this position? <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="motivation" name="motivation" rows="4" placeholder="Describe what excites you about this role and how it aligns with your career goals...">{{ form_data.motivation|default:"" }}</textarea>
+                <textarea class="form-control" id="motivation" name="motivation" rows="4">{{ form_data.motivation|default:"" }}</textarea>
             </div>
             <div class="row g-3">
-                <div class="col-md-4">
-                    <label for="years_experience" class="form-label fw-semibold">Years of Experience</label>
-                    <input type="number" class="form-control" id="years_experience" name="years_experience" min="0" step="1" value="{{ form_data.years_experience|default:"" }}" placeholder="e.g. 5">
-                </div>
                 <div class="col-md-4">
                     <label for="available_start_date" class="form-label fw-semibold">Earliest Available Start Date</label>
                     <input type="date" class="form-control" id="available_start_date" name="available_start_date" value="{{ form_data.available_start_date|default:"" }}">
@@ -171,31 +153,9 @@
                     <label for="expected_salary" class="form-label fw-semibold">Expected Salary <small class="text-muted">(Optional)</small></label>
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        <input type="number" class="form-control" id="expected_salary" name="expected_salary" min="0" step="0.01" value="{{ form_data.expected_salary|default:"" }}" placeholder="e.g. 75000">
+                        <input type="number" class="form-control" id="expected_salary" name="expected_salary" min="0" step="0.01" value="{{ form_data.expected_salary|default:"" }}">
                     </div>
                 </div>
-                <div class="col-12 mt-3">
-                    <label for="employment_type_preference" class="form-label fw-semibold">Employment Type Preference</label>
-                    <select class="form-select" id="employment_type_preference" name="employment_type_preference">
-                        <option value="">-- Select Preference --</option>
-                        <option value="Full Time" {% if form_data.employment_type_preference == 'Full Time' %}selected{% endif %}>Full Time</option>
-                        <option value="Part Time" {% if form_data.employment_type_preference == 'Part Time' %}selected{% endif %}>Part Time</option>
-                        <option value="Internship" {% if form_data.employment_type_preference == 'Internship' %}selected{% endif %}>Internship</option>
-                        <option value="Contract" {% if form_data.employment_type_preference == 'Contract' %}selected{% endif %}>Contract</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SECTION 6: Declaration -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="declaration_accepted" name="declaration_accepted" value="1" {% if form_data.declaration_accepted %}checked{% endif %}>
-                <label class="form-check-label fw-semibold" for="declaration_accepted">
-                    I certify that the information provided is true and accurate. <span class="text-danger">*</span>
-                </label>
             </div>
         </div>
     </div>
@@ -233,9 +193,9 @@ function addQualificationRow() {
     const tr = document.createElement('tr');
     tr.id = `qual-row-${index}`;
     tr.innerHTML = `
-        <td><input type="text" class="form-control form-control-sm" placeholder="University / Institution" onchange="updateQual(${index}, 'institution', this.value)" required></td>
-        <td><input type="text" class="form-control form-control-sm" placeholder="Degree / Award" onchange="updateQual(${index}, 'award', this.value)" required></td>
-        <td><input type="number" class="form-control form-control-sm" placeholder="2024" onchange="updateQual(${index}, 'year_completed', this.value)"></td>
+        <td><input type="text" class="form-control form-control-sm" onchange="updateQual(${index}, 'institution', this.value)" required></td>
+        <td><input type="text" class="form-control form-control-sm" onchange="updateQual(${index}, 'award', this.value)" required></td>
+        <td><input type="number" class="form-control form-control-sm" onchange="updateQual(${index}, 'year_completed', this.value)"></td>
         <td class="text-center">
             <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeQualRow(${index})">
                 <i class="bi bi-trash"></i>
@@ -278,7 +238,7 @@ function addSkillRow() {
     const tr = document.createElement('tr');
     tr.id = `skill-row-${index}`;
     tr.innerHTML = `
-        <td><input type="text" class="form-control form-control-sm" placeholder="e.g. Python, SQL" onchange="updateSkill(${index}, 'skill_name', this.value)" required></td>
+        <td><input type="text" class="form-control form-control-sm" onchange="updateSkill(${index}, 'skill_name', this.value)" required></td>
         <td>
             <select class="form-select form-select-sm" onchange="updateSkill(${index}, 'proficiency_level', this.value)">
                 <option value="Beginner">Beginner</option>
