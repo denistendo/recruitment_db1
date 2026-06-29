@@ -126,7 +126,7 @@
                         </td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm" role="group">
-                                <button class="btn btn-outline-primary" onclick="openEditApplicationModal({{ app.application_id }}, {{ app.applicant.applicant_id|default:'null' }}, {{ app.job.job_id|default:'null' }}, '{{ app.application_date|default:'' }}', '{{ app.status|default:'Pending'|escapejs }}')" title="Edit">
+                                <button class="btn btn-outline-primary" onclick="openEditApplicationModal({{ app.application_id }}, {{ app.applicant.applicant_id|default:'null' }}, {{ app.job.job_id|default:'null' }}, '{{ app.application_date|date:"Y-m-d"|default:'' }}', '{{ app.status|default:'Pending'|escapejs }}')" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button class="btn btn-outline-danger" onclick="deleteApplication({{ app.application_id }})" title="Delete">

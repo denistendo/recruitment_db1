@@ -59,7 +59,7 @@
                         <td>{{ job.closing_date|date:"d/m/Y"|default:"-" }}</td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm" role="group">
-                                <button class="btn btn-outline-primary" onclick="openEditJobModal({{ job.job_id }}, '{{ job.title|escapejs }}', '{{ job.description|escapejs }}', '{{ job.department.department_id }}', '{{ job.posted_date|default:"" }}', '{{ job.closing_date|default:"" }}')" title="Edit">
+                                <button class="btn btn-outline-primary" onclick="openEditJobModal({{ job.job_id }}, '{{ job.title|escapejs }}', '{{ job.description|escapejs }}', '{{ job.department.department_id }}', '{{ job.posted_date|date:"Y-m-d"|default:"" }}', '{{ job.closing_date|date:"Y-m-d"|default:"" }}')" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button class="btn btn-outline-danger" onclick="deleteJob({{ job.job_id }})" title="Delete">

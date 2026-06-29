@@ -101,7 +101,7 @@ body {
 
 .sidebar-link.active {
     background-color: #0f172a !important;
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
 .sidebar-link i {

@@ -1563,7 +1563,7 @@ def api_job_create(request):
             title=title,
             description=description,
             department=department,
-            posted_date=posted_date if posted_date else None,
+            posted_date=posted_date if posted_date else date.today(),
             closing_date=closing_date if closing_date else None
         )
 
