@@ -39,9 +39,9 @@
     </div>
 </div>
 
-<!-- ======== SECTION: Recent Jobs & Quick Actions ======== -->
+<!-- ======== SECTION: Recent Job Postings ======== -->
 <div class="row g-4">
-    <div class="col-md-6">
+    <div class="col-md-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-briefcase me-2"></i>Recent Job Postings</h5>
@@ -75,26 +75,6 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'recruitmentapp:jobs' %}" class="btn btn-outline-success text-start">
-                        <i class="bi bi-briefcase me-2"></i>Manage Job Postings
-                    </a>
-                    <a href="{% url 'recruitmentapp:hr_applications' %}" class="btn btn-outline-primary text-start">
-                        <i class="bi bi-clipboard-check me-2"></i>Manage Applications
-                    </a>
-                    <a href="{% url 'recruitmentapp:applicants' %}" class="btn btn-outline-info text-start">
-                        <i class="bi bi-person-badge me-2"></i>View Applicants
-                    </a>
                 </div>
             </div>
         </div>

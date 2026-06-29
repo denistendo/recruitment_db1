@@ -64,7 +64,7 @@ body {
 }
 
 .sidebar-brand-subtitle {
-    color: #94a3b8;
+    color: #64748b;
 }
 
 .sidebar-nav {
@@ -88,7 +88,7 @@ body {
     gap: 0.5rem;
     padding: 0.65rem 1rem;
     font-size: 0.9rem;
-    color: #475569;
+    color: #0f172a;
     text-decoration: none;
     border-radius: var(--border-radius-sm);
     transition: var(--transition-smooth);
@@ -134,7 +134,7 @@ body {
 
 .sidebar-user-role {
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #64748b;
 }
 
 /* Main Area */
