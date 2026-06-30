@@ -132,42 +132,6 @@
     </div>
 </div>
 
-<!-- Applications Summary -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0 py-3">
-        <h5 class="mb-0 fw-bold"><i class="bi bi-file-text me-2 text-primary"></i>Applications Summary</h5>
-    </div>
-    <div class="card-body p-0">
-        {% for app in applications %}
-        <div class="border-bottom p-4 {% if forloop.first %}border-top-0{% endif %}">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                    <h6 class="fw-bold mb-1">{{ app.job.title|default:"N/A" }}</h6>
-                    <small class="text-muted">{{ app.job.department.department_name|default:"N/A" }} &middot; {{ app.application_date|date:"d/m/Y"|default:"-" }}</small>
-                </div>
-                <span class="badge bg-{% if app.status == 'Accepted' %}success{% elif app.status == 'Rejected' %}danger{% elif app.status == 'Pending' or app.status == 'Submitted' %}warning text-dark{% elif app.status == 'Interviewed' %}info text-dark{% elif app.status == 'Not Interviewed' %}dark{% else %}secondary{% endif %} rounded-pill">{{ app.status|default:"Submitted" }}</span>
-            </div>
-            {% if app.expected_salary or app.available_start_date %}
-            <div class="d-flex gap-3 mb-2 small">
-                {% if app.expected_salary %}<span><strong>Expected Salary:</strong> ${{ app.expected_salary }}</span>{% endif %}
-                {% if app.available_start_date %}<span><strong>Available From:</strong> {{ app.available_start_date|date:"d/m/Y" }}</span>{% endif %}
-            </div>
-            {% endif %}
-            {% if app.cover_letter %}
-            <div class="mb-1">
-                <strong class="small">Cover Letter:</strong>
-                <p class="text-muted small mb-0">{{ app.cover_letter|truncatewords:50 }}</p>
-            </div>
-            {% endif %}
-            {% if app.motivation %}
-            <div>
-                <strong class="small">Motivation:</strong>
-                <p class="text-muted small mb-0">{{ app.motivation|truncatewords:30 }}</p>
-            </div>
-            {% endif %}
-        </div>
-        {% endfor %}
-    </div>
-</div>
+
 {% endif %}
 {% endblock %}

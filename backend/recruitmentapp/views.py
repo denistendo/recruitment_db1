@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib import messages
 from django.db.models import Q, Count, Prefetch
 from django.db import connection
