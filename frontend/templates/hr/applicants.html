@@ -84,8 +84,6 @@
                             <span class="badge bg-primary bg-opacity-10 text-primary">{{ a.gender }}</span>
                             {% elif a.gender == 'Female' %}
                             <span class="badge bg-danger bg-opacity-10 text-danger">{{ a.gender }}</span>
-                            {% elif a.gender %}
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ a.gender }}</span>
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
@@ -130,7 +128,7 @@
                     <div class="mb-3">
                         <label for="applicant-user" class="form-label fw-semibold">User Account</label>
                         <select id="applicant-user" class="form-select" required>
-                            <option value="">-- Select User --</option>
+                            <option value="">Select User</option>
                             {% for u in users %}
                             <option value="{{ u.user_id }}">{{ u.full_name }} ({{ u.email }})</option>
                             {% endfor %}
@@ -146,7 +144,6 @@
                             <option value="">Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
-                            <option value="Other">Other</option>
                         </select>
                     </div>
                     <div class="mb-3">

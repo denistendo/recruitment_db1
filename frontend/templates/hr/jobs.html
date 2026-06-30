@@ -103,7 +103,7 @@
                         <div class="col-md-4">
                             <label for="job-department" class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
                             <select id="job-department" class="form-select" required>
-                                <option value="">-- Select --</option>
+                                <option value="">Select</option>
                                 {% for dept in departments %}
                                 <option value="{{ dept.department_id }}">{{ dept.department_name }}</option>
                                 {% endfor %}

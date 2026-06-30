@@ -42,7 +42,7 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ form_data.full_name|default:user.full_name|default:"" }}" required>
+                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ form_data.full_name|default:"" }}" required>
                 </div>
                 <div class="col-md-6">
                     <label for="email" class="form-label fw-semibold">Email</label>
@@ -50,24 +50,23 @@
                 </div>
                 <div class="col-md-4">
                     <label for="phone_number" class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ form_data.phone_number|default:applicant.phone_number|default:"" }}" required>
+                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ form_data.phone_number|default:"" }}" required>
                 </div>
                 <div class="col-md-4">
                     <label for="date_of_birth" class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ form_data.date_of_birth|default:applicant.date_of_birth|date:'Y-m-d'|default:"" }}" required>
+                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ form_data.date_of_birth|default:"" }}" required>
                 </div>
                 <div class="col-md-4">
                     <label for="gender" class="form-label fw-semibold">Gender <span class="text-danger">*</span></label>
                     <select class="form-select" id="gender" name="gender" required>
-                        <option value="">-- Select Gender --</option>
-                        <option value="Male" {% if form_data.gender == 'Male' or applicant.gender == 'Male' %}selected{% endif %}>Male</option>
-                        <option value="Female" {% if form_data.gender == 'Female' or applicant.gender == 'Female' %}selected{% endif %}>Female</option>
-                        <option value="Other" {% if form_data.gender == 'Other' %}selected{% endif %}>Other</option>
+                        <option value="">Select Gender</option>
+                        <option value="Male" {% if form_data.gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if form_data.gender == 'Female' %}selected{% endif %}>Female</option>
                     </select>
                 </div>
                 <div class="col-12">
                     <label for="address" class="form-label fw-semibold">Physical Address <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="address" name="address" value="{{ form_data.address|default:applicant.address|default:"" }}" required>
+                    <input type="text" class="form-control" id="address" name="address" value="{{ form_data.address|default:"" }}" required>
                 </div>
             </div>
         </div>

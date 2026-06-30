@@ -78,6 +78,7 @@
                         <th>Department</th>
                         <th>Applied Date</th>
                         <th>Status</th>
+                        <th class="text-center no-print">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -100,6 +101,11 @@
                             {% else %}
                             <span class="badge bg-secondary px-3 py-1.5 rounded-pill">{{ app.status|default:"Submitted" }}</span>
                             {% endif %}
+                        </td>
+                        <td class="text-center no-print">
+                            <a href="{% url 'recruitmentapp:print_application' app.application_id %}" class="btn btn-sm btn-outline-dark" title="Print Application">
+                                <i class="bi bi-printer"></i>
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}

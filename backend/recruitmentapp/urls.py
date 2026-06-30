@@ -35,6 +35,7 @@ urlpatterns = [
     path('applications/', views.applications_page, name='applications'),
     path('profile/', views.applicant_profile, name='applicant_profile'),
     path('profile/print/', views.print_profile, name='print_profile'),
+    path('application/<int:application_id>/print/', views.print_application, name='print_application'),
 
     # HR Applications Management
     path('hr-applications/', views.hr_applications_view, name='hr_applications'),

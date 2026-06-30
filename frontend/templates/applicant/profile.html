@@ -8,173 +8,82 @@
 <link rel="stylesheet" href="{% static 'applicant/profile.css' %}">
 {% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'applicant/profile.js' %}" defer></script>
-{% endblock %}
-
 {% block content %}
 <div class="mb-4">
     <h1 class="fw-bold" style="font-size: 2rem; color: #000;">My Profile</h1>
-    <p class="text-muted" style="font-size: 0.9rem;">Manage your personal information and credentials</p>
+    <p class="text-muted" style="font-size: 0.9rem;">Your profile is built from submitted applications</p>
 </div>
 
-<!-- Profile Display Mode -->
-<div id="profile-display">
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="profile-banner rounded-top"></div>
-        <div class="card-body profile-hero-body">
-            <div class="d-flex align-items-start gap-4">
-                <div class="profile-avatar-container flex-shrink-0">
-                    <div class="profile-avatar-circle shadow">
-                        <span class="profile-avatar-text">{{ user.full_name|first|upper|default:"?" }}</span>
-                    </div>
-                </div>
-                <div class="flex-grow-1 pt-2">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h3 class="fw-bold mb-1 text-slate-900">{{ user.full_name|default:"—" }}</h3>
-                            <p class="text-muted mb-0">{{ user.email }}</p>
-                        </div>
-                        {% if can_edit %}
-                        <button id="edit-profile-btn" class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="toggleEditProfile()">
-                            <i class="bi bi-pencil me-1"></i>Edit Profile
-                        </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
+{% if not applications %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-person" style="font-size: 3rem; color: #94a3b8;"></i>
+        <p class="mt-3 text-muted fw-medium">No profile data yet.</p>
+        <p class="text-muted small">Apply to a job to build your profile. Your submitted application data will appear here.</p>
+        <a href="{% url 'recruitmentapp:jobs' %}" class="btn btn-dark mt-2">
+            <i class="bi bi-briefcase me-1"></i>Browse Jobs
+        </a>
     </div>
+</div>
+{% else %}
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-0 py-3">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2 text-primary"></i>Personal Information</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted small mb-1">Full Name</label>
-                    <p class="fw-medium text-slate-900 mb-0">{{ user.full_name|default:"—" }}</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted small mb-1">Email Address</label>
-                    <p class="fw-medium text-slate-900 mb-0">{{ user.email }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted small mb-1">Phone Number</label>
-                    <p class="fw-medium text-slate-900 mb-0">{% if applicant %}{{ applicant.phone_number|default:"—" }}{% else %}<span class="text-muted">—</span>{% endif %}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted small mb-1">Date of Birth</label>
-                    <p class="fw-medium text-slate-900 mb-0">{% if applicant %}{{ applicant.date_of_birth|date:"d/m/Y"|default:"—" }}{% else %}<span class="text-muted">—</span>{% endif %}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted small mb-1">Gender</label>
-                    <p class="fw-medium text-slate-900 mb-0">{% if applicant %}{{ applicant.gender|default:"—" }}{% else %}<span class="text-muted">—</span>{% endif %}</p>
-                </div>
-                <div class="col-12">
-                    <label class="form-label fw-semibold text-muted small mb-1">Address</label>
-                    <p class="fw-medium text-slate-900 mb-0">{% if applicant %}{{ applicant.address|default:"—" }}{% else %}<span class="text-muted">—</span>{% endif %}</p>
-                </div>
+<!-- Personal Information -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 py-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2 text-primary"></i>Personal Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-muted small mb-1">Full Name</label>
+                <p class="fw-medium text-slate-900 mb-0">{{ user.full_name|default:"—" }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-muted small mb-1">Email Address</label>
+                <p class="fw-medium text-slate-900 mb-0">{{ user.email }}</p>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold text-muted small mb-1">Phone Number</label>
+                <p class="fw-medium text-slate-900 mb-0">{{ applicant.phone_number|default:"—" }}</p>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold text-muted small mb-1">Date of Birth</label>
+                <p class="fw-medium text-slate-900 mb-0">{{ applicant.date_of_birth|date:"d/m/Y"|default:"—" }}</p>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold text-muted small mb-1">Gender</label>
+                <p class="fw-medium text-slate-900 mb-0">{{ applicant.gender|default:"—" }}</p>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold text-muted small mb-1">Address</label>
+                <p class="fw-medium text-slate-900 mb-0">{{ applicant.address|default:"—" }}</p>
             </div>
         </div>
     </div>
 </div>
-
-{% if can_edit %}
-<!-- Profile Edit Mode (hidden by default) -->
-<div id="profile-edit" style="display: none;">
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-0 py-3">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Personal Information</h5>
-        </div>
-        <div class="card-body">
-            <form method="POST" action="{% url 'recruitmentapp:applicant_profile' %}">
-                {% csrf_token %}
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="edit-full-name" class="form-label fw-semibold">Full Name</label>
-                        <input type="text" class="form-control" id="edit-full-name" name="full_name" value="{{ user.full_name|default:"" }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Email</label>
-                        <input type="email" class="form-control bg-light" value="{{ user.email }}" readonly>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="edit-phone" class="form-label fw-semibold">Phone Number</label>
-                        <input type="text" class="form-control" id="edit-phone" name="phone_number" value="{% if applicant %}{{ applicant.phone_number }}{% endif %}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="edit-dob" class="form-label fw-semibold">Date of Birth</label>
-                        <input type="text" class="form-control" id="edit-dob" name="date_of_birth" value="{% if applicant %}{{ applicant.date_of_birth|date:"d/m/Y" }}{% endif %}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="edit-gender" class="form-label fw-semibold">Gender</label>
-                        <select class="form-select" id="edit-gender" name="gender">
-                            <option value="">-- Select --</option>
-                            <option value="Male" {% if applicant and applicant.gender == 'Male' %}selected{% endif %}>Male</option>
-                            <option value="Female" {% if applicant and applicant.gender == 'Female' %}selected{% endif %}>Female</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label for="edit-address" class="form-label fw-semibold">Address</label>
-                        <input type="text" class="form-control" id="edit-address" name="address" value="{% if applicant %}{{ applicant.address }}{% endif %}">
-                    </div>
-                </div>
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-dark px-4">
-                        <i class="bi bi-check-lg me-1"></i>Save Changes
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary px-4" onclick="cancelEditProfile()">
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endif %}
 
 <!-- Qualifications -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-0 py-3">
         <h5 class="mb-0 fw-bold"><i class="bi bi-mortarboard me-2 text-primary"></i>Qualifications</h5>
-        {% if can_edit %}
-        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openAddQualificationModal()">
-            <i class="bi bi-plus-lg me-1"></i>Add Qualification
-        </button>
-        {% endif %}
     </div>
     <div class="card-body p-0">
         {% if qualifications %}
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle" id="qualifications-table">
+            <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>Institution</th>
                         <th>Award</th>
                         <th>Year</th>
-                        {% if can_edit %}
-                        <th class="text-center" style="width: 100px;">Actions</th>
-                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for q in qualifications %}
-                    <tr id="qual-row-{{ q.qualification_id }}">
+                    <tr>
                         <td class="fw-medium">{{ q.institution }}</td>
                         <td>{{ q.award }}</td>
                         <td>{{ q.year_completed|default:"—" }}</td>
-                        {% if can_edit %}
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEditQualificationModal('{{ q.qualification_id }}', '{{ q.institution|escapejs }}', '{{ q.award|escapejs }}', '{{ q.year_completed|default:'' }}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteQualification('{{ q.qualification_id }}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -183,7 +92,7 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-journal-text" style="font-size: 2.5rem; color: #94a3b8;"></i>
-            <p class="mt-2 text-muted">No qualifications added yet.</p>
+            <p class="mt-2 text-muted">No qualifications — add them when you apply for a job.</p>
         </div>
         {% endif %}
     </div>
@@ -191,42 +100,24 @@
 
 <!-- Skills -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-0 py-3">
         <h5 class="mb-0 fw-bold"><i class="bi bi-person-workspace me-2 text-primary"></i>Skills</h5>
-        {% if can_edit %}
-        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openAddSkillModal()">
-            <i class="bi bi-plus-lg me-1"></i>Add Skill
-        </button>
-        {% endif %}
     </div>
     <div class="card-body p-0">
         {% if skills_list %}
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle" id="skills-table">
+            <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>Skill</th>
                         <th>Proficiency</th>
-                        {% if can_edit %}
-                        <th class="text-center" style="width: 100px;">Actions</th>
-                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in skills_list %}
-                    <tr id="skill-row-{{ s.applicant_skill_id }}">
+                    <tr>
                         <td class="fw-medium">{{ s.skill.skill_name }}</td>
                         <td><span class="badge bg-dark-navy rounded-pill px-3">{{ s.proficiency_level }}</span></td>
-                        {% if can_edit %}
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEditSkillModal('{{ s.applicant_skill_id }}', '{{ s.skill.skill_id }}', '{{ s.skill.skill_name|escapejs }}', '{{ s.proficiency_level }}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSkill('{{ s.applicant_skill_id }}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -235,89 +126,48 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-lightbulb" style="font-size: 2.5rem; color: #94a3b8;"></i>
-            <p class="mt-2 text-muted">No skills added yet.</p>
+            <p class="mt-2 text-muted">No skills — add them when you apply for a job.</p>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Qualification Modal -->
-<div class="modal-overlay" id="qualification-modal">
-    <div class="modal-card">
-        <div class="modal-header-custom">
-            <h5 class="fw-bold mb-0" id="qual-modal-title">Add Qualification</h5>
-            <button class="modal-close" onclick="closeModal('qualification-modal')">&times;</button>
+<!-- Applications Summary -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 py-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-file-text me-2 text-primary"></i>Applications Summary</h5>
+    </div>
+    <div class="card-body p-0">
+        {% for app in applications %}
+        <div class="border-bottom p-4 {% if forloop.first %}border-top-0{% endif %}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h6 class="fw-bold mb-1">{{ app.job.title|default:"N/A" }}</h6>
+                    <small class="text-muted">{{ app.job.department.department_name|default:"N/A" }} &middot; {{ app.application_date|date:"d/m/Y"|default:"-" }}</small>
+                </div>
+                <span class="badge bg-{% if app.status == 'Accepted' %}success{% elif app.status == 'Rejected' %}danger{% elif app.status == 'Pending' or app.status == 'Submitted' %}warning text-dark{% elif app.status == 'Interviewed' %}info text-dark{% elif app.status == 'Not Interviewed' %}dark{% else %}secondary{% endif %} rounded-pill">{{ app.status|default:"Submitted" }}</span>
+            </div>
+            {% if app.expected_salary or app.available_start_date %}
+            <div class="d-flex gap-3 mb-2 small">
+                {% if app.expected_salary %}<span><strong>Expected Salary:</strong> ${{ app.expected_salary }}</span>{% endif %}
+                {% if app.available_start_date %}<span><strong>Available From:</strong> {{ app.available_start_date|date:"d/m/Y" }}</span>{% endif %}
+            </div>
+            {% endif %}
+            {% if app.cover_letter %}
+            <div class="mb-1">
+                <strong class="small">Cover Letter:</strong>
+                <p class="text-muted small mb-0">{{ app.cover_letter|truncatewords:50 }}</p>
+            </div>
+            {% endif %}
+            {% if app.motivation %}
+            <div>
+                <strong class="small">Motivation:</strong>
+                <p class="text-muted small mb-0">{{ app.motivation|truncatewords:30 }}</p>
+            </div>
+            {% endif %}
         </div>
-        <form id="qualification-form" onsubmit="submitQualificationForm(event)">
-            <div class="modal-body-custom">
-                <div class="mb-3">
-                    <label for="qual-institution" class="form-label fw-semibold">Institution</label>
-                    <input type="text" class="form-control" id="qual-institution" required>
-                </div>
-                <div class="mb-3">
-                    <label for="qual-award" class="form-label fw-semibold">Award / Degree</label>
-                    <input type="text" class="form-control" id="qual-award" required>
-                </div>
-                <div class="mb-3">
-                    <label for="qual-year" class="form-label fw-semibold">Year Completed</label>
-                    <input type="number" class="form-control" id="qual-year">
-                </div>
-            </div>
-            <div class="modal-footer-custom">
-                <button type="button" class="btn btn-outline-secondary" onclick="closeModal('qualification-modal')">Cancel</button>
-                <button type="submit" class="btn btn-dark" id="qual-submit-btn">Add Qualification</button>
-            </div>
-        </form>
+        {% endfor %}
     </div>
 </div>
-
-<!-- Skill Modal -->
-<div class="modal-overlay" id="skill-modal">
-    <div class="modal-card">
-        <div class="modal-header-custom">
-            <h5 class="fw-bold mb-0" id="skill-modal-title">Add Skill</h5>
-            <button class="modal-close" onclick="closeModal('skill-modal')">&times;</button>
-        </div>
-        <form id="skill-form" onsubmit="submitSkillForm(event)">
-            <div class="modal-body-custom">
-                <div class="mb-3">
-                    <label for="skill-input" class="form-label fw-semibold">Skill Name</label>
-                    <input type="text" class="form-control" id="skill-input" list="skill-datalist">
-                    <datalist id="skill-datalist">
-                        {% for skill in all_skills %}
-                        <option value="{{ skill.skill_name }}">
-                        {% endfor %}
-                    </datalist>
-                </div>
-                <div class="mb-3">
-                    <label for="skill-proficiency" class="form-label fw-semibold">Proficiency Level</label>
-                    <select class="form-select" id="skill-proficiency">
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate" selected>Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                        <option value="Expert">Expert</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer-custom">
-                <button type="button" class="btn btn-outline-secondary" onclick="closeModal('skill-modal')">Cancel</button>
-                <button type="submit" class="btn btn-dark" id="skill-submit-btn">Add Skill</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-function openModal(id) {
-    document.getElementById(id).classList.add('active');
-}
-function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
-}
-document.addEventListener('click', function(e) {
-    document.querySelectorAll('.modal-overlay').forEach(function(m) {
-        if (e.target === m) m.classList.remove('active');
-    });
-});
-</script>
+{% endif %}
 {% endblock %}

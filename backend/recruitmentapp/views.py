@@ -563,72 +563,12 @@ def applicant_profile(request):
     applicant = Applicants.objects.filter(user_id=user_id).first()
     user = Users.objects.get(pk=user_id)
 
-    if request.method == 'POST':
-        has_apps = False
-        if applicant:
-            has_apps = Applications.objects.filter(applicant=applicant).exists()
-        if has_apps:
-            messages.error(request, 'Your profile can no longer be edited after submitting an application.')
-            return redirect('recruitmentapp:applicant_profile')
-
-        full_name = request.POST.get('full_name', '').strip()
-        date_of_birth = request.POST.get('date_of_birth')
-        gender = request.POST.get('gender')
-        phone_number = request.POST.get('phone_number')
-        address = request.POST.get('address')
-
-        if full_name:
-            user.full_name = full_name
-            user.save()
-
-        if applicant:
-            applicant.date_of_birth = date_of_birth if date_of_birth else None
-            applicant.gender = gender or None
-            applicant.phone_number = phone_number or None
-            applicant.address = address or None
-            applicant.save()
-            messages.success(request, 'Profile updated successfully!')
-        else:
-            max_id = Applicants.objects.order_by('-applicant_id').first()
-            next_id = (max_id.applicant_id + 1) if max_id else 1
-            applicant = Applicants.objects.create(
-                applicant_id=next_id,
-                user_id=user_id,
-                date_of_birth=date_of_birth if date_of_birth else None,
-                gender=gender or None,
-                phone_number=phone_number or None,
-                address=address or None
-            )
-            messages.success(request, 'Profile created successfully!')
-
-        return redirect('recruitmentapp:applicant_profile')
-
     qualifications = Qualifications.objects.filter(applicant=applicant).order_by('-year_completed') if applicant else []
     skills_list = ApplicantSkills.objects.filter(applicant=applicant).select_related('skill') if applicant else []
-    all_skills = Skills.objects.all().order_by('skill_name')
 
-    total_applications = 0
-    total_interviews = 0
-    latest_application = None
-    can_edit = True
+    applications_list = []
     if applicant:
-        apps = Applications.objects.filter(applicant=applicant)
-        total_applications = apps.count()
-        can_edit = total_applications == 0
-        latest_application = apps.order_by('-application_id').first()
-        total_interviews = Interviews.objects.filter(application__applicant=applicant).count()
-
-    completion = 0
-    if applicant:
-        completion += 25
-        if applicant.date_of_birth:
-            completion += 15
-        if applicant.phone_number:
-            completion += 10
-    if qualifications:
-        completion += 20
-    if skills_list:
-        completion += 15
+        applications_list = Applications.objects.filter(applicant=applicant).select_related('job__department').order_by('-application_id').all()
 
     context = {
         'active_tab': 'profile',
@@ -636,12 +576,7 @@ def applicant_profile(request):
         'user': user,
         'qualifications': qualifications,
         'skills_list': skills_list,
-        'all_skills': all_skills,
-        'total_applications': total_applications,
-        'total_interviews': total_interviews,
-        'latest_application': latest_application,
-        'completion': completion,
-        'can_edit': can_edit,
+        'applications': applications_list,
     }
     return render(request, 'applicant/profile.html', context)
 
@@ -2063,6 +1998,30 @@ def print_profile(request):
         'applications': applications,
     }
     return render(request, 'applicant/print_profile.html', context)
+
+
+@role_required(['JobApplicant'])
+def print_application(request, application_id):
+    user_id = request.session.get('user_id')
+    user = Users.objects.get(pk=user_id)
+    applicant = Applicants.objects.filter(user_id=user_id).first()
+    if not applicant:
+        messages.error(request, 'Applicant profile not found.')
+        return redirect('recruitmentapp:applicant_dashboard')
+    try:
+        application = Applications.objects.select_related('job__department', 'applicant__user').get(
+            pk=application_id, applicant=applicant
+        )
+    except Applications.DoesNotExist:
+        messages.error(request, 'Application not found.')
+        return redirect('recruitmentapp:applicant_dashboard')
+
+    context = {
+        'user': user,
+        'applicant': applicant,
+        'application': application,
+    }
+    return render(request, 'applicant/print_application.html', context)
 
 
 # ========== DEPARTMENT MANAGEMENT (HR) ==========

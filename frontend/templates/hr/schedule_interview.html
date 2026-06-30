@@ -73,7 +73,7 @@
                     <div class="mb-4">
                         <label for="interviewer" class="form-label fw-semibold">Assign Interviewer</label>
                         <select id="interviewer" name="interviewer" class="form-select" {% if interview and interview.score is not None %}disabled{% endif %}>
-                            <option value="">-- Select Interviewer --</option>
+                            <option value="">Select Interviewer</option>
                             {% for pm in panel_members %}
                             <option value="{{ pm.panel_id }}" {% if interview.remarks and pm.full_name in interview.remarks %}selected{% endif %}>
                                 {{ pm.full_name }} — {{ pm.role|default:"Panel Member" }}

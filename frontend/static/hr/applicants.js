@@ -118,7 +118,7 @@ function genderBadge(gender) {
     var g = gender.toLowerCase();
     if (g === 'male') return '<span class="badge" style="background:#3b82f6;">Male</span>';
     if (g === 'female') return '<span class="badge" style="background:#ec4899;">Female</span>';
-    return '<span class="badge" style="background:#8b5cf6;">' + gender + '</span>';
+    return '';
 }
 
 function updateApplicantCount() {
