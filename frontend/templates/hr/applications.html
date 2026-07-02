@@ -300,8 +300,8 @@ endblock %} {% block extra_css %}
 </div>
 
 <!-- ======== SECTION: Scores Modals ======== -->
-{% for app in applications %}
-{% if app.status == 'Interviewed' and app.interview_obj %}
+{% for app in applications %} {% if app.status == 'Interviewed' and
+app.interview_obj %}
 <div class="modal fade" id="scoresModal{{ app.application_id }}" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
