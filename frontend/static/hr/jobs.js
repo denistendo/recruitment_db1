@@ -70,8 +70,8 @@ function deleteJob(jobId) {
     .then(function (result) {
         if (result.status === 'success') {
             showToast('Job deleted.', 'success');
-            var row = document.getElementById('job-row-' + jobId);
-            if (row) row.remove();
+            var card = document.getElementById('job-card-' + jobId);
+            if (card) card.remove();
         } else {
             showToast(result.message || 'Error deleting job.', 'error');
         }
@@ -84,11 +84,16 @@ function deleteJob(jobId) {
 function filterJobs() {
     var input = document.getElementById('search-jobs');
     if (!input) return;
-    var query = input.value.toLowerCase();
-    var rows = document.querySelectorAll('#jobs-table tbody tr');
-    rows.forEach(function (row) {
-        if (row.id === 'jobs-empty-row') return;
-        var text = row.textContent.toLowerCase();
-        row.style.display = text.indexOf(query) > -1 ? '' : 'none';
-    });
+    var filter = input.value.toLowerCase();
+    var cards = document.getElementsByClassName('job-card');
+
+    for (var i = 0; i < cards.length; i++) {
+        var title = cards[i].getAttribute('data-title');
+        var dept = cards[i].getAttribute('data-dept');
+        if (title.indexOf(filter) > -1 || dept.indexOf(filter) > -1) {
+            cards[i].style.display = '';
+        } else {
+            cards[i].style.display = 'none';
+        }
+    }
 }

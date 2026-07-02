@@ -30,55 +30,46 @@
     </div>
 </div>
 
-<!-- ======== SECTION: Jobs Table ======== -->
+<!-- ======== SECTION: Jobs Cards ======== -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold"><i class="bi bi-briefcase me-2"></i>Job Postings</h5>
         <span class="badge bg-primary rounded-pill">{{ jobs|length }} Total</span>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle" id="jobs-table">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Job Title</th>
-                        <th>Department</th>
-                        <th>Posted Date</th>
-                        <th>Closing Date</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="jobs-table-body">
-                    {% for job in jobs %}
-                    <tr id="job-row-{{ job.job_id }}">
-                        <td class="fw-semibold">{{ job.job_id }}</td>
-                        <td class="job-title-cell"><strong>{{ job.title }}</strong></td>
-                        <td>{{ job.department.department_name|default:"N/A" }}</td>
-                        <td>{{ job.posted_date|date:"d/m/Y"|default:"-" }}</td>
-                        <td>{{ job.closing_date|date:"d/m/Y"|default:"-" }}</td>
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button class="btn btn-outline-primary" onclick="openEditJobModal({{ job.job_id }}, '{{ job.title|escapejs }}', '{{ job.description|escapejs }}', '{{ job.department.department_id }}', '{{ job.posted_date|date:"Y-m-d"|default:"" }}', '{{ job.closing_date|date:"Y-m-d"|default:"" }}')" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-outline-danger" onclick="deleteJob({{ job.job_id }})" title="Delete">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr id="jobs-empty-row">
-                        <td colspan="6" class="text-center text-muted py-5">
-                            <i class="bi bi-inbox empty-state-icon"></i>
-                            <p class="mt-2 mb-0 fw-medium">No job postings found</p>
-                            <small>Create a new job posting to get started.</small>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="card-body">
+        <div id="jobs-container">
+            {% for job in jobs %}
+            <div class="card border-0 shadow-sm mb-3 job-card" id="job-card-{{ job.job_id }}" data-title="{{ job.title|lower }}" data-dept="{{ job.department.department_name|lower|default:'' }}">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-dark-navy fw-semibold" style="font-size: 0.75rem; padding: 0.3rem 0.75rem; letter-spacing: 0.02em;">
+                            {{ job.department.department_name|default:"General" }}
+                        </span>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-primary" onclick="openEditJobModal({{ job.job_id }}, '{{ job.title|escapejs }}', '{{ job.description|escapejs }}', '{{ job.department.department_id }}', '{{ job.posted_date|date:"Y-m-d"|default:"" }}', '{{ job.closing_date|date:"Y-m-d"|default:"" }}')" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteJob({{ job.job_id }})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold mb-1" style="font-size: 1.25rem; color: #000;">{{ job.title }}</h4>
+                    <div class="text-muted" style="font-size: 0.85rem;">
+                        <i class="bi bi-calendar me-1"></i>Posted: {{ job.posted_date|date:"d/m/Y"|default:"-" }} &middot; Closes: {{ job.closing_date|date:"d/m/Y"|default:"Open" }}
+                    </div>
+                    <p class="text-muted mt-2 mb-0" style="font-size: 0.9rem; line-height: 1.5;">
+                        {{ job.description|default:"No description available."|truncatechars:200 }}
+                    </p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #94a3b8;"></i>
+                <p class="mt-3 text-muted fw-medium">No job postings found</p>
+                <small class="text-muted">Create a new job posting to get started.</small>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
