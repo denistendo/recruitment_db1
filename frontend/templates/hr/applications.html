@@ -1,349 +1,525 @@
-{% extends 'shared/base.html' %}
-{% load static %}
-
-{% block title %}Applications - RecruitDB{% endblock %}
-{% block page_header %}Applications Management{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'hr/applications.css' %}">
-{% endblock %}
-
-{% block content %}
+{% extends 'shared/base.html' %} {% load static %} {% block title %}Applications
+- RecruitDB{% endblock %} {% block page_header %}Applications Management{%
+endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'hr/applications.css' %}" />
+{% endblock %} {% block content %}
 <!-- ======== SECTION: Search Controls ======== -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-8">
-                <div class="input-group">
-                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                    <input type="text" id="search-applications" class="form-control" placeholder="Search by applicant name or job title..." value="{{ current_search }}" oninput="filterApplications()">
-                    {% if current_search or current_status %}
-                    <a href="{% url 'recruitmentapp:hr_applications' %}" class="btn btn-outline-secondary" title="Clear filters">
-                        <i class="bi bi-x-lg"></i>
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="col-md-4 text-md-end d-flex gap-2 justify-content-md-end">
-                <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">{{ applications|length }} Total</span>
-            </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-8">
+        <div class="input-group">
+          <span class="input-group-text bg-white"
+            ><i class="bi bi-search"></i
+          ></span>
+          <input
+            type="text"
+            id="search-applications"
+            class="form-control"
+            placeholder="Search by applicant name or job title..."
+            value="{{ current_search }}"
+            oninput="filterApplications()"
+          />
+          {% if current_search or current_status %}
+          <a
+            href="{% url 'recruitmentapp:hr_applications' %}"
+            class="btn btn-outline-secondary"
+            title="Clear filters"
+          >
+            <i class="bi bi-x-lg"></i>
+          </a>
+          {% endif %}
         </div>
+      </div>
+      <div class="col-md-4 text-md-end d-flex gap-2 justify-content-md-end">
+        <span class="badge bg-primary rounded-pill fs-6 px-3 py-2"
+          >{{ applications|length }} Total</span
+        >
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- ======== SECTION: Status Filter Cards ======== -->
 <div class="row g-3 mb-4" id="status-summary">
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card all-card {% if not current_status %}active{% endif %}" data-status="" onclick="filterByStatus(this, '')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1">All</div>
-                <h4 class="status-count mb-0" id="count-all">{{ applications|length }}</h4>
-            </div>
-        </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card all-card {% if not current_status %}active{% endif %}"
+      data-status=""
+      onclick="filterByStatus(this, '')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">All</div>
+        <h4 class="status-count mb-0" id="count-all">
+          {{ applications|length }}
+        </h4>
+      </div>
     </div>
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card {% if current_status == 'Submitted' %}active{% endif %}" data-status="Submitted" onclick="filterByStatus(this, 'Submitted')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1"><span class="badge bg-secondary status-pill">Submitted</span></div>
-                <h4 class="status-count mb-0" id="count-submitted">0</h4>
-            </div>
+  </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card {% if current_status == 'Submitted' %}active{% endif %}"
+      data-status="Submitted"
+      onclick="filterByStatus(this, 'Submitted')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">
+          <span class="badge bg-secondary status-pill">Submitted</span>
         </div>
+        <h4 class="status-count mb-0" id="count-submitted">0</h4>
+      </div>
     </div>
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card {% if current_status == 'Pending' %}active{% endif %}" data-status="Pending" onclick="filterByStatus(this, 'Pending')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1"><span class="badge bg-warning text-dark status-pill">Pending</span></div>
-                <h4 class="status-count mb-0" id="count-pending">0</h4>
-            </div>
+  </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card {% if current_status == 'Pending' %}active{% endif %}"
+      data-status="Pending"
+      onclick="filterByStatus(this, 'Pending')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">
+          <span class="badge bg-warning text-dark status-pill">Pending</span>
         </div>
+        <h4 class="status-count mb-0" id="count-pending">0</h4>
+      </div>
     </div>
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card {% if current_status == 'Interview Scheduled' %}active{% endif %}" data-status="Interview Scheduled" onclick="filterByStatus(this, 'Interview Scheduled')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1"><span class="badge bg-primary status-pill">Interview Scheduled</span></div>
-                <h4 class="status-count mb-0" id="count-interview-scheduled">0</h4>
-            </div>
+  </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card {% if current_status == 'Interview Scheduled' %}active{% endif %}"
+      data-status="Interview Scheduled"
+      onclick="filterByStatus(this, 'Interview Scheduled')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">
+          <span class="badge bg-primary status-pill">Interview Scheduled</span>
         </div>
+        <h4 class="status-count mb-0" id="count-interview-scheduled">0</h4>
+      </div>
     </div>
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card {% if current_status == 'Interviewed' %}active{% endif %}" data-status="Interviewed" onclick="filterByStatus(this, 'Interviewed')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1"><span class="badge bg-info text-dark status-pill">Interviewed</span></div>
-                <h4 class="status-count mb-0" id="count-interviewed">0</h4>
-            </div>
+  </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card {% if current_status == 'Interviewed' %}active{% endif %}"
+      data-status="Interviewed"
+      onclick="filterByStatus(this, 'Interviewed')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">
+          <span class="badge bg-info text-dark status-pill">Interviewed</span>
         </div>
+        <h4 class="status-count mb-0" id="count-interviewed">0</h4>
+      </div>
     </div>
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card {% if current_status == 'Not Interviewed' %}active{% endif %}" data-status="Not Interviewed" onclick="filterByStatus(this, 'Not Interviewed')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1"><span class="badge bg-dark status-pill">Not Interviewed</span></div>
-                <h4 class="status-count mb-0" id="count-not-interviewed">0</h4>
-            </div>
+  </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card {% if current_status == 'Not Interviewed' %}active{% endif %}"
+      data-status="Not Interviewed"
+      onclick="filterByStatus(this, 'Not Interviewed')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">
+          <span class="badge bg-dark status-pill">Not Interviewed</span>
         </div>
+        <h4 class="status-count mb-0" id="count-not-interviewed">0</h4>
+      </div>
     </div>
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card {% if current_status == 'Accepted' %}active{% endif %}" data-status="Accepted" onclick="filterByStatus(this, 'Accepted')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1"><span class="badge bg-success status-pill">Accepted</span></div>
-                <h4 class="status-count mb-0" id="count-accepted">0</h4>
-            </div>
+  </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card {% if current_status == 'Accepted' %}active{% endif %}"
+      data-status="Accepted"
+      onclick="filterByStatus(this, 'Accepted')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">
+          <span class="badge bg-success status-pill">Accepted</span>
         </div>
+        <h4 class="status-count mb-0" id="count-accepted">0</h4>
+      </div>
     </div>
-    <div class="col" style="min-width: 140px;">
-        <div class="card border-0 shadow-sm status-card {% if current_status == 'Rejected' %}active{% endif %}" data-status="Rejected" onclick="filterByStatus(this, 'Rejected')">
-            <div class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center">
-                <div class="status-label mb-1"><span class="badge bg-danger status-pill">Rejected</span></div>
-                <h4 class="status-count mb-0" id="count-rejected">0</h4>
-            </div>
+  </div>
+  <div class="col" style="min-width: 140px">
+    <div
+      class="card border-0 shadow-sm status-card {% if current_status == 'Rejected' %}active{% endif %}"
+      data-status="Rejected"
+      onclick="filterByStatus(this, 'Rejected')"
+    >
+      <div
+        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+      >
+        <div class="status-label mb-1">
+          <span class="badge bg-danger status-pill">Rejected</span>
         </div>
+        <h4 class="status-count mb-0" id="count-rejected">0</h4>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- ======== SECTION: Applications Table ======== -->
 <div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle" id="applications-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Applicant Name</th>
-                                <th>Job Title</th>
-                                <th>Applied Date</th>
-                                <th>Status</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for app in applications %}
-                            <tr data-status="{{ app.status|default:'Pending' }}">
-                                <td class="fw-semibold">{{ app.application_id }}</td>
-                                <td class="applicant-name">
-                                    <a href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}" class="text-decoration-none fw-medium">
-                                        <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:"N/A" }}
-                                    </a>
-                                </td>
-                                <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
-                                <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
-                                <td>
-                                    {% if app.status == 'Pending' %}
-                                    <span class="badge bg-secondary">Pending</span>
-                                    {% elif app.status == 'Accepted' %}
-                                    <span class="badge bg-success">Accepted</span>
-                                    {% elif app.status == 'Rejected' %}
-                                    <span class="badge bg-danger">Rejected</span>
-                                    {% elif app.status == 'Interview Scheduled' %}
-                                    <span class="badge bg-primary">Interview Scheduled</span>
-                                    {% elif app.status == 'Interviewed' %}
-                                    <span class="badge bg-info text-dark">Interviewed</span>
-                                    {% elif app.status == 'Not Interviewed' %}
-                                    <span class="badge bg-dark">Not Interviewed</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">{{ app.status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}" class="btn btn-outline-info" title="View Profile">
-                                            <i class="bi bi-person"></i>
-                                        </a>
-                                        {% if app.status == 'Interviewed' and app.interview_obj %}
-                                        <button type="button" class="btn btn-outline-secondary" title="View Scores"
-                                            data-bs-toggle="modal" data-bs-target="#scoresModal{{ app.application_id }}">
-                                            <i class="bi bi-bar-chart"></i>
-                                        </button>
-                                        {% endif %}
-                                        {% if app.status != 'Rejected' and app.status != 'Accepted' %}
-                                        <button type="button" class="btn btn-outline-success" title="Accept"
-                                            data-bs-toggle="modal" data-bs-target="#acceptModal{{ app.application_id }}">
-                                            <i class="bi bi-award"></i>
-                                        </button>
-                                        {% endif %}
-                                        {% if app.status != 'Rejected' and app.status != 'Accepted' %}
-                                        <button type="button" class="btn btn-outline-danger" title="Reject"
-                                            data-bs-toggle="modal" data-bs-target="#rejectModal{{ app.application_id }}">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                        {% endif %}
-                                        {% if app.status != 'Interview Scheduled' and app.status != 'Interviewed' and app.status != 'Rejected' and app.status != 'Accepted' %}
-                                        <a href="{% url 'recruitmentapp:schedule_interview' app.application_id %}" class="btn btn-outline-primary" title="Schedule Interview">
-                                            <i class="bi bi-calendar-event"></i>
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox empty-state-icon"></i>
-                                    <p class="mt-2 mb-0 fw-medium">No applications found</p>
-                                    <small>Applications submitted by applicants will appear here.</small>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table
+            class="table table-hover mb-0 align-middle"
+            id="applications-table"
+          >
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Applicant Name</th>
+                <th>Job Title</th>
+                <th>Applied Date</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in applications %}
+              <tr data-status="{{ app.status|default:'Pending' }}">
+                <td class="fw-semibold">{{ app.application_id }}</td>
+                <td class="applicant-name">
+                  <a
+                    href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}"
+                    class="text-decoration-none fw-medium"
+                  >
+                    <i class="bi bi-person-circle me-1"></i>{{
+                    app.applicant.user.full_name|default:"N/A" }}
+                  </a>
+                </td>
+                <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
+                <td>{{ app.application_date|date:"d/m/Y"|default:"-" }}</td>
+                <td>
+                  {% if app.status == 'Pending' %}
+                  <span class="badge bg-secondary">Pending</span>
+                  {% elif app.status == 'Accepted' %}
+                  <span class="badge bg-success">Accepted</span>
+                  {% elif app.status == 'Rejected' %}
+                  <span class="badge bg-danger">Rejected</span>
+                  {% elif app.status == 'Interview Scheduled' %}
+                  <span class="badge bg-primary">Interview Scheduled</span>
+                  {% elif app.status == 'Interviewed' %}
+                  <span class="badge bg-info text-dark">Interviewed</span>
+                  {% elif app.status == 'Not Interviewed' %}
+                  <span class="badge bg-dark">Not Interviewed</span>
+                  {% else %}
+                  <span class="badge bg-secondary">{{ app.status }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a
+                      href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}"
+                      class="btn btn-outline-info"
+                      title="View Profile"
+                    >
+                      <i class="bi bi-person"></i>
+                    </a>
+                    {% if app.status == 'Interviewed' and app.interview_obj %}
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary"
+                      title="View Scores"
+                      data-bs-toggle="modal"
+                      data-bs-target="#scoresModal{{ app.application_id }}"
+                    >
+                      <i class="bi bi-bar-chart"></i>
+                    </button>
+                    {% endif %} {% if app.status != 'Rejected' and app.status !=
+                    'Accepted' %}
+                    <button
+                      type="button"
+                      class="btn btn-outline-success"
+                      title="Accept"
+                      data-bs-toggle="modal"
+                      data-bs-target="#acceptModal{{ app.application_id }}"
+                    >
+                      <i class="bi bi-award"></i>
+                    </button>
+                    {% endif %} {% if app.status != 'Rejected' and app.status !=
+                    'Accepted' %}
+                    <button
+                      type="button"
+                      class="btn btn-outline-danger"
+                      title="Reject"
+                      data-bs-toggle="modal"
+                      data-bs-target="#rejectModal{{ app.application_id }}"
+                    >
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                    {% endif %} {% if app.status != 'Interview Scheduled' and
+                    app.status != 'Interviewed' and app.status != 'Rejected' and
+                    app.status != 'Accepted' %}
+                    <a
+                      href="{% url 'recruitmentapp:schedule_interview' app.application_id %}"
+                      class="btn btn-outline-primary"
+                      title="Schedule Interview"
+                    >
+                      <i class="bi bi-calendar-event"></i>
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox empty-state-icon"></i>
+                  <p class="mt-2 mb-0 fw-medium">No applications found</p>
+                  <small
+                    >Applications submitted by applicants will appear
+                    here.</small
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- ======== SECTION: Scores Modals ======== -->
-{% for app in applications %}
-{% if app.status == 'Interviewed' and app.interview_obj %}
+{% for app in applications %} {% if app.status == 'Interviewed' and
+app.interview_obj %}
 <div class="modal fade" id="scoresModal{{ app.application_id }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Interview Results — {{ app.applicant.user.full_name|default:"N/A" }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Job:</strong> {{ app.job.title }}</p>
-                <p><strong>Interview Date:</strong> {{ app.interview_obj.interview_date|date:"d/m/Y"|default:"N/A" }}</p>
-                <p><strong>Interview Time:</strong> {{ app.interview_obj.interview_time|date:"H:i"|default:"N/A" }}</p>
-                <p><strong>Interview Mode:</strong> {{ app.interview_obj.interview_mode|default:"N/A" }}</p>
-                <hr>
-                <div class="text-center mb-3">
-                    <span class="display-4 fw-bold {% if app.interview_obj.score >= 70 %}text-success{% elif app.interview_obj.score >= 40 %}text-warning{% else %}text-danger{% endif %}">
-                        {{ app.interview_obj.score }}
-                    </span>
-                    <span class="text-muted fs-5">/ 100</span>
-                </div>
-                <p><strong>Interviewer Remarks:</strong></p>
-                <div class="bg-light p-3 rounded">
-                    {% if app.interview_obj.remarks %}
-                        <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ app.interview_obj.remarks }}</pre>
-                    {% else %}
-                        <span class="text-muted">No remarks provided.</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Interview Results — {{ app.applicant.user.full_name|default:"N/A" }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Job:</strong> {{ app.job.title }}</p>
+        <p>
+          <strong>Interview Date:</strong> {{
+          app.interview_obj.interview_date|date:"d/m/Y"|default:"N/A" }}
+        </p>
+        <p>
+          <strong>Interview Time:</strong> {{
+          app.interview_obj.interview_time|date:"H:i"|default:"N/A" }}
+        </p>
+        <p>
+          <strong>Interview Mode:</strong> {{
+          app.interview_obj.interview_mode|default:"N/A" }}
+        </p>
+        <hr />
+        <div class="text-center mb-3">
+          <span
+            class="display-4 fw-bold {% if app.interview_obj.score >= 70 %}text-success{% elif app.interview_obj.score >= 40 %}text-warning{% else %}text-danger{% endif %}"
+          >
+            {{ app.interview_obj.score }}
+          </span>
+          <span class="text-muted fs-5">/ 100</span>
         </div>
+        <p><strong>Interviewer Remarks:</strong></p>
+        <div class="bg-light p-3 rounded">
+          {% if app.interview_obj.remarks %}
+          <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit">
+{{ app.interview_obj.remarks }}</pre
+          >
+          {% else %}
+          <span class="text-muted">No remarks provided.</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 {% endif %}
 
 <!-- ======== SECTION: Accept Confirmation Modal ======== -->
 <div class="modal fade" id="acceptModal{{ app.application_id }}" tabindex="-1">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center py-4">
-                <i class="bi bi-award text-success accept-icon"></i>
-                <h5 class="mt-3">Accept Applicant?</h5>
-                <p class="text-muted mb-0">Accept <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>? This will mark the application as accepted and notify the applicant.</p>
-            </div>
-            <div class="modal-footer justify-content-center border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="{% url 'recruitmentapp:application_accept' app.application_id %}" class="btn btn-success">
-                    <i class="bi bi-check-lg me-1"></i>Confirm &amp; Accept
-                </a>
-            </div>
-        </div>
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-award text-success accept-icon"></i>
+        <h5 class="mt-3">Accept Applicant?</h5>
+        <p class="text-muted mb-0">
+          Accept
+          <strong
+            >{{ app.applicant.user.full_name|default:"this applicant" }}</strong
+          >
+          for <strong>{{ app.job.title }}</strong>? This will mark the
+          application as accepted and notify the applicant.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center border-0 pt-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <a
+          href="{% url 'recruitmentapp:application_accept' app.application_id %}"
+          class="btn btn-success"
+        >
+          <i class="bi bi-check-lg me-1"></i>Confirm &amp; Accept
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- ======== SECTION: Reject Confirmation Modal ======== -->
 <div class="modal fade" id="rejectModal{{ app.application_id }}" tabindex="-1">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center py-4">
-                <i class="bi bi-exclamation-triangle text-danger reject-icon"></i>
-                <h5 class="mt-3">Reject Applicant?</h5>
-                <p class="text-muted mb-0">Reject <strong>{{ app.applicant.user.full_name|default:"this applicant" }}</strong> for <strong>{{ app.job.title }}</strong>? This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer justify-content-center border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="{% url 'recruitmentapp:application_reject' app.application_id %}" class="btn btn-danger">
-                    <i class="bi bi-x-circle me-1"></i>Confirm &amp; Reject
-                </a>
-            </div>
-        </div>
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-exclamation-triangle text-danger reject-icon"></i>
+        <h5 class="mt-3">Reject Applicant?</h5>
+        <p class="text-muted mb-0">
+          Reject
+          <strong
+            >{{ app.applicant.user.full_name|default:"this applicant" }}</strong
+          >
+          for <strong>{{ app.job.title }}</strong>? This action cannot be
+          undone.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center border-0 pt-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <a
+          href="{% url 'recruitmentapp:application_reject' app.application_id %}"
+          class="btn btn-danger"
+        >
+          <i class="bi bi-x-circle me-1"></i>Confirm &amp; Reject
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 {% endfor %}
 
 <!-- ======== SECTION: Inline JS ======== -->
 <script>
-function filterApplications() {
-    const search = document.getElementById('search-applications').value.toLowerCase().trim();
-    const activeCard = document.querySelector('.status-card.active');
-    const status = activeCard ? activeCard.getAttribute('data-status') : '';
-    const rows = document.querySelectorAll('#applications-table tbody tr[data-status]');
+  function filterApplications() {
+    const search = document
+      .getElementById("search-applications")
+      .value.toLowerCase()
+      .trim();
+    const activeCard = document.querySelector(".status-card.active");
+    const status = activeCard ? activeCard.getAttribute("data-status") : "";
+    const rows = document.querySelectorAll(
+      "#applications-table tbody tr[data-status]",
+    );
     let visible = 0;
 
-    rows.forEach(function(row) {
-        const name = row.querySelector('.applicant-name')?.textContent.toLowerCase() || '';
-        const title = row.querySelector('.job-title')?.textContent.toLowerCase() || '';
-        const rowStatus = row.getAttribute('data-status') || '';
+    rows.forEach(function (row) {
+      const name =
+        row.querySelector(".applicant-name")?.textContent.toLowerCase() || "";
+      const title =
+        row.querySelector(".job-title")?.textContent.toLowerCase() || "";
+      const rowStatus = row.getAttribute("data-status") || "";
 
-        const matchesSearch = !search || name.includes(search) || title.includes(search);
-        const matchesStatus = !status || rowStatus === status;
+      const matchesSearch =
+        !search || name.includes(search) || title.includes(search);
+      const matchesStatus = !status || rowStatus === status;
 
-        if (matchesSearch && matchesStatus) {
-            row.style.display = '';
-            visible++;
-        } else {
-            row.style.display = 'none';
-        }
+      if (matchesSearch && matchesStatus) {
+        row.style.display = "";
+        visible++;
+      } else {
+        row.style.display = "none";
+      }
     });
 
-    const emptyRow = document.querySelector('#applications-table tbody tr td[colspan]');
-    if (emptyRow && !emptyRow.closest('tr').hasAttribute('data-status')) {
-        emptyRow.closest('tr').style.display = visible === 0 ? '' : 'none';
+    const emptyRow = document.querySelector(
+      "#applications-table tbody tr td[colspan]",
+    );
+    if (emptyRow && !emptyRow.closest("tr").hasAttribute("data-status")) {
+      emptyRow.closest("tr").style.display = visible === 0 ? "" : "none";
     }
-}
+  }
 
-function filterByStatus(btn, status) {
-    document.querySelectorAll('.status-card').forEach(function(card) {
-        card.classList.remove('active');
+  function filterByStatus(btn, status) {
+    document.querySelectorAll(".status-card").forEach(function (card) {
+      card.classList.remove("active");
     });
-    btn.classList.add('active');
+    btn.classList.add("active");
     const params = new URLSearchParams(window.location.search);
-    const search = document.getElementById('search-applications').value.trim();
+    const search = document.getElementById("search-applications").value.trim();
     if (search) {
-        params.set('search', search);
+      params.set("search", search);
     } else {
-        params.delete('search');
+      params.delete("search");
     }
     if (status) {
-        params.set('status', status);
+      params.set("status", status);
     } else {
-        params.delete('status');
+      params.delete("status");
     }
     window.location.search = params.toString();
-}
+  }
 
-function updateSummary() {
-    const counts = {all: 0, submitted: 0, pending: 0, interview_scheduled: 0, interviewed: 0, not_interviewed: 0, accepted: 0, rejected: 0};
-    document.querySelectorAll('#applications-table tbody tr[data-status]').forEach(function(row) {
-        const s = (row.getAttribute('data-status') || '').toLowerCase();
+  function updateSummary() {
+    const counts = {
+      all: 0,
+      submitted: 0,
+      pending: 0,
+      interview_scheduled: 0,
+      interviewed: 0,
+      not_interviewed: 0,
+      accepted: 0,
+      rejected: 0,
+    };
+    document
+      .querySelectorAll("#applications-table tbody tr[data-status]")
+      .forEach(function (row) {
+        const s = (row.getAttribute("data-status") || "").toLowerCase();
         counts.all++;
-        if (s === 'submitted') counts.submitted++;
-        else if (s === 'pending') counts.pending++;
-        else if (s === 'interview scheduled') counts.interview_scheduled++;
-        else if (s === 'interviewed') counts.interviewed++;
-        else if (s === 'not interviewed') counts.not_interviewed++;
-        else if (s === 'accepted') counts.accepted++;
-        else if (s === 'rejected') counts.rejected++;
-    });
-    document.getElementById('count-all').textContent = counts.all;
-    document.getElementById('count-submitted').textContent = counts.submitted;
-    document.getElementById('count-pending').textContent = counts.pending;
-    document.getElementById('count-interview-scheduled').textContent = counts.interview_scheduled;
-    document.getElementById('count-interviewed').textContent = counts.interviewed;
-    document.getElementById('count-not-interviewed').textContent = counts.not_interviewed;
-    document.getElementById('count-accepted').textContent = counts.accepted;
-    document.getElementById('count-rejected').textContent = counts.rejected;
-}
+        if (s === "submitted") counts.submitted++;
+        else if (s === "pending") counts.pending++;
+        else if (s === "interview scheduled") counts.interview_scheduled++;
+        else if (s === "interviewed") counts.interviewed++;
+        else if (s === "not interviewed") counts.not_interviewed++;
+        else if (s === "accepted") counts.accepted++;
+        else if (s === "rejected") counts.rejected++;
+      });
+    document.getElementById("count-all").textContent = counts.all;
+    document.getElementById("count-submitted").textContent = counts.submitted;
+    document.getElementById("count-pending").textContent = counts.pending;
+    document.getElementById("count-interview-scheduled").textContent =
+      counts.interview_scheduled;
+    document.getElementById("count-interviewed").textContent =
+      counts.interviewed;
+    document.getElementById("count-not-interviewed").textContent =
+      counts.not_interviewed;
+    document.getElementById("count-accepted").textContent = counts.accepted;
+    document.getElementById("count-rejected").textContent = counts.rejected;
+  }
 
-document.addEventListener('DOMContentLoaded', updateSummary);
+  document.addEventListener("DOMContentLoaded", updateSummary);
 </script>
 {% endblock %}
