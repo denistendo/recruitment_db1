@@ -45,12 +45,12 @@
                         <span class="badge bg-dark-navy fw-semibold" style="font-size: 0.75rem; padding: 0.3rem 0.75rem; letter-spacing: 0.02em;">
                             {{ job.department.department_name|default:"General" }}
                         </span>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-outline-primary" onclick="openEditJobModal({{ job.job_id }}, '{{ job.title|escapejs }}', '{{ job.description|escapejs }}', '{{ job.department.department_id }}', '{{ job.posted_date|date:"Y-m-d"|default:"" }}', '{{ job.closing_date|date:"Y-m-d"|default:"" }}')" title="Edit">
-                                <i class="bi bi-pencil"></i>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-primary btn-sm" onclick="openEditJobModal({{ job.job_id }}, '{{ job.title|escapejs }}', '{{ job.description|escapejs }}', '{{ job.department.department_id }}', '{{ job.posted_date|date:"Y-m-d"|default:"" }}', '{{ job.closing_date|date:"Y-m-d"|default:"" }}')" title="Edit">
+                                <i class="bi bi-pencil me-1"></i>Edit
                             </button>
-                            <button class="btn btn-outline-danger" onclick="deleteJob({{ job.job_id }})" title="Delete">
-                                <i class="bi bi-trash"></i>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteJob({{ job.job_id }})" title="Delete">
+                                <i class="bi bi-trash me-1"></i>Delete
                             </button>
                         </div>
                     </div>
