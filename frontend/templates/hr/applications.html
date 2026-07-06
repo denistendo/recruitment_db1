@@ -1,4 +1,6 @@
-{% extends 'shared/base.html' %} {% load static %} {% block title %}Applications - RecruitDB{% endblock %} {% block page_header %}Applications Management{% endblock %} {% block content %}
+{% extends 'shared/base.html' %} {% load static %} {% block title %}Applications
+- RecruitDB{% endblock %} {% block page_header %}Applications Management{%
+endblock %} {% block content %}
 <!-- ======== SECTION: Search Controls ======== -->
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
@@ -40,9 +42,14 @@
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body py-3">
     <style>
+      #status-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+      }
       #status-tabs .nav-link {
         color: #000;
         font-weight: 500;
+        white-space: nowrap;
       }
       #status-tabs .nav-link:hover {
         color: #555;
@@ -133,50 +140,55 @@
 <div
   class="d-flex flex-nowrap align-items-stretch justify-content-between gap-2 mb-4 overflow-auto"
   id="status-summary"
-  style="scroll-behavior: smooth;"
+  style="scroll-behavior: smooth"
 >
-  <div
-    class="card border-0 shadow-sm"
-    style="flex: 1 1 auto; min-width: 140px"
-  >
+  <div class="card border-0 shadow-sm" style="flex: 1 1 auto; min-width: 140px">
     <div class="card-body text-center py-3 px-2">
-      <span class="badge bg-secondary d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Pending</span>
+      <span
+        class="badge bg-secondary d-inline-block mb-2"
+        style="font-size: 0.85rem; white-space: nowrap"
+        >Pending</span
+      >
       <h4 class="fw-bold mb-0" id="count-pending">0</h4>
     </div>
   </div>
-  <div
-    class="card border-0 shadow-sm"
-    style="flex: 1 1 auto; min-width: 140px"
-  >
+  <div class="card border-0 shadow-sm" style="flex: 1 1 auto; min-width: 140px">
     <div class="card-body text-center py-3 px-2">
-      <span class="badge bg-info text-dark d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Interviewed</span>
+      <span
+        class="badge bg-info text-dark d-inline-block mb-2"
+        style="font-size: 0.85rem; white-space: nowrap"
+        >Interviewed</span
+      >
       <h4 class="fw-bold mb-0" id="count-interviewed">0</h4>
     </div>
   </div>
-  <div
-    class="card border-0 shadow-sm"
-    style="flex: 1 1 auto; min-width: 140px"
-  >
+  <div class="card border-0 shadow-sm" style="flex: 1 1 auto; min-width: 140px">
     <div class="card-body text-center py-3 px-2">
-      <span class="badge bg-dark d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Not Interviewed</span>
+      <span
+        class="badge bg-dark d-inline-block mb-2"
+        style="font-size: 0.85rem; white-space: nowrap"
+        >Not Interviewed</span
+      >
       <h4 class="fw-bold mb-0" id="count-not-interviewed">0</h4>
     </div>
   </div>
-  <div
-    class="card border-0 shadow-sm"
-    style="flex: 1 1 auto; min-width: 140px"
-  >
+  <div class="card border-0 shadow-sm" style="flex: 1 1 auto; min-width: 140px">
     <div class="card-body text-center py-3 px-2">
-      <span class="badge bg-success d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Accepted</span>
+      <span
+        class="badge bg-success d-inline-block mb-2"
+        style="font-size: 0.85rem; white-space: nowrap"
+        >Accepted</span
+      >
       <h4 class="fw-bold mb-0" id="count-accepted">0</h4>
     </div>
   </div>
-  <div
-    class="card border-0 shadow-sm"
-    style="flex: 1 1 auto; min-width: 140px"
-  >
+  <div class="card border-0 shadow-sm" style="flex: 1 1 auto; min-width: 140px">
     <div class="card-body text-center py-3 px-2">
-      <span class="badge bg-danger d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Rejected</span>
+      <span
+        class="badge bg-danger d-inline-block mb-2"
+        style="font-size: 0.85rem; white-space: nowrap"
+        >Rejected</span
+      >
       <h4 class="fw-bold mb-0" id="count-rejected">0</h4>
     </div>
   </div>
@@ -211,7 +223,8 @@
                     href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}"
                     class="text-decoration-none fw-medium"
                   >
-                    <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:'N/A' }}
+                    <i class="bi bi-person-circle me-1"></i>{{
+                    app.applicant.user.full_name|default:'N/A' }}
                   </a>
                 </td>
                 <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
@@ -252,7 +265,8 @@
                     >
                       <i class="bi bi-bar-chart"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Rejected' and app.status != 'Accepted' %}
+                    {% endif %} {% if app.status != 'Rejected' and app.status !=
+                    'Accepted' %}
                     <button
                       type="button"
                       class="btn btn-outline-success"
@@ -262,7 +276,8 @@
                     >
                       <i class="bi bi-award"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Rejected' and app.status != 'Accepted' %}
+                    {% endif %} {% if app.status != 'Rejected' and app.status !=
+                    'Accepted' %}
                     <button
                       type="button"
                       class="btn btn-outline-danger"
@@ -272,7 +287,9 @@
                     >
                       <i class="bi bi-x-circle"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Interview Scheduled' and app.status != 'Interviewed' and app.status != 'Rejected' and app.status != 'Accepted' %}
+                    {% endif %} {% if app.status != 'Interview Scheduled' and
+                    app.status != 'Interviewed' and app.status != 'Rejected' and
+                    app.status != 'Accepted' %}
                     <a
                       href="{% url 'recruitmentapp:schedule_interview' app.application_id %}"
                       class="btn btn-outline-primary"
@@ -305,7 +322,8 @@
 </div>
 
 <!-- ======== SECTION: Scores Modals ======== -->
-{% for app in applications %} {% if app.status == 'Interviewed' and app.interview_obj %}
+{% for app in applications %} {% if app.status == 'Interviewed' and
+app.interview_obj %}
 <div class="modal fade" id="scoresModal{{ app.application_id }}" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
