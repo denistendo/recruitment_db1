@@ -39,6 +39,19 @@
 <!-- ======== SECTION: Status Filter Tabs ======== -->
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body py-3">
+    <style>
+      #status-tabs .nav-link {
+        color: #000;
+        font-weight: 500;
+      }
+      #status-tabs .nav-link:hover {
+        color: #555;
+      }
+      #status-tabs .nav-link.active {
+        background-color: #1a2332;
+        color: #fff;
+      }
+    </style>
     <ul class="nav nav-pills" id="status-tabs">
       <li class="nav-item">
         <button
@@ -118,55 +131,52 @@
 
 <!-- ======== SECTION: Status Summary Cards ======== -->
 <div
-  class="d-flex flex-wrap align-items-stretch justify-content-between gap-3 mb-4"
+  class="d-flex flex-nowrap align-items-stretch justify-content-between gap-2 mb-4 overflow-auto"
   id="status-summary"
+  style="scroll-behavior: smooth;"
 >
   <div
-    class="card border-0 shadow-sm flex-fill"
-    style="min-width: 180px; flex: 1 1 0"
+    class="card border-0 shadow-sm"
+    style="flex: 1 1 auto; min-width: 140px"
   >
-    <div class="card-body text-center py-4">
-      <span class="badge bg-secondary fs-6 mb-2 d-inline-block">Pending</span>
+    <div class="card-body text-center py-3 px-2">
+      <span class="badge bg-secondary d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Pending</span>
       <h4 class="fw-bold mb-0" id="count-pending">0</h4>
     </div>
   </div>
   <div
-    class="card border-0 shadow-sm flex-fill"
-    style="min-width: 180px; flex: 1 1 0"
+    class="card border-0 shadow-sm"
+    style="flex: 1 1 auto; min-width: 140px"
   >
-    <div class="card-body text-center py-4">
-      <span class="badge bg-info text-dark fs-6 mb-2 d-inline-block"
-        >Interviewed</span
-      >
+    <div class="card-body text-center py-3 px-2">
+      <span class="badge bg-info text-dark d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Interviewed</span>
       <h4 class="fw-bold mb-0" id="count-interviewed">0</h4>
     </div>
   </div>
   <div
-    class="card border-0 shadow-sm flex-fill"
-    style="min-width: 180px; flex: 1 1 0"
+    class="card border-0 shadow-sm"
+    style="flex: 1 1 auto; min-width: 140px"
   >
-    <div class="card-body text-center py-4">
-      <span class="badge bg-dark fs-6 mb-2 d-inline-block"
-        >Not Interviewed</span
-      >
+    <div class="card-body text-center py-3 px-2">
+      <span class="badge bg-dark d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Not Interviewed</span>
       <h4 class="fw-bold mb-0" id="count-not-interviewed">0</h4>
     </div>
   </div>
   <div
-    class="card border-0 shadow-sm flex-fill"
-    style="min-width: 180px; flex: 1 1 0"
+    class="card border-0 shadow-sm"
+    style="flex: 1 1 auto; min-width: 140px"
   >
-    <div class="card-body text-center py-4">
-      <span class="badge bg-success fs-6 mb-2 d-inline-block">Accepted</span>
+    <div class="card-body text-center py-3 px-2">
+      <span class="badge bg-success d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Accepted</span>
       <h4 class="fw-bold mb-0" id="count-accepted">0</h4>
     </div>
   </div>
   <div
-    class="card border-0 shadow-sm flex-fill"
-    style="min-width: 180px; flex: 1 1 0"
+    class="card border-0 shadow-sm"
+    style="flex: 1 1 auto; min-width: 140px"
   >
-    <div class="card-body text-center py-4">
-      <span class="badge bg-danger fs-6 mb-2 d-inline-block">Rejected</span>
+    <div class="card-body text-center py-3 px-2">
+      <span class="badge bg-danger d-inline-block mb-2" style="font-size: 0.85rem; white-space: nowrap;">Rejected</span>
       <h4 class="fw-bold mb-0" id="count-rejected">0</h4>
     </div>
   </div>
@@ -201,8 +211,7 @@
                     href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}"
                     class="text-decoration-none fw-medium"
                   >
-                    <i class="bi bi-person-circle me-1"></i>{{
-                    app.applicant.user.full_name|default:"N/A" }}
+                    <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:'N/A' }}
                   </a>
                 </td>
                 <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
