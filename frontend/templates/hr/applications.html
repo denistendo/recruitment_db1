@@ -1,8 +1,4 @@
-{% extends 'shared/base.html' %} {% load static %} {% block title %}Applications
-- RecruitDB{% endblock %} {% block page_header %}Applications Management{%
-endblock %} {% block extra_css %}
-<link rel="stylesheet" href="{% static 'hr/applications.css' %}" />
-{% endblock %} {% block content %}
+{% extends 'shared/base.html' %} {% load static %} {% block title %}Applications - RecruitDB{% endblock %} {% block page_header %}Applications Management{% endblock %} {% block content %}
 <!-- ======== SECTION: Search Controls ======== -->
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
@@ -40,134 +36,138 @@ endblock %} {% block extra_css %}
   </div>
 </div>
 
-<!-- ======== SECTION: Status Filter Cards ======== -->
-<div class="row g-3 mb-4" id="status-summary">
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card all-card {% if not current_status %}active{% endif %}"
-      data-status=""
-      onclick="filterByStatus(this, '')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
-      >
-        <div class="status-label mb-1">All</div>
-        <h4 class="status-count mb-0" id="count-all">
-          {{ applications|length }}
-        </h4>
-      </div>
+<!-- ======== SECTION: Status Filter Tabs ======== -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body py-3">
+    <ul class="nav nav-pills" id="status-tabs">
+      <li class="nav-item">
+        <button
+          class="nav-link {% if not current_status %}active{% endif %}"
+          data-status=""
+          onclick="filterByStatus(this, '')"
+        >
+          All
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link {% if current_status == 'Submitted' %}active{% endif %}"
+          data-status="Submitted"
+          onclick="filterByStatus(this, 'Submitted')"
+        >
+          Submitted
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link {% if current_status == 'Pending' %}active{% endif %}"
+          data-status="Pending"
+          onclick="filterByStatus(this, 'Pending')"
+        >
+          Pending
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link {% if current_status == 'Interview Scheduled' %}active{% endif %}"
+          data-status="Interview Scheduled"
+          onclick="filterByStatus(this, 'Interview Scheduled')"
+        >
+          Interview Scheduled
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link {% if current_status == 'Interviewed' %}active{% endif %}"
+          data-status="Interviewed"
+          onclick="filterByStatus(this, 'Interviewed')"
+        >
+          Interviewed
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link {% if current_status == 'Not Interviewed' %}active{% endif %}"
+          data-status="Not Interviewed"
+          onclick="filterByStatus(this, 'Not Interviewed')"
+        >
+          Not Interviewed
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link {% if current_status == 'Accepted' %}active{% endif %}"
+          data-status="Accepted"
+          onclick="filterByStatus(this, 'Accepted')"
+        >
+          Accepted
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link {% if current_status == 'Rejected' %}active{% endif %}"
+          data-status="Rejected"
+          onclick="filterByStatus(this, 'Rejected')"
+        >
+          Rejected
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======== SECTION: Status Summary Cards ======== -->
+<div
+  class="d-flex flex-wrap align-items-stretch justify-content-between gap-3 mb-4"
+  id="status-summary"
+>
+  <div
+    class="card border-0 shadow-sm flex-fill"
+    style="min-width: 180px; flex: 1 1 0"
+  >
+    <div class="card-body text-center py-4">
+      <span class="badge bg-secondary fs-6 mb-2 d-inline-block">Pending</span>
+      <h4 class="fw-bold mb-0" id="count-pending">0</h4>
     </div>
   </div>
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card {% if current_status == 'Submitted' %}active{% endif %}"
-      data-status="Submitted"
-      onclick="filterByStatus(this, 'Submitted')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+  <div
+    class="card border-0 shadow-sm flex-fill"
+    style="min-width: 180px; flex: 1 1 0"
+  >
+    <div class="card-body text-center py-4">
+      <span class="badge bg-info text-dark fs-6 mb-2 d-inline-block"
+        >Interviewed</span
       >
-        <div class="status-label mb-1">
-          <span class="badge bg-secondary status-pill">Submitted</span>
-        </div>
-        <h4 class="status-count mb-0" id="count-submitted">0</h4>
-      </div>
+      <h4 class="fw-bold mb-0" id="count-interviewed">0</h4>
     </div>
   </div>
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card {% if current_status == 'Pending' %}active{% endif %}"
-      data-status="Pending"
-      onclick="filterByStatus(this, 'Pending')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
+  <div
+    class="card border-0 shadow-sm flex-fill"
+    style="min-width: 180px; flex: 1 1 0"
+  >
+    <div class="card-body text-center py-4">
+      <span class="badge bg-dark fs-6 mb-2 d-inline-block"
+        >Not Interviewed</span
       >
-        <div class="status-label mb-1">
-          <span class="badge bg-warning text-dark status-pill">Pending</span>
-        </div>
-        <h4 class="status-count mb-0" id="count-pending">0</h4>
-      </div>
+      <h4 class="fw-bold mb-0" id="count-not-interviewed">0</h4>
     </div>
   </div>
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card {% if current_status == 'Interview Scheduled' %}active{% endif %}"
-      data-status="Interview Scheduled"
-      onclick="filterByStatus(this, 'Interview Scheduled')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
-      >
-        <div class="status-label mb-1">
-          <span class="badge bg-primary status-pill">Interview Scheduled</span>
-        </div>
-        <h4 class="status-count mb-0" id="count-interview-scheduled">0</h4>
-      </div>
+  <div
+    class="card border-0 shadow-sm flex-fill"
+    style="min-width: 180px; flex: 1 1 0"
+  >
+    <div class="card-body text-center py-4">
+      <span class="badge bg-success fs-6 mb-2 d-inline-block">Accepted</span>
+      <h4 class="fw-bold mb-0" id="count-accepted">0</h4>
     </div>
   </div>
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card {% if current_status == 'Interviewed' %}active{% endif %}"
-      data-status="Interviewed"
-      onclick="filterByStatus(this, 'Interviewed')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
-      >
-        <div class="status-label mb-1">
-          <span class="badge bg-info text-dark status-pill">Interviewed</span>
-        </div>
-        <h4 class="status-count mb-0" id="count-interviewed">0</h4>
-      </div>
-    </div>
-  </div>
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card {% if current_status == 'Not Interviewed' %}active{% endif %}"
-      data-status="Not Interviewed"
-      onclick="filterByStatus(this, 'Not Interviewed')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
-      >
-        <div class="status-label mb-1">
-          <span class="badge bg-dark status-pill">Not Interviewed</span>
-        </div>
-        <h4 class="status-count mb-0" id="count-not-interviewed">0</h4>
-      </div>
-    </div>
-  </div>
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card {% if current_status == 'Accepted' %}active{% endif %}"
-      data-status="Accepted"
-      onclick="filterByStatus(this, 'Accepted')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
-      >
-        <div class="status-label mb-1">
-          <span class="badge bg-success status-pill">Accepted</span>
-        </div>
-        <h4 class="status-count mb-0" id="count-accepted">0</h4>
-      </div>
-    </div>
-  </div>
-  <div class="col" style="min-width: 140px">
-    <div
-      class="card border-0 shadow-sm status-card {% if current_status == 'Rejected' %}active{% endif %}"
-      data-status="Rejected"
-      onclick="filterByStatus(this, 'Rejected')"
-    >
-      <div
-        class="card-body text-center py-3 d-flex flex-column justify-content-center align-items-center"
-      >
-        <div class="status-label mb-1">
-          <span class="badge bg-danger status-pill">Rejected</span>
-        </div>
-        <h4 class="status-count mb-0" id="count-rejected">0</h4>
-      </div>
+  <div
+    class="card border-0 shadow-sm flex-fill"
+    style="min-width: 180px; flex: 1 1 0"
+  >
+    <div class="card-body text-center py-4">
+      <span class="badge bg-danger fs-6 mb-2 d-inline-block">Rejected</span>
+      <h4 class="fw-bold mb-0" id="count-rejected">0</h4>
     </div>
   </div>
 </div>
@@ -243,8 +243,7 @@ endblock %} {% block extra_css %}
                     >
                       <i class="bi bi-bar-chart"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Rejected' and app.status !=
-                    'Accepted' %}
+                    {% endif %} {% if app.status != 'Rejected' and app.status != 'Accepted' %}
                     <button
                       type="button"
                       class="btn btn-outline-success"
@@ -254,8 +253,7 @@ endblock %} {% block extra_css %}
                     >
                       <i class="bi bi-award"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Rejected' and app.status !=
-                    'Accepted' %}
+                    {% endif %} {% if app.status != 'Rejected' and app.status != 'Accepted' %}
                     <button
                       type="button"
                       class="btn btn-outline-danger"
@@ -265,9 +263,7 @@ endblock %} {% block extra_css %}
                     >
                       <i class="bi bi-x-circle"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Interview Scheduled' and
-                    app.status != 'Interviewed' and app.status != 'Rejected' and
-                    app.status != 'Accepted' %}
+                    {% endif %} {% if app.status != 'Interview Scheduled' and app.status != 'Interviewed' and app.status != 'Rejected' and app.status != 'Accepted' %}
                     <a
                       href="{% url 'recruitmentapp:schedule_interview' app.application_id %}"
                       class="btn btn-outline-primary"
@@ -300,8 +296,7 @@ endblock %} {% block extra_css %}
 </div>
 
 <!-- ======== SECTION: Scores Modals ======== -->
-{% for app in applications %} {% if app.status == 'Interviewed' and
-app.interview_obj %}
+{% for app in applications %} {% if app.status == 'Interviewed' and app.interview_obj %}
 <div class="modal fade" id="scoresModal{{ app.application_id }}" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -429,8 +424,8 @@ app.interview_obj %}
       .getElementById("search-applications")
       .value.toLowerCase()
       .trim();
-    const activeCard = document.querySelector(".status-card.active");
-    const status = activeCard ? activeCard.getAttribute("data-status") : "";
+    const activeTab = document.querySelector("#status-tabs .nav-link.active");
+    const status = activeTab ? activeTab.getAttribute("data-status") : "";
     const rows = document.querySelectorAll(
       "#applications-table tbody tr[data-status]",
     );
@@ -464,8 +459,8 @@ app.interview_obj %}
   }
 
   function filterByStatus(btn, status) {
-    document.querySelectorAll(".status-card").forEach(function (card) {
-      card.classList.remove("active");
+    document.querySelectorAll("#status-tabs .nav-link").forEach(function (tab) {
+      tab.classList.remove("active");
     });
     btn.classList.add("active");
     const params = new URLSearchParams(window.location.search);
@@ -485,10 +480,7 @@ app.interview_obj %}
 
   function updateSummary() {
     const counts = {
-      all: 0,
-      submitted: 0,
       pending: 0,
-      interview_scheduled: 0,
       interviewed: 0,
       not_interviewed: 0,
       accepted: 0,
@@ -498,20 +490,13 @@ app.interview_obj %}
       .querySelectorAll("#applications-table tbody tr[data-status]")
       .forEach(function (row) {
         const s = (row.getAttribute("data-status") || "").toLowerCase();
-        counts.all++;
-        if (s === "submitted") counts.submitted++;
-        else if (s === "pending") counts.pending++;
-        else if (s === "interview scheduled") counts.interview_scheduled++;
-        else if (s === "interviewed") counts.interviewed++;
-        else if (s === "not interviewed") counts.not_interviewed++;
-        else if (s === "accepted") counts.accepted++;
-        else if (s === "rejected") counts.rejected++;
+        if (s.includes("pending") || s.includes("submitted")) counts.pending++;
+        else if (s.includes("not interviewed")) counts.not_interviewed++;
+        else if (s.includes("interviewed")) counts.interviewed++;
+        else if (s.includes("accepted")) counts.accepted++;
+        else if (s.includes("reject")) counts.rejected++;
       });
-    document.getElementById("count-all").textContent = counts.all;
-    document.getElementById("count-submitted").textContent = counts.submitted;
     document.getElementById("count-pending").textContent = counts.pending;
-    document.getElementById("count-interview-scheduled").textContent =
-      counts.interview_scheduled;
     document.getElementById("count-interviewed").textContent =
       counts.interviewed;
     document.getElementById("count-not-interviewed").textContent =
