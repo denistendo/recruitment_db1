@@ -41,13 +41,13 @@
   <div class="card-body py-3">
     <style>
       #status-tabs {
-        flex-wrap: nowrap;
-        overflow-x: auto;
+        flex-wrap: wrap;
       }
       #status-tabs .nav-link {
         color: #000;
         font-weight: 500;
-        white-space: nowrap;
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
       }
       #status-tabs .nav-link:hover {
         color: #555;
@@ -221,8 +221,7 @@
                     href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}"
                     class="text-decoration-none fw-medium"
                   >
-                    <i class="bi bi-person-circle me-1"></i>{{
-                    app.applicant.user.full_name|default:"N/A" }}
+                    <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:"N/A" }}
                   </a>
                 </td>
                 <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
