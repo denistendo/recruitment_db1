@@ -223,8 +223,7 @@ endblock %} {% block content %}
                     href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}"
                     class="text-decoration-none fw-medium"
                   >
-                    <i class="bi bi-person-circle me-1"></i>{{
-                    app.applicant.user.full_name|default:'N/A' }}
+                    <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:"N/A" }}
                   </a>
                 </td>
                 <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
