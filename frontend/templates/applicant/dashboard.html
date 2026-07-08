@@ -1,8 +1,6 @@
-{% extends 'shared/base.html' %}
-{% load static %}
-{% block title %}My Dashboard - RecruitDB{% endblock %}
-{% block page_header %}Dashboard{% endblock %}
-{% block content %}
+{% extends 'shared/base.html' %} {% load static %} {% block title %}My Dashboard
+- RecruitDB{% endblock %} {% block page_header %}Dashboard{% endblock %} {%
+block content %}
 <div class="mb-4">
   <h1 class="fw-bold" style="font-size: 2rem; color: #000">
     Applicant Dashboard
@@ -33,7 +31,7 @@
             Available Jobs
           </p>
           <h3 class="fw-bold mb-0">{{ total_open_positions }}</h3>
-          <small class="text-success">Open for applications</small>
+          <small class="text-success">Current open positions</small>
         </div>
       </div>
     </div>
@@ -90,7 +88,8 @@
           </p>
           <h3 class="fw-bold mb-0">{{ total_interviews }}</h3>
           <small class="text-muted">
-            {% if total_interviews > 0 %}Upcoming{% else %}None scheduled{% endif %}
+            {% if total_interviews > 0 %}Upcoming{% else %}None scheduled{%
+            endif %}
           </small>
         </div>
       </div>
@@ -305,9 +304,7 @@
     Recruitment Management System &#8212; Applicant Profile Report
   </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
+{% endblock %} {% block extra_css %}
 <style>
   .print-only {
     display: none;

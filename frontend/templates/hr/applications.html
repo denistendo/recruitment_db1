@@ -1,4 +1,6 @@
-{% extends 'shared/base.html' %} {% load static %} {% block title %}Applications - RecruitDB{% endblock %} {% block page_header %}Applications Management{% endblock %} {% block content %}
+{% extends 'shared/base.html' %} {% load static %} {% block title %}Applications
+- RecruitDB{% endblock %} {% block page_header %}Applications Management{%
+endblock %} {% block content %}
 <!-- ======== SECTION: Search Controls ======== -->
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
@@ -221,7 +223,8 @@
                     href="{% url 'recruitmentapp:applicant_detail' app.applicant.applicant_id %}"
                     class="text-decoration-none fw-medium"
                   >
-                    <i class="bi bi-person-circle me-1"></i>{{ app.applicant.user.full_name|default:"N/A" }}
+                    <i class="bi bi-person-circle me-1"></i>{{
+                    app.applicant.user.full_name|default:"N/A" }}
                   </a>
                 </td>
                 <td class="job-title">{{ app.job.title|default:"N/A" }}</td>
@@ -262,7 +265,8 @@
                     >
                       <i class="bi bi-bar-chart"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Rejected' and app.status != 'Accepted' %}
+                    {% endif %} {% if app.status != 'Rejected' and app.status !=
+                    'Accepted' %}
                     <button
                       type="button"
                       class="btn btn-outline-success"
@@ -272,7 +276,8 @@
                     >
                       <i class="bi bi-award"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Rejected' and app.status != 'Accepted' %}
+                    {% endif %} {% if app.status != 'Rejected' and app.status !=
+                    'Accepted' %}
                     <button
                       type="button"
                       class="btn btn-outline-danger"
@@ -282,7 +287,9 @@
                     >
                       <i class="bi bi-x-circle"></i>
                     </button>
-                    {% endif %} {% if app.status != 'Interview Scheduled' and app.status != 'Interviewed' and app.status != 'Rejected' and app.status != 'Accepted' %}
+                    {% endif %} {% if app.status != 'Interview Scheduled' and
+                    app.status != 'Interviewed' and app.status != 'Rejected' and
+                    app.status != 'Accepted' %}
                     <a
                       href="{% url 'recruitmentapp:schedule_interview' app.application_id %}"
                       class="btn btn-outline-primary"
@@ -315,7 +322,8 @@
 </div>
 
 <!-- ======== SECTION: Scores Modals ======== -->
-{% for app in applications %} {% if app.status == 'Interviewed' and app.interview_obj %}
+{% for app in applications %} {% if app.status == 'Interviewed' and
+app.interview_obj %}
 <div class="modal fade" id="scoresModal{{ app.application_id }}" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
